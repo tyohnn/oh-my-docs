@@ -1,0 +1,91 @@
+---
+title: Notion content port with references templates
+description: Ship selectable Notion SSOT provisioning from skill references templates via MCP manifests.
+type: guide
+summary: Encode dogfood Notion IA and sidebar chrome under skills/oh-my-doc/references, then provision through the content port.
+id: PLAN-notion-content-port-with-references-templates
+ticker: PLAN-011
+stage: ready
+changeType: product
+prd: PRD-selectable-content-source
+specs:
+  - SPEC-content-source-contract
+  - SPEC-notion-content-port
+stories:
+  - US-choose-handbook-content-source
+codeAreas:
+  - skills/oh-my-doc
+  - plugins
+  - apps/docs
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/stories/us-choose-handbook-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+  - /docs/adr/adr-select-one-content-source-per-project
+---
+
+## Scope
+
+1. Capture the living dogfood Notion IA into skill templates under
+   **`skills/oh-my-doc/references/`** — path name is **`references`**, not `ref/`.
+   Add Notion-specific files beside the existing progressive-disclosure set
+   (`information-architecture.md`, workflows, etc.); do not invent a second
+   folder. Encode:
+   - IA object graph (pages, catalog wrapper pages, inline databases)
+   - catalog DB schemas and relations
+   - page body + sidebar chrome templates (callout, mentions, double-layer
+     active sections, root sources toggle)
+   - manual UI checklist (page Full width)
+   Do **not** check in Notion HTML export as the template source of truth.
+2. Version `.omd` project/state schemas for `contentSource.ssot` local|notion.
+3. Implement content-port + local adapter wrap of current behavior.
+4. Implement Notion adapter that emits deterministic MCP manifests from
+   `references` templates and records mappings in `.omd/state.json`.
+5. Route skill `adopt` / `new` / `check` / `sync` by SSOT; sync plugin mirrors.
+6. Verify idempotent provision against a sandbox Notion root.
+
+## Implementation sequence
+
+1. Land product contracts (PRD/Story/Domain/SPEC/ADR) on `main`.
+2. Land this ready plan (docs-only).
+3. Add `skills/oh-my-doc/references/notion-*.md` (and JSON schema fixtures if
+   needed) captured from the dogfood workspace shape in SPEC-009.
+4. Extend project/state schemas + `omd-contract.mjs`; default missing SSOT to
+   `local`.
+5. Add `runtime/content-sources/` port, local adapter, Notion
+   `planProvision` / validate / recordResult.
+6. Wire skill routing + `pnpm sync:skills`.
+7. Unit tests for manifests/idempotency; sandbox Notion E2E; mark plan `done`.
+
+## Verification
+
+- `pnpm test`
+- `pnpm typecheck`
+- `pnpm check:planning`
+- `pnpm check:skills`
+- `node skills/oh-my-doc/scripts/omd.mjs inspect --json`
+- Sandbox: `adopt --ssot notion` twice on the same root creates no duplicate
+  managed pages/DBs; sidebar chrome and inline catalogs match SPEC-009.
+
+## Migration and compatibility
+
+- Existing projects without `contentSource` remain `local`.
+- Notion HTML export is not used; templates are Notion-flavored Markdown +
+  structured keys only.
+- Page Full width remains a post-provision manual checklist item.
+
+## Risks and rollback
+
+- Notion MCP capability gaps → clear `capability_missing` / auth blockers.
+- Mention wiring requires create-then-substitute; partial apply must resume
+  from state.
+- Rollback: leave Notion objects in place; revert skill/runtime to local-only
+  routing.
+
+## Completion criteria
+
+- A second project can provision the same managed Notion IA from skill
+  `references` alone (plus manual checklist).
+- Local adopt/new/check/sync regressions still pass.
+- Plan marked `done` after verification.
