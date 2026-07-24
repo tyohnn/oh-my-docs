@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { adoptProject, syncProject } from '../runtime/adopt.mjs';
@@ -9,8 +8,20 @@ import { inspectProject } from '../runtime/inspect.mjs';
 import { planCreateDocument } from '../runtime/create-document.mjs';
 import { doctorProject } from '../runtime/doctor.mjs';
 import { validatePlanning } from '../runtime/planning.mjs';
-import { readProject, readState, digest, stableStringify } from '../runtime/omd-contract.mjs';
-import { DEFAULT_UI_VOCABULARY } from '../runtime/omd-contract.mjs';
+import {
+  readProject,
+  readState,
+  digest,
+  stableStringify,
+  normalizeContentSource,
+  DEFAULT_UI_VOCABULARY,
+} from '../runtime/omd-contract.mjs';
+import {
+  getContentAdapter,
+  resolveContentSource,
+} from '../runtime/content-sources/index.mjs';
+import { adoptNotionProject } from '../runtime/content-sources/adopt-notion.mjs';
+import { planCreateDocument as planNotionCreateDocument } from '../runtime/content-sources/notion.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SKILL_ROOT = resolve(__dirname, '..');
@@ -32,7 +43,15 @@ function parseArgs(argv) {
     if (!token) break;
     if (token.startsWith('--')) {
       const key = token.slice(2);
-      if (key === 'dry-run' || key === 'yes' || key === 'json' || key === 'force') {
+      if (
+        key === 'dry-run' ||
+        key === 'yes' ||
+        key === 'json' ||
+        key === 'force' ||
+        key === 'mcp-available' ||
+        key === 'authenticated' ||
+        key === 'root-accessible'
+      ) {
         flags[key] = true;
         continue;
       }
@@ -50,6 +69,13 @@ function parseArgs(argv) {
 
 function printJson(value) {
   console.log(JSON.stringify(value, null, 2));
+}
+
+/**
+ * @param {Record<string, string | boolean>} flags
+ */
+function flagSsot(flags) {
+  return typeof flags.ssot === 'string' ? flags.ssot : undefined;
 }
 
 /**
@@ -71,7 +97,14 @@ export async function main(argv = process.argv.slice(2)) {
     return;
   }
 
-  const cwd = resolve(process.cwd(), typeof flags.directory === 'string' ? flags.directory : positionals[0] && action === 'adopt' ? positionals[0] : '.');
+  const cwd = resolve(
+    process.cwd(),
+    typeof flags.directory === 'string'
+      ? flags.directory
+      : positionals[0] && action === 'adopt'
+        ? positionals[0]
+        : '.',
+  );
   const json = flags.json === true;
   const dryRun = flags['dry-run'] === true;
   const force = flags.force === true;
@@ -84,9 +117,12 @@ export async function main(argv = process.argv.slice(2)) {
           cwd,
           ...(typeof flags['ui-path'] === 'string' ? { uiPath: flags['ui-path'] } : {}),
         });
-        if (json) printJson(report);
+        const contentSource = resolveContentSourceSafe(cwd, flags);
+        const payload = { ...report, contentSource };
+        if (json) printJson(payload);
         else {
           console.log(`mode: ${report.mode}`);
+          console.log(`ssot: ${contentSource.ssot}`);
           console.log(`docs: ${report.project.docsPath ?? '(none)'}`);
           console.log(`ui: ${report.project.uiPath ?? '(none)'}`);
           console.log(`.omd: ${report.omd.present ? 'present' : 'missing'}`);
@@ -103,6 +139,44 @@ export async function main(argv = process.argv.slice(2)) {
           return;
         }
         const target = resolve(process.cwd(), positionals[0] ?? '.');
+        const source = resolveContentSource({
+          cwd: target,
+          ssot: flagSsot(flags),
+          notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
+        });
+
+        if (source.ssot === 'notion') {
+          const result = adoptNotionProject({
+            cwd: target,
+            skillRoot: SKILL_ROOT,
+            schemasDir: SCHEMAS_DIR,
+            notionRoot: source.notion.rootPageUrl || source.notion.rootPageId,
+            dryRun,
+            force,
+            mcpAvailable: flags['mcp-available'] === true ? true : flags['mcp-available'] === false ? false : undefined,
+            authenticated: flags.authenticated === true ? true : undefined,
+            rootAccessible: flags['root-accessible'] === true ? true : undefined,
+          });
+          // Default: without explicit MCP flags, treat host as needing agent execution (no hard fail on dry-run).
+          if (!dryRun && result.blockers.length > 0 && !force) {
+            if (json) printJson(result);
+            else {
+              console.error('Notion adopt blocked:');
+              for (const b of result.blockers) console.error(`- ${b.code}: ${b.message}`);
+            }
+            process.exitCode = 1;
+            return;
+          }
+          if (json) printJson(result);
+          else {
+            console.log(`adopt notion${dryRun ? ' (dry-run)' : ''}`);
+            console.log(`operations: ${result.manifest.operations.length}`);
+            console.log(`root: ${result.contentSource.notion.rootPageId}`);
+            if (result.next) console.log(result.next);
+          }
+          return;
+        }
+
         const result = adoptProject({
           cwd: target,
           templateRoot: TEMPLATE_ROOT,
@@ -139,6 +213,35 @@ export async function main(argv = process.argv.slice(2)) {
           process.exitCode = 1;
           return;
         }
+        const source = resolveContentSource({
+          cwd,
+          ssot: flagSsot(flags),
+          notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
+        });
+        if (source.ssot === 'notion') {
+          const state = readState(cwd);
+          const mappings = state?.provider?.notion?.mappings ?? {};
+          const id =
+            typeof flags.id === 'string'
+              ? flags.id
+              : `${kind}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+          const planned = planNotionCreateDocument({
+            skillRoot: SKILL_ROOT,
+            kind,
+            title,
+            id,
+            mappings,
+          });
+          if (json) printJson(planned);
+          else {
+            console.log(`Notion new ${kind} → manifest ${planned.operation.id}`);
+            if (planned.requiresMappedDatabase) {
+              console.log('Database not mapped yet — run adopt/sync provision first.');
+            }
+          }
+          if (planned.requiresMappedDatabase) process.exitCode = 2;
+          return;
+        }
         const planned = planCreateDocument({
           cwd,
           kind,
@@ -164,6 +267,40 @@ export async function main(argv = process.argv.slice(2)) {
         return;
       }
       case 'check': {
+        const source = resolveContentSourceSafe(cwd, flags);
+        if (source.ssot === 'notion') {
+          const problems = [];
+          const contract = readProject(cwd);
+          const state = readState(cwd);
+          if (!contract) problems.push('.omd/project.json is missing — run adopt first');
+          else {
+            const normalized = normalizeContentSource(contract);
+            if (normalized.ssot !== 'notion') {
+              problems.push('contentSource.ssot is not notion');
+            }
+            if (!normalized.notion?.rootPageId) {
+              problems.push('contentSource.notion.rootPageId is required');
+            }
+            if (state && digest(stableStringify(contract)) !== state.projectDigest) {
+              problems.push('.omd/state.json projectDigest does not match project.json');
+            }
+            const pending = state?.provider?.notion?.pendingOperationIds ?? [];
+            if (pending.length > 0) {
+              problems.push(`Notion provision has ${pending.length} pending operation(s)`);
+            }
+          }
+          const ok = problems.length === 0;
+          if (json) printJson({ ok, problems, contentSource: source });
+          else if (!ok) {
+            console.error(`check found ${problems.length} problem(s):`);
+            for (const problem of problems) console.error(`- ${problem}`);
+          } else {
+            console.log('Notion content source contract looks valid.');
+          }
+          if (!ok) process.exitCode = 1;
+          return;
+        }
+
         const report = doctorProject({ cwd });
         const docsPath =
           typeof flags['docs-path'] === 'string' ? flags['docs-path'] : report.project.docsPath;
@@ -182,7 +319,10 @@ export async function main(argv = process.argv.slice(2)) {
           if (contract.ui?.distribution !== 'skill-template') {
             problems.push('.omd/project.json ui.distribution must be skill-template');
           }
-          if (!Array.isArray(contract.ui?.shellDependencies) || !contract.ui.shellDependencies.includes('fumadocs-ui')) {
+          if (
+            !Array.isArray(contract.ui?.shellDependencies) ||
+            !contract.ui.shellDependencies.includes('fumadocs-ui')
+          ) {
             problems.push('.omd/project.json ui.shellDependencies must include fumadocs-ui');
           }
           const declared = new Set((contract.ui?.vocabulary ?? []).map((item) => item.name));
@@ -198,7 +338,7 @@ export async function main(argv = process.argv.slice(2)) {
           problems.push('.omd/project.json is missing — run adopt first');
         }
         const ok = problems.length === 0;
-        if (json) printJson({ ok, problems, doctor: report });
+        if (json) printJson({ ok, problems, doctor: report, contentSource: source });
         else if (!ok) {
           console.error(`check found ${problems.length} problem(s):`);
           for (const problem of problems) console.error(`- ${problem}`);
@@ -212,6 +352,27 @@ export async function main(argv = process.argv.slice(2)) {
         if (!dryRun && !yes) {
           console.error('Refusing to write without --yes (or use --dry-run).');
           process.exitCode = 1;
+          return;
+        }
+        const source = resolveContentSource({
+          cwd,
+          ssot: flagSsot(flags),
+          notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
+        });
+        if (source.ssot === 'notion') {
+          const adapter = getContentAdapter('notion');
+          const state = readState(cwd);
+          const planned = adapter.planProvision({
+            skillRoot: SKILL_ROOT,
+            notionRoot: source.notion.rootPageUrl || source.notion.rootPageId,
+            mappings: state?.provider?.notion?.mappings ?? {},
+            pendingOperationIds: state?.provider?.notion?.pendingOperationIds ?? [],
+          });
+          if (json) printJson({ ok: true, dryRun, contentSource: source, ...planned });
+          else {
+            console.log(`sync notion${dryRun ? ' (dry-run)' : ''}: ${planned.manifest.operations.length} operation(s)`);
+            console.log('Execute pending MCP operations; runtime does not call Notion directly.');
+          }
           return;
         }
         const result = syncProject({
@@ -233,9 +394,25 @@ export async function main(argv = process.argv.slice(2)) {
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (json) printJson({ ok: false, error: message });
+    if (json) printJson({ ok: false, error: message, code: error?.code });
     else console.error(message);
     process.exitCode = 1;
+  }
+}
+
+/**
+ * @param {string} cwd
+ * @param {Record<string, string | boolean>} flags
+ */
+function resolveContentSourceSafe(cwd, flags) {
+  try {
+    return resolveContentSource({
+      cwd,
+      ssot: flagSsot(flags),
+      notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
+    });
+  } catch {
+    return { ssot: 'local', notion: null, contract: readProject(cwd) };
   }
 }
 
@@ -254,6 +431,7 @@ Actions:
 
 Common flags:
   --json --dry-run --yes --force
+  --ssot local|notion --notion-root <url-or-id>
   --ui-path <path> --docs-path <path> --title <title> --id <id>
 `);
 }

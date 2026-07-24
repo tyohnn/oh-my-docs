@@ -21,18 +21,25 @@ Always prefer JSON for machine steps:
 ```bash
 node <skill>/scripts/omd.mjs inspect --json
 node <skill>/scripts/omd.mjs adopt --yes --json
+node <skill>/scripts/omd.mjs adopt --ssot notion --notion-root <url-or-id> --dry-run --json
 node <skill>/scripts/omd.mjs new prd --title "…" --yes --json
 node <skill>/scripts/omd.mjs check --json
 node <skill>/scripts/omd.mjs sync --yes --json
 ```
+
+Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before choosing a
+workflow. Missing `contentSource` means `local`.
 
 ### State machine
 
 1. `inspect` — classify greenfield vs brownfield; never mutate.
 2. `adopt --dry-run` — show the plan; ask the user only when mapping is ambiguous.
 3. `adopt --yes` — apply scaffold/import, write `.omd/`, install UI vocabulary snapshot.
-4. `check` — validate planning graph + `.omd` contract + UI vocabulary.
-5. `new` / `sync` as needed for later work.
+4. `adopt --ssot notion --notion-root …` — emit a Notion MCP provisioning manifest from
+   `references/notion-*` (never a `ref/` path); execute via host MCP; record mappings.
+5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local), or
+   Notion root/mappings/pending ops (notion).
+6. `new` / `sync` as needed for later work.
 
 ## UI distribution
 
@@ -50,6 +57,12 @@ node <skill>/scripts/omd.mjs sync --yes --json
 | `references/implementation-workflow.md` | How to implement under a ready plan |
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
+| `references/notion-information-architecture.md` | Notion page + inline DB IA |
+| `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |
+| `references/notion-page-templates.md` | Notion-flavored body templates |
+| `references/notion-manual-checklist.md` | Host-only steps (page Full width) |
+| `references/notion-ia-graph.json` | Machine-readable Notion object graph |
+| `references/notion-catalog-schemas.json` | Catalog DB properties and relations |
 | `assets/AGENTS.md` / `assets/CLAUDE.md` | Marker body templates |
 
 ## Hard rules

@@ -75,10 +75,77 @@ export function stableStringify(value) {
  * @param {string} root
  * @param {{ mode?: 'greenfield' | 'brownfield', docsPath?: string, uiPath?: string }} [options]
  */
+/**
+ * @param {unknown} project
+ * @returns {{ ssot: 'local' | 'notion', notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string } }}
+ */
+export function normalizeContentSource(project) {
+  const raw = project && typeof project === 'object' ? project.contentSource : null;
+  if (!raw || typeof raw !== 'object' || !raw.ssot) {
+    return { ssot: 'local', notion: null };
+  }
+  if (raw.ssot === 'local') {
+    return { ssot: 'local', notion: null };
+  }
+  if (raw.ssot === 'notion') {
+    const notion = raw.notion && typeof raw.notion === 'object' ? raw.notion : {};
+    return {
+      ssot: 'notion',
+      notion: {
+        rootPageId: String(notion.rootPageId ?? ''),
+        rootPageUrl: String(notion.rootPageUrl ?? ''),
+        schemaVersion: String(notion.schemaVersion ?? '1.0'),
+      },
+    };
+  }
+  throw new Error(`unsupported contentSource.ssot: ${raw.ssot}`);
+}
+
+/**
+ * @param {'local' | 'notion'} [ssot]
+ * @param {{ rootPageId: string, rootPageUrl: string, schemaVersion?: string } | null} [notion]
+ */
+export function createContentSource(ssot = 'local', notion = null) {
+  if (ssot === 'local') {
+    return { ssot: 'local' };
+  }
+  if (ssot === 'notion') {
+    if (!notion?.rootPageId || !notion?.rootPageUrl) {
+      throw new Error('notion contentSource requires rootPageId and rootPageUrl');
+    }
+    return {
+      ssot: 'notion',
+      notion: {
+        rootPageId: notion.rootPageId,
+        rootPageUrl: notion.rootPageUrl,
+        schemaVersion: notion.schemaVersion ?? '1.0',
+      },
+    };
+  }
+  throw new Error(`unsupported contentSource.ssot: ${ssot}`);
+}
+
+/**
+ * @param {string} root
+ * @param {{
+ *   mode?: 'greenfield' | 'brownfield',
+ *   docsPath?: string,
+ *   uiPath?: string,
+ *   contentSource?: { ssot: 'local' | 'notion', notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string } },
+ * }} [options]
+ */
 export function createDefaultProject(root, options = {}) {
+  const contentSource = options.contentSource
+    ? createContentSource(
+        options.contentSource.ssot,
+        options.contentSource.ssot === 'notion' ? options.contentSource.notion ?? null : null,
+      )
+    : createContentSource('local');
+
   return {
     contractVersion: CONTRACT_VERSION,
     mode: options.mode ?? 'greenfield',
+    contentSource,
     paths: {
       docs: options.docsPath ?? 'docs',
       ui: options.uiPath ?? 'packages/ui',
@@ -109,7 +176,17 @@ export function createDefaultProject(root, options = {}) {
  * @param {ReturnType<typeof createDefaultProject>} project
  * @param {{ skillVersion?: string, templateVersion?: string, files?: Record<string, { ownership: string, digest: string }> }} [options]
  */
+/**
+ * @param {ReturnType<typeof createDefaultProject>} project
+ * @param {{
+ *   skillVersion?: string,
+ *   templateVersion?: string,
+ *   files?: Record<string, { ownership: string, digest: string }>,
+ *   provider?: Record<string, unknown>,
+ * }} [options]
+ */
 export function createDefaultState(project, options = {}) {
+  const contentSource = normalizeContentSource(project);
   return {
     contractVersion: CONTRACT_VERSION,
     skillVersion: options.skillVersion ?? SKILL_VERSION,
@@ -123,8 +200,10 @@ export function createDefaultState(project, options = {}) {
       sections: project.informationArchitecture.sections.map((section) => section.id),
       catalogs: project.informationArchitecture.catalogs.map((catalog) => catalog.id),
       vocabulary: project.ui.vocabulary.map((item) => item.name),
+      contentSource: contentSource.ssot,
     },
     files: options.files ?? {},
+    ...(options.provider ? { provider: options.provider } : {}),
   };
 }
 
