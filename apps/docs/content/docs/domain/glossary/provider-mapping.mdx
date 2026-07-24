@@ -1,0 +1,18 @@
+---
+title: Provider mapping
+description: The recorded association between stable OMD keys and provider object IDs.
+type: reference
+summary: Provider mappings make remote provisioning and document creation idempotent.
+id: TERM-provider-mapping
+related:
+  - /docs/domain/glossary/provisioning-manifest
+  - /docs/spec/data-model/content-source-contract
+---
+
+## Meaning
+
+A **provider mapping** associates a stable Oh My Docs section, catalog, or
+document key with its provider object identifier.
+
+Mappings are operational state in `.omd/state.json`, not product content.
+They may be rebuilt by inspecting the configured provider.

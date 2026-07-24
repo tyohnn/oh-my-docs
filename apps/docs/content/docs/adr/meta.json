@@ -5,6 +5,7 @@
     "adr-001-fumadocs-ssot",
     "adr-ui-vocabulary-ships-as-skill-template-snapshot",
     "adr-git-snapshots-approve-task-execution-state",
-    "adr-promote-adr-and-plans-to-top-level-catalogs"
+    "adr-promote-adr-and-plans-to-top-level-catalogs",
+    "adr-select-one-content-source-per-project"
   ]
 }

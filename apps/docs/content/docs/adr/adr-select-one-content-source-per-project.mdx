@@ -1,0 +1,68 @@
+---
+title: Select one content source per project
+description: Support local MDX and Notion through ports without making both authoritative.
+type: decision
+summary: Each project chooses one SSOT; runtime manifests and agent MCP calls isolate provider details.
+id: ADR-005
+ticker: ADR-005
+stage: accepted
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+  - /docs/adr/adr-001-fumadocs-ssot
+---
+
+## Context
+
+ADR-001 correctly prevents multiple generated content stores from drifting,
+but it assumes every project uses local MDX. Teams that work in Notion need the
+same planning graph and IA without maintaining an MDX copy.
+
+MCP credentials and transport belong to the invoking host, while deterministic
+planning and validation belong to the Oh My Docs runtime.
+
+## Decision
+
+- Each `.omd` project selects exactly one authoritative content source:
+  `local` or `notion`.
+- Provider-neutral operations are defined as a content port.
+- The local adapter retains MDX/Fumadocs behavior.
+- The Notion adapter emits deterministic manifests; the skill executes them
+  with a configured Notion MCP and returns snapshots for validation.
+- Non-secret source identity is stored in project metadata. Rebuildable object
+  mappings are stored in state. Credentials are never stored.
+- Notion itself is the presentation layer in v1.
+
+ADR-001 remains applicable to `local` projects and to the rule that a project
+must not have two authoritative stores.
+
+## Consequences
+
+- Skills must inspect `.omd/project.json` before content operations.
+- `check` becomes provider-aware.
+- Contract migration defaults legacy projects to local.
+- Notion capability is optional; local users gain no network dependency.
+- Provider migration and Notion-to-Fumadocs publishing remain separate work.
+
+## Rejected alternatives
+
+### Keep local MDX as SSOT and project it to Notion
+
+Rejected for this initiative because it does not serve teams that require
+Notion to be authoritative.
+
+### Make Notion and MDX bidirectionally authoritative
+
+Rejected because conflict resolution and drift would undermine reviewed
+planning state.
+
+### Call Notion directly from the Node runtime
+
+Rejected because host MCP authentication cannot safely become an implicit
+runtime credential or production dependency.
+
+### Use one universal Documents database
+
+Rejected for v1 because per-catalog databases better preserve typed lifecycle
+properties, relations, permissions, and the current IA.

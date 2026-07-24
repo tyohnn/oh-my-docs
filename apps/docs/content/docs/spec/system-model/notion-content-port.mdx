@@ -1,0 +1,118 @@
+---
+title: Notion content port
+description: Agent-driven MCP provisioning and planning operations beneath an approved Notion root.
+type: reference
+summary: Runtime manifests and host MCP execution provide deterministic, idempotent Notion workspaces.
+id: SPEC-notion-content-port
+ticker: SPEC-009
+stage: accepted
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/stories/us-choose-handbook-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/adr/adr-select-one-content-source-per-project
+---
+
+## Scope
+
+Defines the provider-neutral content port, the Notion adapter manifest, the
+default Notion IA, and skill behavior for `notion` projects.
+
+## Port operations
+
+Adapters expose:
+
+- `inspect`
+- `planProvision`
+- `planCreateDocument`
+- `validateSnapshot`
+- `recordResult`
+
+The Node runtime plans and validates JSON. The invoking skill checks MCP
+capability, executes operations, and returns a provider snapshot. The runtime
+does not own OAuth or call a hidden Notion API.
+
+## Default Notion IA
+
+```text
+Handbook root (user supplied)
+├── Home
+├── Vision
+├── Start here
+├── Domain
+│   ├── Glossary (database)
+│   ├── Models (database)
+│   └── Policies (database)
+├── Workflow
+│   ├── Planning
+│   └── Development
+├── Planning
+│   ├── PRDs (database)
+│   └── Stories (database)
+├── Plans (database)
+├── ADR (database)
+└── Spec
+    ├── Data model (database)
+    ├── System model (database)
+    └── CLI
+```
+
+Each database row is a Notion page. Catalog entries are not duplicated as
+ordinary child pages.
+
+## Database properties and relations
+
+Every catalog has `Title`, stable `OMD ID`, description/summary, and its
+lifecycle property when applicable.
+
+- PRDs relate to Stories.
+- Plans relate to one PRD and many Specs/Stories and include `changeType` and
+  `codeAreas`.
+- Data/System specs and ADRs use accepted lifecycle values.
+- Domain databases preserve TERM/MODEL/POLICY IDs and references.
+
+Relations are applied after their databases and referenced rows exist.
+
+## Manifest behavior
+
+- Operations have stable keys, expected parents, dependencies, and desired
+  schema digests.
+- Existing mapped objects are updated or skipped.
+- An unmapped object with the same stable OMD key is adopted only after parent
+  and type validation.
+- Writes outside the configured root are rejected.
+- Deletion defaults to archive-only and requires explicit confirmation.
+- Partial results record completed and pending operation IDs for retry.
+
+## Skill routing
+
+- `adopt --ssot notion --notion-root <url-or-id>` plans the workspace, requires
+  write access, provisions it, validates it, and records mappings.
+- `new` creates a row in the selected catalog after local validation.
+- `check` reads provider schema/relations and validates lifecycle references.
+- `sync` reconciles managed IA/schema only; it does not overwrite arbitrary
+  user content.
+- Missing MCP, authentication, or root access returns an actionable blocker
+  before writes.
+
+## Errors
+
+- `capability_missing`
+- `authentication_required`
+- `root_inaccessible`
+- `root_boundary_violation`
+- `schema_drift`
+- `mapping_conflict`
+- `partial_apply`
+
+## Compatibility
+
+Local projects retain filesystem/Fumadocs behavior. Notion projects use Notion
+as their display layer in v1; no editable MDX mirror is generated.
+
+## Acceptance criteria
+
+- Provisioning the same root twice creates no duplicate managed objects.
+- The complete default IA and database relations validate.
+- Credentials and untrusted Notion text are never persisted as executable
+  instructions.

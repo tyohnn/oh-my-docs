@@ -1,4 +1,14 @@
 {
   "title": "Glossary",
-  "pages": ["index", "task", "plan", "living-document", "approved-snapshot"]
+  "pages": [
+    "index",
+    "task",
+    "plan",
+    "living-document",
+    "approved-snapshot",
+    "content-source",
+    "content-port",
+    "provisioning-manifest",
+    "provider-mapping"
+  ]
 }

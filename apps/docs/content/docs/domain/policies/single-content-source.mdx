@@ -1,0 +1,22 @@
+---
+title: Single content source
+description: A repository must not treat local MDX and Notion as co-authoritative.
+type: reference
+summary: Provider selection is exclusive; source changes require an explicit migration.
+id: POLICY-single-content-source
+related:
+  - /docs/domain/models/content-source-selection
+  - /docs/adr/adr-select-one-content-source-per-project
+---
+
+## Rule
+
+A repository selects exactly one handbook content source in
+`.omd/project.json`: `local` or `notion`.
+
+## Consequences
+
+- Skills reject operations that would write to the unselected provider.
+- Notion projects do not create an editable MDX mirror in v1.
+- Local projects do not treat a provisioned Notion workspace as current truth.
+- Switching providers requires a separately confirmed migration plan.
