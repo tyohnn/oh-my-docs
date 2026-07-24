@@ -1,0 +1,22 @@
+---
+title: Provisioning manifest
+description: An ordered, deterministic description of provider operations.
+type: reference
+summary: The runtime plans provider writes without owning credentials or transport.
+id: TERM-provisioning-manifest
+related:
+  - /docs/domain/glossary/content-port
+  - /docs/spec/system-model/notion-content-port
+---
+
+## Meaning
+
+A **provisioning manifest** is an ordered set of create, update, skip, relation,
+or archive operations produced from the `.omd` contract, skill **`references`**
+templates, and current provider snapshot.
+
+Every operation declares a stable OMD key, expected parent, dependencies, and
+desired schema. It contains no credentials.
+
+For Notion, default IA and page-chrome templates live under
+`skills/oh-my-doc/references/` (not a `ref/` path and not Notion HTML export).

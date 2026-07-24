@@ -1,0 +1,40 @@
+---
+title: Choose the handbook content source
+description: Adopt Oh My Docs with local MDX or Notion while keeping one authoritative source.
+type: conceptual
+summary: A team selects its content source once and receives the same IA and planning contracts.
+id: US-choose-handbook-content-source
+ticker: US-007
+stage: accepted
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+---
+
+As a product team, I want to choose local MDX or Notion as the handbook SSOT
+so that Oh My Docs fits our working environment without duplicate truth.
+
+## Context
+
+The selected provider changes where content operations happen, not the meaning
+of PRDs, stories, Domain artifacts, specifications, ADRs, plans, or their
+lifecycles.
+
+## Acceptance criteria
+
+- Adoption requires or defaults a content-source selection.
+- The selection is persisted in `.omd/project.json`.
+- `local` preserves the current filesystem workflow.
+- `notion` requires an accessible root page and configured Notion MCP.
+- Notion provisioning creates the standard IA and one database per catalog.
+- Repeated provisioning is idempotent.
+- Skills route `inspect`, `adopt`, `new`, `check`, and `sync` through the
+  selected provider.
+- Missing MCP capability or root access produces an actionable blocker without
+  partial writes outside the supplied root.
+
+## Out of scope
+
+- Keeping local MDX and Notion simultaneously authoritative.
+- Automatic Notion-to-Fumadocs publishing.

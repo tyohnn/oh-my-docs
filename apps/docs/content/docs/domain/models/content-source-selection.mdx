@@ -1,0 +1,32 @@
+---
+title: Content source selection
+description: Relationship between a project contract, one content source, its adapter, and provider mappings.
+type: reference
+summary: One project selects one authoritative source while operational mappings stay rebuildable.
+id: MODEL-content-source-selection
+related:
+  - /docs/domain/glossary/content-source
+  - /docs/domain/glossary/content-port
+  - /docs/domain/glossary/provider-mapping
+  - /docs/domain/policies/single-content-source
+---
+
+## Model
+
+```text
+Project contract
+  ├── selects exactly one Content source
+  ├── configures one Content port adapter
+  └── produces Provider mappings in operational state
+```
+
+The project contract stores non-secret source identity and configuration.
+Operational state stores generated object IDs, schema digests, and observation
+timestamps. Credentials remain with the host integration.
+
+## Invariants
+
+- One project has exactly one authoritative source.
+- Local and Notion adapters expose equivalent planning operations.
+- Provider mappings can be discarded and reconstructed.
+- Changing source is an explicit migration, never an implicit sync.

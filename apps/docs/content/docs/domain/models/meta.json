@@ -1,4 +1,4 @@
 {
   "title": "Domain models",
-  "pages": ["index", "task-execution"]
+  "pages": ["index", "task-execution", "content-source-selection"]
 }

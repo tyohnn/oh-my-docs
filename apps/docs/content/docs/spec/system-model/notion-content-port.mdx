@@ -1,0 +1,187 @@
+---
+title: Notion content port
+description: Agent-driven MCP provisioning and planning operations beneath an approved Notion root.
+type: reference
+summary: Runtime manifests and host MCP execution provide deterministic, idempotent Notion workspaces.
+id: SPEC-notion-content-port
+ticker: SPEC-009
+stage: accepted
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/stories/us-choose-handbook-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/adr/adr-select-one-content-source-per-project
+---
+
+## Scope
+
+Defines the provider-neutral content port, the Notion adapter manifest, the
+default Notion IA, Notion chrome templates, and skill behavior for `notion`
+projects.
+
+## Port operations
+
+Adapters expose:
+
+- `inspect`
+- `planProvision`
+- `planCreateDocument`
+- `validateSnapshot`
+- `recordResult`
+
+The Node runtime plans and validates JSON. The invoking skill checks MCP
+capability, executes operations, and returns a provider snapshot. The runtime
+does not own OAuth or call a hidden Notion API.
+
+## Default Notion IA
+
+Catalog destinations are **pages** that embed their database **inline**. The
+navigable object is the page; the database is not a top-level sidebar target.
+
+```text
+Handbook root (user supplied)
+├── columns
+│   ├── sidebar callout (mentions) + sources toggle
+│   └── Home body
+├── Vision (page)
+├── Start here (page)
+├── Workflow (page)
+│   ├── Workflow Planning (page)
+│   └── Development (page)
+├── Domain (page)
+│   ├── Glossary (page → inline DB)
+│   ├── Models (page → inline DB)
+│   └── Policies (page → inline DB)
+├── Planning (page)
+│   ├── PRDs (page → inline DB)
+│   └── Stories (page → inline DB)
+├── Spec (page)
+│   ├── Data model (page → inline DB)
+│   ├── System model (page → inline DB)
+│   └── CLI (page)
+├── Plans (page → inline DB)
+└── ADRs (page → inline DB)
+```
+
+Managed page and database children live under a single **데이터 원본** toggle on
+the root (or equivalent sources container). Sidebar navigation uses
+`<mention-page>` / page mentions only — never bare URLs as the primary nav.
+
+## Sidebar chrome
+
+Every managed content page uses the same two-column chrome:
+
+1. Left column (~18–20%): callout containing the shared nav mentions.
+2. Right column: page body (and inline database when the page is a catalog).
+
+Active section highlighting uses block background `yellow_bg` on the active
+top-level mention. Sections with children use a **double layer**: when the
+section or one of its children is current, the parent mention keeps
+`yellow_bg` and children render as indented mention blocks beneath it.
+
+| Parent | Nested children when active |
+|---|---|
+| Workflow | Workflow Planning, Development |
+| Domain | Glossary, Models, Policies |
+| Planning | PRDs, Stories |
+| Spec | Data model, System model, CLI |
+
+Top-level nav (always present when not nested away): Home/root, Vision,
+Start here, Workflow, Domain, Planning, Spec, PRDs, Plans, ADRs.
+
+## Database properties and relations
+
+Every catalog database has `Title`, stable `OMD ID`, description/summary, and
+its lifecycle property when applicable.
+
+- PRDs relate to Stories.
+- Plans relate to one PRD and many Specs/Stories and include `changeType` and
+  `codeAreas`.
+- Data/System specs and ADRs use accepted lifecycle values.
+- Domain databases preserve TERM/MODEL/POLICY IDs and references.
+
+Relations are applied after their databases and referenced rows exist.
+
+## Skill `references` templates
+
+Default Notion provisioning templates ship under the skill package path
+`skills/oh-my-doc/references/` (name **`references`**, not `ref`).
+
+They are declarative inputs to `planProvision`, not a Notion HTML dump and not
+a downloadable Notion gallery template. They include:
+
+| Artifact | Role |
+|---|---|
+| IA object graph | Stable OMD keys, parents, page vs database vs inline embedding |
+| Catalog schemas | Property names, select options, relation endpoints |
+| Page body templates | Notion-flavored Markdown with placeholders such as `{{pages.spec}}` |
+| Sidebar templates | Shared callout nav + per-section active/nested variants |
+| Manual checklist | Host UI steps the API cannot perform (for example page Full width) |
+
+Provision order:
+
+1. Create pages and databases under the user root; record ID mappings in
+   `.omd/state.json`.
+2. Move each catalog database under its wrapper page and set `inline=true`.
+3. Substitute placeholders with real mention URLs from the mapping.
+4. Write page bodies and root sources toggle.
+5. Validate schema, relations, and IA snapshot.
+
+Re-running against the same root is idempotent via stable OMD keys and state
+mappings.
+
+## Manifest behavior
+
+- Operations have stable keys, expected parents, dependencies, and desired
+  schema digests.
+- Existing mapped objects are updated or skipped.
+- An unmapped object with the same stable OMD key is adopted only after parent
+  and type validation.
+- Writes outside the configured root are rejected.
+- Deletion defaults to archive-only and requires explicit confirmation.
+- Partial results record completed and pending operation IDs for retry.
+
+## Skill routing
+
+- `adopt --ssot notion --notion-root <url-or-id>` plans the workspace, requires
+  write access, provisions it, validates it, and records mappings.
+- `new` creates a row in the selected catalog after local validation.
+- `check` reads provider schema/relations and validates lifecycle references.
+- `sync` reconciles managed IA/schema only; it does not overwrite arbitrary
+  user content.
+- Missing MCP, authentication, or root access returns an actionable blocker
+  before writes.
+
+## Out of scope for the API adapter
+
+Notion page **Full width** and other host-only layout toggles are not available
+through MCP. Templates may list them under a manual checklist after provision.
+
+Notion HTML export is not an input format. Templates use Notion-flavored
+Markdown and structured JSON only.
+
+## Errors
+
+- `capability_missing`
+- `authentication_required`
+- `root_inaccessible`
+- `root_boundary_violation`
+- `schema_drift`
+- `mapping_conflict`
+- `partial_apply`
+
+## Compatibility
+
+Local projects retain filesystem/Fumadocs behavior. Notion projects use Notion
+as their display layer in v1; no editable MDX mirror is generated.
+
+## Acceptance criteria
+
+- Provisioning the same root twice creates no duplicate managed objects.
+- The complete default IA, inline catalog pages, sidebar chrome, and database
+  relations validate.
+- Skill `references` templates alone are sufficient for a second project to
+  reach the same managed structure under a new root (aside from manual UI
+  checklist items).
+- Credentials and untrusted Notion text are never persisted as executable
+  instructions.

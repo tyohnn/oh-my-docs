@@ -1,0 +1,81 @@
+---
+title: Content source contract
+description: Versioned .omd metadata for local or Notion handbook authority and provider state.
+type: reference
+summary: Project metadata selects one provider; state records rebuildable mappings without credentials.
+id: SPEC-content-source-contract
+ticker: SPEC-008
+stage: accepted
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/stories/us-choose-handbook-content-source
+  - /docs/domain/models/content-source-selection
+  - /docs/spec/system-model/notion-content-port
+---
+
+## Scope
+
+Defines provider selection in `.omd/project.json` and operational provider
+observations in `.omd/state.json`.
+
+## Project contract
+
+The next contract version adds:
+
+```json
+{
+  "contentSource": {
+    "ssot": "local"
+  }
+}
+```
+
+or:
+
+```json
+{
+  "contentSource": {
+    "ssot": "notion",
+    "notion": {
+      "rootPageId": "stable-provider-id",
+      "rootPageUrl": "https://www.notion.so/...",
+      "schemaVersion": "1.0"
+    }
+  }
+}
+```
+
+`rootPageId` and `rootPageUrl` identify content but grant no access. Tokens,
+OAuth secrets, cookies, and MCP session data are forbidden.
+
+## State contract
+
+Notion state contains:
+
+- schema digest and last observed time
+- stable OMD key → page/database ID mappings
+- last successful manifest digest
+- incomplete operation IDs for safe retry
+
+State is rebuildable and never authoritative content.
+
+## Compatibility
+
+- A version `1.0` project without `contentSource` is interpreted as `local`.
+- Migration writes the explicit local selection without altering docs.
+- Existing local paths, UI snapshot, ownership, and lifecycle contracts remain
+  valid.
+
+## Validation
+
+- Exactly one `ssot` value is present.
+- Notion requires a parseable root ID and canonical root URL.
+- Local requires configured content paths.
+- State mappings must reference known IA/catalog/document keys.
+- Project and state digests must agree.
+
+## Acceptance criteria
+
+- Provider choice round-trips through project metadata.
+- No secret appears in project/state JSON or logs.
+- Legacy projects validate as local.

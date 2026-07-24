@@ -1,0 +1,62 @@
+---
+title: Selectable handbook content source
+description: Let each repository use local MDX or a provisioned Notion workspace as its one handbook SSOT.
+type: conceptual
+summary: Oh My Docs routes the same IA and planning workflow through a selected local or Notion content port.
+id: PRD-selectable-content-source
+ticker: PRD-005
+period: content-ports
+status: active
+changeType: product
+reviewStatus: moderated
+reviewMethod: pdca-discovery
+stories:
+  - US-choose-handbook-content-source
+---
+
+## Problem
+
+Oh My Docs currently assumes every adopted repository stores handbook content
+as local MDX. Some teams already work in Notion and need the same docs-first
+information architecture without maintaining a second authoritative copy.
+
+## Outcome
+
+During adoption, a team selects exactly one content source:
+
+- `local`: Git-tracked MDX rendered by Fumadocs
+- `notion`: a user-supplied Notion root whose pages and catalog databases are
+  provisioned and operated through a host Notion MCP
+
+The selection and non-secret provider identity live in `.omd/project.json`.
+All skill operations route through the selected content port.
+
+## Goals
+
+- Preserve one authoritative content source per repository.
+- Provision the default Oh My Docs IA beneath an approved Notion root.
+- Use one Notion database per index-only catalog and preserve planning graph
+  relations.
+- Make provisioning deterministic, retryable, and idempotent.
+- Keep credentials in the MCP host; never write them to the repository.
+- Preserve existing local behavior and compatibility.
+
+## Non-goals
+
+- Bidirectional local/Notion synchronization.
+- Rendering Notion content through Fumadocs in v1.
+- Copying dogfood content into adopter workspaces.
+- Treating MCP as a hidden network dependency of the Node runtime.
+- Destructive deletion of user-authored Notion content.
+
+## Included stories
+
+- `US-choose-handbook-content-source`
+
+## Success measures
+
+- A greenfield user can select `notion`, supply a root page, and receive the
+  full default IA and typed catalog databases.
+- Running provisioning twice creates no duplicate pages or databases.
+- `new` and `check` operate against the configured provider.
+- Existing `.omd` projects without a content-source field continue as `local`.
