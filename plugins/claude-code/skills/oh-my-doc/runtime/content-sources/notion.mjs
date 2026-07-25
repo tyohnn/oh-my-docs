@@ -3,26 +3,17 @@ import { createHash } from 'node:crypto';
 import { digest, stableStringify } from '../omd-contract.mjs';
 import { loadNotionReferences } from './load-references.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
-
-/**
- * @typedef {{
- *   id: string,
- *   key: string,
- *   op: 'ensure_page' | 'ensure_database' | 'set_inline' | 'move_under_sources' | 'write_page_body' | 'ensure_relation',
- *   dependsOn: string[],
- *   expectedParentKey: string,
- *   title?: string,
- *   schema?: string,
- *   inline?: boolean,
- *   desiredDigest: string,
- * }} ManifestOperation
- */
+import {
+  defaultPageBody,
+  renderSidebarPageContent,
+  resolveActiveSection,
+} from './sidebar.mjs';
 
 /**
  * @param {{
  *   skillRoot: string,
  *   notionRoot: string,
- *   mappings?: Record<string, { id: string, type: string }>,
+ *   mappings?: Record<string, { id: string, type: string, parentKey?: string, url?: string }>,
  *   pendingOperationIds?: string[],
  * }} options
  */
@@ -31,8 +22,9 @@ export function planProvision(options) {
   const refs = loadNotionReferences(options.skillRoot);
   const mappings = options.mappings ?? {};
   const operations = [];
+  const objectsByKey = Object.fromEntries(refs.iaGraph.objects.map((o) => [o.key, o]));
 
-  // 1) Create pages and databases in dependency order (parents before children).
+  // 1) Create pages and databases in dependency order.
   for (const object of refs.iaGraph.objects) {
     const dependsOn =
       object.parent === 'root' ? [] : [`ensure:${object.parent}`];
@@ -42,6 +34,7 @@ export function planProvision(options) {
         kind: 'page',
         title: object.title,
         parent: object.parent,
+        role: object.role ?? null,
         inlineDatabase: object.inlineDatabase ?? null,
       };
       operations.push({
@@ -53,6 +46,11 @@ export function planProvision(options) {
         title: object.title,
         desiredDigest: digest(stableStringify(payload)),
         payload,
+        mcp: {
+          tool: 'notion-create-pages',
+          parentFrom: object.parent === 'root' ? 'root' : object.parent,
+          notes: 'Skip create when mapping exists and fetch(kind=page,parent) validates.',
+        },
       });
     } else if (object.kind === 'database') {
       const schema = refs.catalogSchemas.schemas[object.schema];
@@ -79,6 +77,11 @@ export function planProvision(options) {
         inline: object.inline === true,
         desiredDigest: digest(stableStringify(payload)),
         payload,
+        mcp: {
+          tool: 'notion-create-database',
+          parentFrom: object.parent,
+          notes: 'Creates full-page DB; always follow with set_inline when inline=true.',
+        },
       });
       if (object.inline === true) {
         operations.push({
@@ -90,32 +93,43 @@ export function planProvision(options) {
           inline: true,
           desiredDigest: digest(`inline:${object.key}`),
           payload: { key: object.key, inline: true },
+          mcp: {
+            tool: 'notion-update-data-source',
+            notes: 'Set is_inline=true on the data source after create-database.',
+          },
         });
       }
     }
   }
 
-  // 2) Move managed children under sources toggle (logical op for agent/MCP).
+  // 2) Optional root details index listing sources children (sources page is already parent).
+  const sourcesKey = refs.iaGraph.sourcesToggle.key;
   operations.push({
-    id: 'sources:toggle',
-    key: refs.iaGraph.sourcesToggle.key,
-    op: 'move_under_sources',
-    dependsOn: refs.iaGraph.objects
-      .filter((o) => o.parent === 'root' && o.key !== 'pages.home')
-      .map((o) => `ensure:${o.key}`),
+    id: 'sources:root-index',
+    key: sourcesKey,
+    op: 'write_root_sources_index',
+    dependsOn: [`ensure:${sourcesKey}`],
     expectedParentKey: 'root',
     title: refs.iaGraph.sourcesToggle.title,
-    desiredDigest: digest(stableStringify(refs.iaGraph.sourcesToggle)),
-    payload: refs.iaGraph.sourcesToggle,
+    desiredDigest: digest(stableStringify({ sourcesKey, strategy: refs.iaGraph.sourcesStrategy })),
+    payload: {
+      strategy: refs.iaGraph.sourcesStrategy ?? 'sources-page-parent',
+      sourcesKey,
+      children: refs.iaGraph.objects
+        .filter((o) => o.parent === sourcesKey && o.kind === 'page')
+        .map((o) => o.key),
+    },
+    mcp: {
+      tool: 'notion-update-page',
+      notes: 'On handbook root, optional <details> listing managed top-level pages.',
+    },
   });
 
-  // 3) Relations after both endpoints exist.
-  for (const [schemaName, schema] of Object.entries(refs.catalogSchemas.schemas)) {
+  // 3) Relations after both endpoints exist — walk each DB object, not schema name alone.
+  for (const fromDb of refs.iaGraph.objects.filter((o) => o.kind === 'database')) {
+    const schema = refs.catalogSchemas.schemas[fromDb.schema];
+    if (!schema) continue;
     for (const relation of schema.relations ?? []) {
-      const fromDb = refs.iaGraph.objects.find(
-        (o) => o.kind === 'database' && o.schema === schemaName,
-      );
-      if (!fromDb) continue;
       const targets = relation.toDatabaseKey
         ? [relation.toDatabaseKey]
         : (relation.toDatabaseKeys ?? []);
@@ -133,45 +147,124 @@ export function planProvision(options) {
           expectedParentKey: fromDb.parent,
           desiredDigest: digest(stableStringify(payload)),
           payload,
+          mcp: {
+            tool: 'notion-update-data-source',
+            notes: 'One relation property targets exactly one data source.',
+          },
         });
       }
     }
   }
 
-  // 4) Write page bodies with placeholders (substitution happens after MCP IDs exist).
+  // 4) Write sidebar chrome for every managed page (except sources container).
+  const placeholderMappings = Object.fromEntries(
+    refs.iaGraph.objects
+      .filter((o) => o.kind === 'page' || o.kind === 'database')
+      .map((o) => [o.key, { url: `{{${o.key}}}` }]),
+  );
+
   for (const object of refs.iaGraph.objects.filter((o) => o.kind === 'page')) {
+    if (object.role === 'sources') {
+      operations.push({
+        id: `body:${object.key}`,
+        key: object.key,
+        op: 'write_page_body',
+        dependsOn: [`ensure:${object.key}`],
+        expectedParentKey: object.parent,
+        desiredDigest: digest(`sources-body:${object.key}`),
+        payload: {
+          key: object.key,
+          template: 'sources-container',
+          content: '# 데이터 원본\nManaged handbook pages and catalogs live under this container.\n',
+        },
+        mcp: {
+          tool: 'notion-update-page',
+          command: 'replace_content',
+          notes: 'Preserve child <page> tags when replacing content.',
+        },
+      });
+      continue;
+    }
+
+    const childBlocks = [];
+    for (const child of refs.iaGraph.objects.filter((o) => o.parent === object.key)) {
+      if (child.kind === 'page') {
+        childBlocks.push(`<page url="{{${child.key}}}">${child.title}</page>`);
+      } else if (child.kind === 'database') {
+        childBlocks.push(
+          `<database url="{{${child.key}}}" inline="true">${child.title}</database>`,
+        );
+      }
+    }
+
+    const content = renderSidebarPageContent({
+      activeKey: object.key,
+      mappings: placeholderMappings,
+      nav: refs.iaGraph.nav,
+      bodyMarkdown: defaultPageBody(object.key, object.title),
+      childBlocks,
+    });
+
     const payload = {
       key: object.key,
       template: 'shared-sidebar',
       activeSection: resolveActiveSection(object.key, refs.iaGraph.nav),
+      content,
+      preserveChildren: true,
     };
     operations.push({
       id: `body:${object.key}`,
       key: object.key,
       op: 'write_page_body',
-      dependsOn: [`ensure:${object.key}`, ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`)],
+      dependsOn: [
+        `ensure:${object.key}`,
+        ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`),
+      ],
       expectedParentKey: object.parent,
-      desiredDigest: digest(stableStringify(payload)),
+      desiredDigest: digest(stableStringify({ key: object.key, content })),
       payload,
+      mcp: {
+        tool: 'notion-update-page',
+        command: 'replace_content',
+        notes:
+          'Required for every pages.* key. Preserve child <page>/<database> blocks. Substitute {{pages.*}}/{{dbs.*}} from state mappings before write.',
+      },
     });
   }
 
   const pending = new Set(options.pendingOperationIds ?? []);
   const planned = operations.map((op) => {
     const mapped = mappings[op.key];
+    const mappingCheck = mapped
+      ? validateMapping({
+          key: op.key,
+          mapping: mapped,
+          expectedType: objectsByKey[op.key]?.kind === 'database' ? 'database' : 'page',
+          expectedParentKey: op.expectedParentKey,
+        })
+      : null;
     let action = 'create';
-    if (mapped) {
+    if (mapped && mappingCheck?.ok) {
       action = pending.has(op.id) ? 'retry' : 'skip_or_update';
+    } else if (mapped && !mappingCheck?.ok) {
+      action = 'mapping_conflict';
     } else if (pending.has(op.id)) {
       action = 'retry';
     }
-    return { ...op, action, mappedId: mapped?.id ?? null };
+    return {
+      ...op,
+      action,
+      mappedId: mapped?.id ?? null,
+      mappingProblems: mappingCheck?.ok === false ? mappingCheck.problems : [],
+    };
   });
 
   const manifest = {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     provider: 'notion',
     root,
+    sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'sources-page-parent',
+    chrome: refs.iaGraph.chrome ?? { requiredOn: 'all-pages' },
     references: {
       iaGraph: 'references/notion-ia-graph.json',
       catalogSchemas: 'references/notion-catalog-schemas.json',
@@ -195,15 +288,37 @@ export function planProvision(options) {
 }
 
 /**
- * @param {string} pageKey
- * @param {{ nested: Record<string, string[]> }} nav
+ * Validate a persisted mapping before reuse (never trust title alone).
+ * @param {{
+ *   key: string,
+ *   mapping: { id?: string, type?: string, parentKey?: string },
+ *   expectedType: 'page' | 'database',
+ *   expectedParentKey: string,
+ * }} options
  */
-function resolveActiveSection(pageKey, nav) {
-  if (nav.nested[pageKey]) return pageKey;
-  for (const [parent, children] of Object.entries(nav.nested)) {
-    if (children.includes(pageKey)) return parent;
+export function validateMapping(options) {
+  const problems = [];
+  if (!options.mapping?.id) {
+    problems.push({ code: 'mapping_conflict', message: `${options.key} mapping missing id` });
   }
-  return pageKey;
+  if (options.mapping?.type && options.mapping.type !== options.expectedType) {
+    problems.push({
+      code: 'mapping_conflict',
+      message: `${options.key} mapped as ${options.mapping.type}, expected ${options.expectedType}`,
+    });
+  }
+  if (
+    options.mapping?.parentKey &&
+    options.expectedParentKey &&
+    options.mapping.parentKey !== options.expectedParentKey &&
+    !(options.expectedParentKey === 'root' && options.mapping.parentKey === 'root')
+  ) {
+    problems.push({
+      code: 'mapping_conflict',
+      message: `${options.key} parentKey ${options.mapping.parentKey} != ${options.expectedParentKey}`,
+    });
+  }
+  return { ok: problems.length === 0, problems };
 }
 
 /**
@@ -212,8 +327,9 @@ function resolveActiveSection(pageKey, nav) {
  *   manifest: ReturnType<typeof planProvision>['manifest'],
  *   snapshot: {
  *     rootPageId: string,
- *     objects?: Record<string, { id: string, type: string, parentId?: string }>,
+ *     objects?: Record<string, { id: string, type: string, parentId?: string, parentKey?: string }>,
  *     inline?: Record<string, boolean>,
+ *     chrome?: Record<string, boolean>,
  *   },
  * }} options
  */
@@ -241,10 +357,28 @@ export function validateSnapshot(options) {
         message: `${op.key} mapped as ${found.type}, expected ${expectedType}`,
       });
     }
+    if (found.parentKey && op.expectedParentKey && found.parentKey !== op.expectedParentKey) {
+      problems.push({
+        code: 'mapping_conflict',
+        message: `${op.key} parent ${found.parentKey} != ${op.expectedParentKey}`,
+      });
+    }
   }
   for (const op of manifest.operations.filter((o) => o.op === 'set_inline')) {
     if (snapshot.inline && snapshot.inline[op.key] !== true) {
       problems.push({ code: 'schema_drift', message: `${op.key} is not inline` });
+    }
+  }
+  if (snapshot.chrome) {
+    for (const op of manifest.operations.filter(
+      (o) => o.op === 'write_page_body' && o.key.startsWith('pages.'),
+    )) {
+      if (snapshot.chrome[op.key] !== true) {
+        problems.push({
+          code: 'schema_drift',
+          message: `${op.key} is missing sidebar chrome`,
+        });
+      }
     }
   }
   return { ok: problems.length === 0, problems };
@@ -256,7 +390,11 @@ export function validateSnapshot(options) {
  *   previous?: Record<string, unknown>,
  *   manifest: ReturnType<typeof planProvision>['manifest'],
  *   manifestDigest: string,
- *   results: Array<{ operationId: string, status: 'completed' | 'skipped' | 'failed', object?: { key: string, id: string, type: string } }>,
+ *   results: Array<{
+ *     operationId: string,
+ *     status: 'completed' | 'skipped' | 'failed',
+ *     object?: { key: string, id: string, type: string, parentKey?: string, url?: string, dataSourceId?: string },
+ *   }>,
  * }} options
  */
 export function recordResult(options) {
@@ -271,6 +409,9 @@ export function recordResult(options) {
         mappings[result.object.key] = {
           id: result.object.id,
           type: result.object.type,
+          ...(result.object.parentKey ? { parentKey: result.object.parentKey } : {}),
+          ...(result.object.url ? { url: result.object.url } : {}),
+          ...(result.object.dataSourceId ? { dataSourceId: result.object.dataSourceId } : {}),
         };
       }
     } else {
@@ -283,7 +424,7 @@ export function recordResult(options) {
   }
   return {
     notion: {
-      schemaVersion: '1.0',
+      schemaVersion: '1.1',
       schemaDigest: createHash('sha256')
         .update(options.manifestDigest, 'utf8')
         .digest('hex'),
@@ -297,7 +438,6 @@ export function recordResult(options) {
 }
 
 /**
- * Capability blockers before any Notion write.
  * @param {{ mcpAvailable?: boolean, authenticated?: boolean, rootAccessible?: boolean }} flags
  */
 export function capabilityBlockers(flags = {}) {
@@ -325,7 +465,6 @@ export function capabilityBlockers(flags = {}) {
 }
 
 /**
- * Plan a catalog row create for Notion SSOT (manifest only).
  * @param {{
  *   skillRoot: string,
  *   kind: string,
@@ -365,6 +504,9 @@ export function planCreateDocument(options) {
       desiredDigest: digest(stableStringify(payload)),
       payload,
       mappedDatabaseId: mapped?.id ?? null,
+      mcp: { tool: 'notion-create-pages', parentFrom: 'data_source' },
     },
   };
 }
+
+export { renderSidebarPageContent, defaultPageBody, resolveActiveSection };

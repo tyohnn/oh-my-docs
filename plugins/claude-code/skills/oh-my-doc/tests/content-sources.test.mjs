@@ -12,7 +12,9 @@ import {
   planProvision,
   recordResult,
   validateSnapshot,
+  validateMapping,
   capabilityBlockers,
+  renderSidebarPageContent,
 } from '../runtime/content-sources/notion.mjs';
 import { adoptNotionProject } from '../runtime/content-sources/adopt-notion.mjs';
 import { loadNotionReferences } from '../runtime/content-sources/load-references.mjs';
@@ -24,10 +26,15 @@ const dogfoodRoot = '3a7346da-c456-800a-85f4-cae724925f98';
 
 test('references Notion templates load from references/ (not ref/)', () => {
   const refs = loadNotionReferences(skillRoot);
-  assert.equal(refs.iaGraph.schemaVersion, '1.0');
+  assert.equal(refs.iaGraph.schemaVersion, '1.1');
+  assert.equal(refs.iaGraph.sourcesStrategy, 'sources-page-parent');
+  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'toggles.sources'));
+  assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.home' && o.parent === 'toggles.sources'));
   assert.ok(refs.iaGraph.objects.some((o) => o.key === 'pages.prds' && o.inlineDatabase === 'dbs.prds'));
+  assert.ok(refs.catalogSchemas.schemas.plans.relations.some((r) => r.from === 'Specs (System model)'));
   assert.ok(refs.catalogSchemas.schemas.prds);
   assert.match(refs.sidebar, /yellow_bg/);
+  assert.match(refs.sidebar, /all/i);
   assert.match(refs.manualChecklist, /Full width/);
 });
 
@@ -65,6 +72,14 @@ test('notion planProvision is deterministic and idempotent with mappings', () =>
   assert.equal(first.manifestDigest, second.manifestDigest);
   assert.ok(first.manifest.operations.length > 10);
   assert.ok(first.manifest.operations.every((op) => op.expectedParentKey));
+  const bodyOps = first.manifest.operations.filter((op) => op.op === 'write_page_body');
+  assert.ok(bodyOps.length >= 19);
+  assert.ok(bodyOps.every((op) => op.payload?.content || op.payload?.template));
+  assert.ok(
+    bodyOps
+      .filter((op) => op.key.startsWith('pages.'))
+      .every((op) => String(op.payload.content).includes('<columns>')),
+  );
 
   const ensureOps = first.manifest.operations.filter(
     (op) => op.op === 'ensure_page' || op.op === 'ensure_database',
@@ -76,6 +91,7 @@ test('notion planProvision is deterministic and idempotent with mappings', () =>
       key: op.key,
       id: `id-${op.key}`,
       type: op.op === 'ensure_page' ? 'page' : 'database',
+      parentKey: op.expectedParentKey,
     },
   }));
   const provider = recordResult({
@@ -105,9 +121,53 @@ test('notion planProvision is deterministic and idempotent with mappings', () =>
         .filter((op) => op.op === 'set_inline')
         .map((op) => [op.key, true]),
     ),
+    chrome: Object.fromEntries(
+      first.manifest.operations
+        .filter((op) => op.op === 'write_page_body' && op.key.startsWith('pages.'))
+        .map((op) => [op.key, true]),
+    ),
   };
   const validation = validateSnapshot({ manifest: first.manifest, snapshot });
   assert.equal(validation.ok, true);
+});
+
+test('sidebar renderer highlights active nested section', () => {
+  const refs = loadNotionReferences(skillRoot);
+  const mappings = Object.fromEntries(
+    refs.iaGraph.nav.topLevel.concat(refs.iaGraph.nav.nested['pages.spec']).map((key) => [
+      key,
+      { url: `https://app.notion.com/p/${key}` },
+    ]),
+  );
+  const md = renderSidebarPageContent({
+    activeKey: 'pages.data-model',
+    mappings,
+    nav: refs.iaGraph.nav,
+    bodyMarkdown: '# Data model\nBody',
+    childBlocks: ['<database url="https://app.notion.com/p/db" inline="true">Data model</database>'],
+  });
+  assert.match(md, /<columns>/);
+  assert.match(md, /pages\.spec.*yellow_bg/s);
+  assert.match(md, /pages\.data-model/);
+  assert.match(md, /inline="true"/);
+});
+
+test('validateMapping rejects wrong type/parent', () => {
+  const ok = validateMapping({
+    key: 'pages.prds',
+    mapping: { id: 'abc', type: 'page', parentKey: 'pages.planning' },
+    expectedType: 'page',
+    expectedParentKey: 'pages.planning',
+  });
+  assert.equal(ok.ok, true);
+  const bad = validateMapping({
+    key: 'pages.prds',
+    mapping: { id: 'abc', type: 'database', parentKey: 'root' },
+    expectedType: 'page',
+    expectedParentKey: 'pages.planning',
+  });
+  assert.equal(bad.ok, false);
+  assert.ok(bad.problems.some((p) => p.code === 'mapping_conflict'));
 });
 
 test('capabilityBlockers report missing MCP and auth', () => {

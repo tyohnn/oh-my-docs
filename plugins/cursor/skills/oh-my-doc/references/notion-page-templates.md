@@ -3,11 +3,14 @@
 Notion-flavored Markdown with placeholders. Substitute from state mappings
 after pages exist. Do not use Notion HTML export as input.
 
-## Shared sidebar (inactive)
+Runtime builds final bodies with `renderSidebarPageContent` for every managed
+page.
+
+## Shared sidebar (active Spec example)
 
 ```markdown
 <columns>
-	<column>
+	<column ratio="20">
 		<callout icon="📌" color="gray_bg">
 			<mention-page url="{{pages.home}}"/>
 			<mention-page url="{{pages.vision}}"/>
@@ -15,40 +18,36 @@ after pages exist. Do not use Notion HTML export as input.
 			<mention-page url="{{pages.workflow}}"/>
 			<mention-page url="{{pages.domain}}"/>
 			<mention-page url="{{pages.planning}}"/>
-			<mention-page url="{{pages.spec}}"/>
+			<mention-page url="{{pages.spec}}"/> {color="yellow_bg"}
+				<mention-page url="{{pages.data-model}}"/>
+				<mention-page url="{{pages.system-model}}"/>
+				<mention-page url="{{pages.cli}}"/>
 			<mention-page url="{{pages.prds}}"/>
 			<mention-page url="{{pages.plans}}"/>
 			<mention-page url="{{pages.adrs}}"/>
 		</callout>
 	</column>
-	<column>
-{{BODY}}
+	<column ratio="80">
+		# Spec
+		Observable contracts for data model, system model, and CLI.
 	</column>
 </columns>
+<page url="{{pages.data-model}}">Data model</page>
+<page url="{{pages.system-model}}">System model</page>
+<page url="{{pages.cli}}">CLI</page>
 ```
 
-## Active Spec (double layer example)
-
-When the current page is Spec or a Spec child, replace the Spec line with a
-yellow parent plus indented children:
+## Catalog page (inline DB preserved)
 
 ```markdown
-{color="yellow_bg"}<mention-page url="{{pages.spec}}"/>
-	<mention-page url="{{pages.data-model}}"/>
-	<mention-page url="{{pages.system-model}}"/>
-	<mention-page url="{{pages.cli}}"/>
+<columns>
+	...sidebar...
+</columns>
+<database url="{{dbs.prds}}" inline="true">PRDs</database>
 ```
 
-Apply the same pattern for Workflow, Domain, and Planning per
-`notion-sidebar.md`.
+## Root sources page
 
-## Root sources toggle
-
-Under the handbook root (managed children container):
-
-```markdown
-▸ 데이터 원본
-```
-
-Managed pages/databases that should not clutter the primary sidebar live inside
-this toggle after creation. Navigation still uses mentions to wrapper pages.
+Canonical strategy (`sources-page-parent`): create page **데이터 원본** under the
+handbook root and parent all top-level managed pages beneath it. Optionally also
+render a `<details>` summary on the root that lists those children.
