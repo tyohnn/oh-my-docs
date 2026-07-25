@@ -39,7 +39,25 @@
         "vocabulary": { "type": "array" }
       }
     },
-    "ownership": { "type": "object" }
+    "ownership": { "type": "object" },
+    "contentSource": {
+      "type": "object",
+      "required": ["ssot"],
+      "properties": {
+        "ssot": { "enum": ["local", "notion"] },
+        "notion": {
+          "type": "object",
+          "required": ["rootPageId", "rootPageUrl", "schemaVersion"],
+          "properties": {
+            "rootPageId": { "type": "string", "minLength": 1 },
+            "rootPageUrl": { "type": "string", "minLength": 1 },
+            "schemaVersion": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": true
 }
