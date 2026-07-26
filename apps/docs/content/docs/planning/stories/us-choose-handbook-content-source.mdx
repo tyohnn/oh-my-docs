@@ -23,10 +23,17 @@ lifecycles.
 
 ## Acceptance criteria
 
-- Adoption requires or defaults a content-source selection.
+- First greenfield adoption requires an explicit content-source selection
+  (`local` or `notion`); agents must ask before calling `adopt`, and the
+  runtime rejects greenfield adopt without `--ssot`.
+- Existing projects without `contentSource` continue as `local`.
 - The selection is persisted in `.omd/project.json`.
-- `local` preserves the current filesystem workflow.
-- `notion` requires an accessible root page and configured Notion MCP.
+- `local` scaffolds the Fumadocs docs app and UI vocabulary under
+  `packages/docs-ui` (legacy `packages/ui` still detected).
+- `notion` requires an accessible Home root page and configured Notion MCP; it
+  does not install local docs/UI packages.
+- The supplied Notion root maps to `pages.home`; managed pages sit under a
+  **데이터 원본** details toggle on Home (not a child page titled 데이터 원본).
 - Notion provisioning creates the standard IA and one database per catalog.
 - Repeated provisioning is idempotent.
 - Skills route `inspect`, `adopt`, `new`, `check`, and `sync` through the

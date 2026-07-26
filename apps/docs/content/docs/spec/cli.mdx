@@ -28,11 +28,17 @@ comes from this handbook and root `AGENTS.md` (with `CLAUDE.md` as a bridge).
 npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
 ```
 
+`npx skills add` defaults to **symlinks** from each agent discovery path to one
+canonical skill copy (usually under `.agents/skills/` or `~/.agents/skills/`).
+Prefer `-a <host>` when only one agent is needed. Do not pass `--copy` unless
+the environment cannot use symlinks. Adopt must not create three independent
+full copies of the skill tree.
+
 | Host | Project | User |
 |---|---|---|
-| Cursor | `.cursor/skills/oh-my-doc` | `~/.cursor/skills/oh-my-doc` |
-| Codex | `.agents/skills/oh-my-doc` | `~/.agents/skills/oh-my-doc` |
-| Claude Code | `.claude/skills/oh-my-doc` | `~/.claude/skills/oh-my-doc` |
+| Cursor | `.cursor/skills/oh-my-doc` (symlink) | `~/.cursor/skills/oh-my-doc` |
+| Codex / agents | `.agents/skills/oh-my-doc` (canonical) | `~/.agents/skills/oh-my-doc` |
+| Claude Code | `.claude/skills/oh-my-doc` (symlink) | `~/.claude/skills/oh-my-doc` |
 
 In this repository the canonical skill source is `skills/oh-my-doc`. Optional
 host plugin wrappers under `plugins/{cursor,codex,claude-code}` mirror it.
@@ -51,16 +57,18 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
 
 ## Behavior
 
-1. **Missing UI package or files** — `doctor`/`inspect` note a missing UI path;
-   `check` includes a problem; `adopt` creates files from
-   `<skill>/templates/default/packages/ui` into the configured `ui` path
-   (default `packages/ui`).
-2. **Identical snapshot** — `adopt` skips with reason `UI snapshot up to date`.
-3. **Divergent files** — without `--force`, `adopt` records a conflict/skip;
+1. **Greenfield SSOT** — first adopt requires `--ssot local|notion`. Without it
+   the runtime returns `needsSsot` and does not write.
+2. **Missing UI package or files (local only)** — `doctor`/`inspect` note a
+   missing UI path; `check` includes a problem; `adopt --ssot local` creates
+   files from `<skill>/templates/default/packages/docs-ui` into the configured
+   `ui` path (default `packages/docs-ui`). Notion adopt skips this.
+3. **Identical snapshot** — `adopt` skips with reason `UI snapshot up to date`.
+4. **Divergent files** — without `--force`, `adopt` records a conflict/skip;
    `check` reports staleness so agents can ask before forcing.
-4. **Forced refresh** — `adopt --force` updates divergent skill-template UI
+5. **Forced refresh** — `adopt --force` updates divergent skill-template UI
    files and refreshes `.omd` state digests related to the snapshot.
-5. **Skill vs project** — installing/updating the skill alone does not mutate
+6. **Skill vs project** — installing/updating the skill alone does not mutate
    the project; agents must run `adopt`/`check` against the project.
 
 ## Data and invariants
@@ -83,8 +91,10 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
 
 ## Compatibility
 
-- Brownfield projects that already customized `packages/ui` must use `--force`
-  knowingly; adopt never silently overwrites divergent files without `--force`.
+- Brownfield projects that already customized `packages/ui` or
+  `packages/docs-ui` must use `--force` knowingly; adopt never silently
+  overwrites divergent files without `--force`.
+- Legacy `packages/ui` remains a valid detected UI path.
 - `sync` must not rewrite UI vocabulary files.
 
 ## Acceptance criteria

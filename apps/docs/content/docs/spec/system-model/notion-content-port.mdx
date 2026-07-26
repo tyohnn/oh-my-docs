@@ -38,34 +38,42 @@ does not own OAuth or call a hidden Notion API.
 Catalog destinations are **pages** that embed their database **inline**. The
 navigable object is the page; the database is not a top-level sidebar target.
 
+The user-supplied `--notion-root` **is** Home (`pages.home`, role `home`).
+Do not create a separate Home page under a sources parent.
+
+Default `sourcesStrategy` is `details-toggle-on-home`: **데이터 원본** is a
+`<details>` block on Home, not a child page. Managed top-level pages parent
+under Home and appear inside that toggle.
+
 ```text
-Handbook root (user supplied)
+Home (user-supplied notion-root = pages.home)
 ├── columns
-│   ├── sidebar callout (mentions) + sources toggle
+│   ├── sidebar callout (mentions)
 │   └── Home body
-├── Vision (page)
-├── Start here (page)
-├── Workflow (page)
-│   ├── Workflow Planning (page)
-│   └── Development (page)
-├── Domain (page)
-│   ├── Glossary (page → inline DB)
-│   ├── Models (page → inline DB)
-│   └── Policies (page → inline DB)
-├── Planning (page)
-│   ├── PRDs (page → inline DB)
-│   └── Stories (page → inline DB)
-├── Spec (page)
-│   ├── Data model (page → inline DB)
-│   ├── System model (page → inline DB)
-│   └── CLI (page)
-├── Plans (page → inline DB)
-└── ADRs (page → inline DB)
+└── <details> 데이터 원본
+    ├── Vision (page)
+    ├── Start here (page)
+    ├── Workflow (page)
+    │   ├── Workflow Planning (page)
+    │   └── Development (page)
+    ├── Domain (page)
+    │   ├── Glossary (page → inline DB)
+    │   ├── Models (page → inline DB)
+    │   └── Policies (page → inline DB)
+    ├── Planning (page)
+    │   ├── PRDs (page → inline DB)
+    │   └── Stories (page → inline DB)
+    ├── Spec (page)
+    │   ├── Data model (page → inline DB)
+    │   ├── System model (page → inline DB)
+    │   └── CLI (page)
+    ├── Plans (page → inline DB)
+    └── ADRs (page → inline DB)
 ```
 
-Managed page and database children live under a single **데이터 원본** toggle on
-the root (or equivalent sources container). Sidebar navigation uses
-`<mention-page>` / page mentions only — never bare URLs as the primary nav.
+Sidebar navigation uses `<mention-page>` / page mentions only — never bare
+URLs as the primary nav. Notion adopt does not scaffold a local Fumadocs docs
+app or `packages/docs-ui`.
 
 ## Sidebar chrome
 
