@@ -1,22 +1,23 @@
 import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { createCatalogNavigation, indexOnlyPageTree } from '@oh-my-docs/ui/navigation';
+import handbookIa from '../../../skills/oh-my-doc/references/handbook-ia-graph.json';
 
-const CATALOGS = [
-  { prefix: ['domain', 'glossary'], indexUrl: '/docs/domain/glossary', label: 'Glossary' },
-  { prefix: ['domain', 'models'], indexUrl: '/docs/domain/models', label: 'Models' },
-  { prefix: ['domain', 'policies'], indexUrl: '/docs/domain/policies', label: 'Policies' },
-  { prefix: ['planning', 'prds'], indexUrl: '/docs/planning/prds', label: 'PRD' },
-  { prefix: ['planning', 'stories'], indexUrl: '/docs/planning/stories', label: 'User stories' },
-  { prefix: ['plans'], indexUrl: '/docs/plans', label: 'Implementation plans' },
-  { prefix: ['adr'], indexUrl: '/docs/adr', label: 'ADR' },
-  { prefix: ['spec', 'data-model'], indexUrl: '/docs/spec/data-model', label: 'Data model' },
-  {
-    prefix: ['spec', 'system-model'],
-    indexUrl: '/docs/spec/system-model',
-    label: 'System model',
-  },
-] as const;
+const CATALOGS = (
+  handbookIa.objects as Array<{
+    metaRole?: string;
+    catalogLabel?: string;
+    title?: string;
+    localPath?: string;
+    indexUrl?: string;
+  }>
+)
+  .filter((o) => o.metaRole === 'catalog-index' && o.localPath && o.indexUrl)
+  .map((o) => ({
+    prefix: o.localPath!.split('/') as [string, ...string[]],
+    indexUrl: o.indexUrl!,
+    label: o.catalogLabel ?? o.title ?? o.localPath!,
+  }));
 
 export const source = loader({
   baseUrl: '/docs',

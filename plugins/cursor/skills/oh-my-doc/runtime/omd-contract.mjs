@@ -2,33 +2,25 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
+import { catalogsFromGraph, loadHandbookIaGraph, sectionsFromGraph } from './ia-graph.mjs';
+
 export const CONTRACT_VERSION = '1.0';
 export const SKILL_VERSION = '0.2.0';
 
-/** Default IA: Home → Vision → Start here → Workflow → Planning → Plans → ADR → Spec */
-export const DEFAULT_IA_SECTIONS = [
-  { id: 'home', title: 'Home', path: 'index', required: true, visible: true },
-  { id: 'vision', title: 'Vision', path: 'vision', required: true, visible: true },
-  { id: 'starting', title: 'Start here', path: 'starting', required: true, visible: true },
-  { id: 'workflow', title: 'Workflow', path: 'workflow', required: true, visible: true },
-  { id: 'planning', title: 'Planning', path: 'planning', required: true, visible: true },
-  { id: 'plans', title: 'Plans', path: 'plans', required: true, visible: true },
-  { id: 'adr', title: 'ADR', path: 'adr', required: true, visible: true },
-  { id: 'spec', title: 'Spec', path: 'spec', required: true, visible: true },
-];
+const handbookGraph = loadHandbookIaGraph();
 
+/** Default IA derived from references/handbook-ia-graph.json */
+export const DEFAULT_IA_SECTIONS = sectionsFromGraph(handbookGraph);
 
-export const DEFAULT_CATALOGS = [
-  { id: 'glossary', label: 'Glossary', prefix: ['domain', 'glossary'], indexUrl: '/docs/domain/glossary', indexOnly: true },
-  { id: 'models', label: 'Domain models', prefix: ['domain', 'models'], indexUrl: '/docs/domain/models', indexOnly: true },
-  { id: 'policies', label: 'Domain policies', prefix: ['domain', 'policies'], indexUrl: '/docs/domain/policies', indexOnly: true },
-  { id: 'prds', label: 'Product requirements', prefix: ['planning', 'prds'], indexUrl: '/docs/planning/prds', indexOnly: true },
-  { id: 'stories', label: 'User stories', prefix: ['planning', 'stories'], indexUrl: '/docs/planning/stories', indexOnly: true },
-  { id: 'plans', label: 'Implementation plans', prefix: ['plans'], indexUrl: '/docs/plans', indexOnly: true },
-  { id: 'adr', label: 'ADR', prefix: ['adr'], indexUrl: '/docs/adr', indexOnly: true },
-  { id: 'spec-data-model', label: 'Data model', prefix: ['spec', 'data-model'], indexUrl: '/docs/spec/data-model', indexOnly: true },
-  { id: 'spec-system-model', label: 'System model', prefix: ['spec', 'system-model'], indexUrl: '/docs/spec/system-model', indexOnly: true },
-];
+export const DEFAULT_CATALOGS = catalogsFromGraph(handbookGraph).map(
+  ({ id, label, prefix, indexUrl, indexOnly }) => ({
+    id,
+    label,
+    prefix,
+    indexUrl,
+    indexOnly,
+  }),
+);
 
 export const DEFAULT_UI_VOCABULARY = [
   { name: 'Card', surface: 'fumadocs-mdx', export: 'Card', source: 'fumadocs-ui', contractVersion: CONTRACT_VERSION },
@@ -153,8 +145,19 @@ export function createDefaultProject(root, options = {}) {
       templates: `${options.docsPath ?? 'docs'}/templates`,
     },
     informationArchitecture: {
+      schemaVersion: handbookGraph.schemaVersion,
       sections: DEFAULT_IA_SECTIONS,
       catalogs: DEFAULT_CATALOGS,
+      kindToDatabase: handbookGraph.kindToDatabase ?? {},
+      nav: handbookGraph.nav,
+      graphDigest: digest(
+        stableStringify({
+          schemaVersion: handbookGraph.schemaVersion,
+          objects: handbookGraph.objects,
+          nav: handbookGraph.nav,
+          kindToDatabase: handbookGraph.kindToDatabase,
+        }),
+      ),
     },
     lifecycles: DEFAULT_LIFECYCLES,
     ui: {

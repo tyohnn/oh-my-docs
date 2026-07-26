@@ -425,6 +425,7 @@ export async function main(argv = process.argv.slice(2)) {
           dryRun,
           force,
           schemasDir: SCHEMAS_DIR,
+          skillRoot: SKILL_ROOT,
         });
         if (json) printJson(result);
         else {

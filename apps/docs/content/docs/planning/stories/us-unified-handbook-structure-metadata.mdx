@@ -1,0 +1,46 @@
+---
+title: Share one handbook structure metadata graph
+description: Local and Notion projects use the same IA graph for sections, catalogs, and write destinations.
+type: conceptual
+summary: Agents and runtimes read one structure metadata SSOT; content still lives in the selected provider.
+id: US-unified-handbook-structure-metadata
+ticker: US-008
+stage: accepted
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/prds/prd-handbook-navigation-and-typed-specs
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/handbook-ia
+  - /docs/spec/system-model/notion-content-port
+  - /docs/plans/plan-unified-handbook-structure-metadata
+---
+
+As a product team, I want one handbook structure metadata graph shared by
+local Fumadocs and Notion so that sections, catalogs, and where new catalog
+entries go do not drift between providers.
+
+## Context
+
+`contentSource.ssot` still chooses where **document bodies** live. Structure
+metadata (nav sections, catalog pages, Notion keys, local paths, write targets)
+must be the same contract regardless of that choice.
+
+## Acceptance criteria
+
+- A single machine-readable IA graph in the skill defines sections, catalogs,
+  Notion keys, local paths, and catalog write destinations.
+- Adopt stamps that graph into `.omd/project.json` `informationArchitecture`.
+- Local adopt/sync generates Fumadocs folder `meta.json` skeletons from the
+  graph; catalog detail `pages[]` stay project-owned (via `new` / check).
+- Notion provision consumes the same graph (no separate Notion-only tree).
+- Catalog kinds (PRD, story, plan, ADR, …) write to the catalog store (Notion
+  inline DB row or local catalog folder + `meta.json`), never as ad-hoc child
+  pages of the parent section (Planning ≠ Plans).
+- Skill Hard rules and the adopted `AGENTS.md` marker state the catalog write
+  rule explicitly.
+- Domain appears in the default structure graph; Spec has no default CLI page.
+
+## Out of scope
+
+- Dual-writing document bodies to Notion and local at once.
+- Storing every catalog document slug/ID only in `.omd`.

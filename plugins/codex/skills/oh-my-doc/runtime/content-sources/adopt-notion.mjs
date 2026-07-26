@@ -1,3 +1,6 @@
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   acquireLock,
   createDefaultProject,
@@ -5,8 +8,27 @@ import {
   releaseLock,
   writeOmdContract,
 } from '../omd-contract.mjs';
+import {
+  DEFAULT_AGENTS_MARKER_BODY,
+  DEFAULT_CLAUDE_MARKER_BODY,
+  mergeMarkerBlock,
+} from '../markers.mjs';
 import { capabilityBlockers, planProvision, recordResult } from './notion.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
+
+/**
+ * @param {string} root
+ * @param {string} file
+ * @param {string} body
+ */
+function writeManagedMarker(root, file, body) {
+  const path = join(root, file);
+  const existing = existsSync(path) ? readFileSync(path, 'utf8') : null;
+  const merged = mergeMarkerBlock(existing, body, { force: true });
+  if (merged.kind === 'skip') return null;
+  writeFileSync(path, merged.content, 'utf8');
+  return file;
+}
 
 /**
  * Plan or record a Notion SSOT adopt.
@@ -144,6 +166,14 @@ export function adoptNotionProject(options) {
   acquireLock(options.cwd);
   try {
     writeOmdContract(options.cwd, contract, state, options.schemasDir);
+    const wrote = ['.omd/project.json', '.omd/state.json'];
+    for (const [file, body] of [
+      ['AGENTS.md', DEFAULT_AGENTS_MARKER_BODY],
+      ['CLAUDE.md', DEFAULT_CLAUDE_MARKER_BODY],
+    ]) {
+      const written = writeManagedMarker(options.cwd, file, body);
+      if (written) wrote.push(written);
+    }
     return {
       ok: true,
       dryRun: false,
@@ -154,7 +184,7 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
-      applied: { wrote: ['.omd/project.json', '.omd/state.json'] },
+      applied: { wrote },
       manualChecklist: planned.manifest.manualChecklist,
       next: 'Execute manifest.operations via Notion MCP, then re-run with results or sync to record mappings.',
     };

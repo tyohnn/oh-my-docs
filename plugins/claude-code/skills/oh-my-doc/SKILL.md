@@ -70,10 +70,11 @@ workflow. Missing `contentSource` means `local`.
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
 | `references/notion-information-architecture.md` | Notion page + details-toggle IA |
+| `references/notion-catalog-writes.md` | Where PRD/story/plan/ADR rows go (Planning ≠ Plans) |
 | `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |
 | `references/notion-page-templates.md` | Notion-flavored body templates |
 | `references/notion-manual-checklist.md` | Host-only steps (page Full width) |
-| `references/notion-ia-graph.json` | Machine-readable Notion object graph |
+| `references/handbook-ia-graph.json` | Shared structure metadata IA graph (local + Notion) |
 | `references/notion-catalog-schemas.json` | Catalog DB properties and relations |
 | `assets/AGENTS.md` / `assets/CLAUDE.md` | Marker body templates |
 
@@ -81,6 +82,12 @@ workflow. Missing `contentSource` means `local`.
 
 - Never invent product requirements from code alone.
 - Never skip the docs-first gate for product, bugfix, or maintenance work.
+- Always read `.omd/project.json` `contentSource.ssot` and treat that provider as
+  the only handbook **content** SSOT; structure metadata comes from the shared
+  IA graph stamped into `.omd/project.json`.
+- Documentation is always first: write decisions into the SSOT, not only chat.
+- Catalog entries go in the catalog store (Notion inline DB or local catalog
+  folder + `meta.json`). Never create Plans as children of Planning.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
 - Prefer `inspect → ask SSOT → adopt → check` over inventing handbook files.

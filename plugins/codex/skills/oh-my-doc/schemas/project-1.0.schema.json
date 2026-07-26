@@ -21,8 +21,12 @@
       "type": "object",
       "required": ["sections", "catalogs"],
       "properties": {
+        "schemaVersion": { "type": "string" },
         "sections": { "type": "array" },
-        "catalogs": { "type": "array" }
+        "catalogs": { "type": "array" },
+        "kindToDatabase": { "type": "object" },
+        "nav": { "type": "object" },
+        "graphDigest": { "type": "string" }
       }
     },
     "lifecycles": { "type": "object" },

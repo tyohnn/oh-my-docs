@@ -1,0 +1,82 @@
+---
+title: Unify handbook structure metadata SSOT
+description: One IA graph drives local meta skeletons and Notion provision; catalog writes go to DB rows or catalog folders.
+type: guide
+summary: Collapse DEFAULT_IA, catalogs, and notion-ia-graph into one stamped structure metadata contract with explicit write targets.
+id: PLAN-unified-handbook-structure-metadata
+ticker: PLAN-013
+stage: done
+changeType: product
+prd: PRD-selectable-content-source
+specs:
+  - SPEC-content-source-contract
+  - SPEC-handbook-information-architecture
+  - SPEC-notion-content-port
+stories:
+  - US-unified-handbook-structure-metadata
+  - US-choose-handbook-content-source
+codeAreas:
+  - skills/oh-my-doc
+  - skills/oh-my-doc/references
+  - skills/oh-my-doc/runtime
+  - skills/oh-my-doc/templates
+  - apps/docs/lib
+  - apps/docs/content/docs
+  - plugins
+  - templates
+  - AGENTS.md
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/stories/us-unified-handbook-structure-metadata
+  - /docs/planning/stories/us-choose-handbook-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/handbook-ia
+  - /docs/spec/system-model/notion-content-port
+  - /docs/plans/plan-align-default-template-ia-with-handbook-skeleton
+  - /docs/plans/plan-adopt-ssot-docs-ui-and-notion-home-toggle
+---
+
+## Scope
+
+1. Merge `DEFAULT_IA_SECTIONS` / `DEFAULT_CATALOGS` and `notion-ia-graph.json`
+   into one skill IA graph (`handbook-ia-graph.json`) with `localPath`,
+   `metaRole`, and catalog `writeTarget` / `databaseKey` / `forbiddenParents`.
+2. Stamp the graph into `.omd/project.json` `informationArchitecture` on adopt.
+3. Generate local Fumadocs `meta.json` skeletons from the graph on adopt/sync;
+   keep catalog detail `pages[]` project-owned.
+4. Point Notion `planProvision` / loaders at the unified graph.
+5. Document and enforce catalog write destinations (Planning ≠ Plans; DB row /
+   local catalog folder, not section child pages).
+6. Dedup `apps/docs/lib/source.ts` catalog config against the same contract.
+
+## Implementation sequence
+
+1. Land this ready plan and SPEC/story updates (docs-first).
+2. Author unified graph; align Domain; map `adr` ↔ `pages.adrs`; no default Spec CLI.
+3. Replace dual loaders; stamp IA on adopt; generate meta skeletons.
+4. Wire Notion provision to the graph; keep chrome validators.
+5. SKILL Hard rules + AGENTS marker + catalog-writes reference; create-document
+   / `planCreateDocument` tests.
+6. Dedup docs catalog list; sync plugins; mark done after verification.
+
+## Verification
+
+- `pnpm check:planning`
+- `pnpm check:skills`
+- `pnpm check:ui-snapshot`
+- `node --test skills/oh-my-doc/tests/*.test.mjs`
+- Local adopt root meta includes Domain; Spec meta has no `cli`
+- Notion `planCreateDocument` for `plan` targets `dbs.plans`
+- Adopted `AGENTS.md` mentions catalog write destinations
+
+## Migration and compatibility
+
+- Existing projects keep working; next adopt/sync refreshes structure meta.
+- Catalog detail `meta.json` page lists are not wiped by sync.
+- Notion workspaces with misplaced child pages are not auto-moved.
+
+## Risks and rollback
+
+- Over-generating `meta.json` could clobber catalog page lists — sync must only
+  update structure skeletons / known omdGenerated paths.
+- Rollback: restore prior `notion-ia-graph.json` + `DEFAULT_*` constants.
