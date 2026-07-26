@@ -28,7 +28,7 @@ node <skill>/scripts/omd.mjs check --json
 - Docs shell: **Fumadocs via npm** (`fumadocs-ui`, `fumadocs-core`, `fumadocs-mdx`)
 - Planning vocabulary: **copied from the skill template** by `adopt` (no shadcn registry)
 - Skill updates do not rewrite the project — re-run `adopt` (use `--force` if
-  `packages/ui` diverged) after updating the skill
+  `packages/docs-ui` diverged) after updating the skill
 
 ## Optional host plugins
 

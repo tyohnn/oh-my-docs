@@ -1,13 +1,13 @@
 /**
- * Ensure skill template UI snapshot matches packages/ui (dogfood source).
+ * Ensure skill template UI snapshot matches packages/docs-ui (dogfood source).
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const source = join(root, 'packages/ui/src');
-const snapshot = join(root, 'skills/oh-my-doc/templates/default/packages/ui/src');
+const source = join(root, 'packages/docs-ui/src');
+const snapshot = join(root, 'skills/oh-my-doc/templates/default/packages/docs-ui/src');
 
 function listFiles(directory) {
   if (!existsSync(directory)) return [];
@@ -47,4 +47,4 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-console.log('packages/ui matches skills/oh-my-doc/templates/default/packages/ui.');
+console.log('packages/docs-ui matches skills/oh-my-doc/templates/default/packages/docs-ui.');
