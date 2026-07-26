@@ -79,13 +79,16 @@ app or `packages/docs-ui`.
 
 Every managed content page uses the same two-column chrome:
 
-1. Left column (~18–20%): callout containing the shared nav mentions.
+1. Left column (~18–20%): callout containing the shared nav mentions as
+   **bulleted** `<mention-page>` items.
 2. Right column: page body (and inline database when the page is a catalog).
 
 Active section highlighting uses block background `yellow_bg` on the active
-top-level mention. Sections with children use a **double layer**: when the
-section or one of its children is current, the parent mention keeps
-`yellow_bg` and children render as indented mention blocks beneath it.
+top-level bullet. Sections with children use a **double layer**: when the
+section or one of its children is current, the parent bullet keeps
+`yellow_bg` and children render as **indented nested bullets** beneath it
+(open sidebar-group appearance). The active nested leaf also gets `yellow_bg`.
+Inactive groups stay collapsed.
 
 | Parent | Nested children when active |
 |---|---|
@@ -96,6 +99,14 @@ section or one of its children is current, the parent mention keeps
 
 Top-level nav (always present when not nested away): Home/root, Vision,
 Start here, Workflow, Domain, Planning, Spec, PRDs, Plans, ADRs.
+
+### Chrome validation
+
+`planProvision` must emit `write_page_body` content that passes
+`validateSidebarChrome` for every `pages.*` key. `omd check` (notion) re-runs
+that validation and fails on missing columns, missing yellow group, missing
+nested bullets, or unexpected expanded inactive groups. Agents must not write
+page bodies that omit this chrome.
 
 ## Database properties and relations
 
