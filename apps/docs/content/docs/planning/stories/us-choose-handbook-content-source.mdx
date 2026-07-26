@@ -31,10 +31,10 @@ lifecycles.
 - After adopt, root `AGENTS.md` (managed marker) tells agents to read
   `.omd/project.json` `contentSource.ssot` and confirm whether the handbook
   SSOT is local docs or Notion before planning or content edits.
-- Whenever the user discusses vision, roadmap, PRDs, stories, Domain, specs,
-  ADRs, plans, or similar product intent, agents must check the selected SSOT
-  for existing coverage and update or create the corresponding artifacts there
-  so chat decisions do not become a second source of truth.
+- Documentation is always first: whenever the user makes decisions, agreements,
+  or starts new discussions that should outlive chat, agents must check the
+  selected SSOT and create or update handbook artifacts there so conversation
+  is never a second source of truth.
 - `local` scaffolds the Fumadocs docs app and UI vocabulary under
   `packages/docs-ui` (legacy `packages/ui` still detected).
 - `notion` requires an accessible Home root page and configured Notion MCP; it

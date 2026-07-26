@@ -51,18 +51,17 @@ This repository uses a docs-first workflow. Canonical product intent lives in
 4. For \`notion\`, edit the mapped Notion handbook (via the host Notion MCP).
    For \`local\`, edit the docs content tree. Do not treat the other side as truth.
 
-## Keep the SSOT current during planning talk
+## Documentation is always first
 
-Whenever the conversation touches vision, roadmap, PRDs, user stories, Domain
-terms/models/policies, specifications, ADRs, implementation plans, or similar
-product intent:
+Any decision, agreement, requirement, design choice, open question, or new
+discussion that should outlive this chat must be written into the selected SSOT
+— not left only in conversation.
 
-1. Check whether the agreed outcome already exists in the selected SSOT.
-2. Create or update the matching handbook artifacts in that SSOT so decisions
-   are not left only in chat.
+1. Before and during the talk, check whether the topic already exists in the SSOT.
+2. Create or update the matching handbook artifacts as the discussion progresses.
 3. Prefer \`node <skill>/scripts/omd.mjs new <kind> --title "…" --yes\` (local)
-   or the Notion catalog workflow (notion) over ad-hoc files.
-4. Run \`node <skill>/scripts/omd.mjs check\` after meaningful planning edits.
+   or the Notion catalog workflow (notion) over ad-hoc files or chat-only notes.
+4. Run \`node <skill>/scripts/omd.mjs check\` after meaningful documentation edits.
 
 ## Docs-first gate
 
