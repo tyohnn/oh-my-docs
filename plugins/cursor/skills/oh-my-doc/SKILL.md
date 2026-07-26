@@ -32,7 +32,9 @@ node <skill>/scripts/omd.mjs sync --yes --json
 ```
 
 Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before choosing a
-workflow. Missing `contentSource` means `local`.
+workflow. Missing `contentSource` means `local`. Documentation is always first:
+any decision, agreement, or new discussion that should outlive chat must be
+written into that SSOT.
 
 ### State machine
 
@@ -81,6 +83,10 @@ workflow. Missing `contentSource` means `local`.
 
 - Never invent product requirements from code alone.
 - Never skip the docs-first gate for product, bugfix, or maintenance work.
+- Always read `.omd/project.json` `contentSource.ssot` and treat that provider as
+  the only handbook SSOT; ask + `adopt` when `.omd` is missing.
+- Documentation is always first: write decisions, agreements, and new discussions
+  into the SSOT instead of leaving truth only in chat.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
 - Prefer `inspect → ask SSOT → adopt → check` over inventing handbook files.

@@ -5,6 +5,8 @@ import {
   releaseLock,
   writeOmdContract,
 } from '../omd-contract.mjs';
+import { applyFileOperations } from '../fs-ops.mjs';
+import { planSetup } from '../plan-setup.mjs';
 import { capabilityBlockers, planProvision, recordResult } from './notion.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
 
@@ -108,6 +110,7 @@ export function adoptNotionProject(options) {
   }
 
   const state = createDefaultState(contract, { provider });
+  const setupPlan = planSetup({ cwd: options.cwd, force: true });
 
   if (options.dryRun) {
     return {
@@ -120,6 +123,7 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
+      operations: setupPlan.operations,
       applied: null,
       manualChecklist: planned.manifest.manualChecklist,
     };
@@ -136,6 +140,7 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
+      operations: setupPlan.operations,
       applied: null,
       manualChecklist: planned.manifest.manualChecklist,
     };
@@ -144,6 +149,10 @@ export function adoptNotionProject(options) {
   acquireLock(options.cwd);
   try {
     writeOmdContract(options.cwd, contract, state, options.schemasDir);
+    const appliedMarkers = applyFileOperations(options.cwd, setupPlan.operations, {
+      dryRun: false,
+      force: true,
+    });
     return {
       ok: true,
       dryRun: false,
@@ -154,7 +163,14 @@ export function adoptNotionProject(options) {
       blockers,
       contract,
       state,
-      applied: { wrote: ['.omd/project.json', '.omd/state.json'] },
+      operations: setupPlan.operations,
+      applied: {
+        wrote: [
+          '.omd/project.json',
+          '.omd/state.json',
+          ...appliedMarkers.applied.map((op) => op.path),
+        ],
+      },
       manualChecklist: planned.manifest.manualChecklist,
       next: 'Execute manifest.operations via Notion MCP, then re-run with results or sync to record mappings.',
     };
