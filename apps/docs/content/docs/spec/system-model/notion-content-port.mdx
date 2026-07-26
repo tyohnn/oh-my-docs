@@ -79,18 +79,19 @@ app or `packages/docs-ui`.
 
 Every managed content page uses the same two-column chrome:
 
-1. Left column (~18–20%): callout containing the shared nav mentions as
-   **bulleted** `<mention-page>` items.
+1. Left column (~18–20%): callout containing the shared nav mentions.
 2. Right column: page body (and inline database when the page is a catalog).
 
-Active section highlighting uses block background `yellow_bg` on the active
-top-level bullet. Sections with children use a **double layer**: when the
-section or one of its children is current, the parent bullet keeps
-`yellow_bg` and children render as **indented nested bullets** beneath it
-(open sidebar-group appearance). The active nested leaf also gets `yellow_bg`.
-Inactive groups stay collapsed.
+Leaf top-level items are bulleted `<mention-page>` mentions. Parents that have
+nested children wrap those children in a `<details>` toggle whose `<summary>`
+is the parent mention, so users can collapse/hide the child list.
 
-| Parent | Nested children when active |
+Active section highlighting uses block background `yellow_bg` on the active
+summary (or leaf bullet). The active nested leaf also gets `yellow_bg`.
+Details groups are emitted for every such parent on every page — not only when
+that section is active.
+
+| Parent | Nested children inside details |
 |---|---|
 | Workflow | Workflow Planning, Development |
 | Domain | Glossary, Models, Policies |
@@ -105,8 +106,8 @@ Start here, Workflow, Domain, Planning, Spec, PRDs, Plans, ADRs.
 `planProvision` must emit `write_page_body` content that passes
 `validateSidebarChrome` for every `pages.*` key. `omd check` (notion) re-runs
 that validation and fails on missing columns, missing yellow group, missing
-nested bullets, or unexpected expanded inactive groups. Agents must not write
-page bodies that omit this chrome.
+`<details>` toggles for nested parents, or missing nested children inside those
+toggles. Agents must not write page bodies that omit this chrome.
 
 ## Database properties and relations
 
