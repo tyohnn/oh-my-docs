@@ -45,15 +45,19 @@ or:
 }
 ```
 
-`rootPageId` and `rootPageUrl` identify content but grant no access. Tokens,
-OAuth secrets, cookies, and MCP session data are forbidden.
+`rootPageId` and `rootPageUrl` identify the handbook **Home** page
+(`pages.home`) but grant no access. Tokens, OAuth secrets, cookies, and MCP
+session data are forbidden.
+
+For `ssot: notion`, local docs-app paths and UI vocabulary snapshots are not
+required. For `ssot: local`, `paths.ui` defaults to `packages/docs-ui`.
 
 ## State contract
 
 Notion state contains:
 
 - schema digest and last observed time
-- stable OMD key → page/database ID mappings
+- stable OMD key → page/database ID mappings (including `pages.home` → root)
 - last successful manifest digest
 - incomplete operation IDs for safe retry
 
@@ -64,13 +68,15 @@ State is rebuildable and never authoritative content.
 - A version `1.0` project without `contentSource` is interpreted as `local`.
 - Migration writes the explicit local selection without altering docs.
 - Existing local paths, UI snapshot, ownership, and lifecycle contracts remain
-  valid.
+  valid for local projects.
+- Greenfield adopt without an explicit `ssot` flag is rejected (`needsSsot`).
 
 ## Validation
 
 - Exactly one `ssot` value is present.
-- Notion requires a parseable root ID and canonical root URL.
-- Local requires configured content paths.
+- Notion requires a parseable root ID and canonical root URL mapped as Home.
+- Local requires configured content paths and a UI vocabulary path.
+- Notion must not require a local UI package.
 - State mappings must reference known IA/catalog/document keys.
 - Project and state digests must agree.
 
@@ -79,3 +85,4 @@ State is rebuildable and never authoritative content.
 - Provider choice round-trips through project metadata.
 - No secret appears in project/state JSON or logs.
 - Legacy projects validate as local.
+- Notion projects validate without local docs/UI packages.

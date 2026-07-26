@@ -2,12 +2,12 @@
 title: UI vocabulary ships as skill-template snapshot
 description: Planning UI components are copied from the skill template, not a registry.
 type: decision
-summary: Distribute DocKind and related planning UI by copying the skill template into packages/ui on adopt.
+summary: Distribute DocKind and related planning UI by copying the skill template into packages/docs-ui on adopt.
 id: ADR-002
 ticker: ADR-002
 stage: accepted
 related:
-  - /docs/spec/cli
+  - /docs/spec/system-model/cli
   - /docs/planning/prds/prd-skill-and-ui-refresh-loop
   - /docs/adr/adr-001-fumadocs-ssot
 ---
@@ -16,20 +16,27 @@ related:
 
 The docs shell needs Fumadocs packages from npm. Planning vocabulary components
 (`DocKind`, `Decision`, catalog helpers, …) are Oh My Docs-specific and must
-reach consumer repos without a public CLI or a second package registry.
+reach consumer repos without a public CLI or a second package registry. Consumer
+repos often already have a `packages/ui`, so Oh My Docs must not collide on that
+path.
 
 ## Decision
 
-Ship planning UI under `skills/oh-my-doc/templates/default/packages/ui` and copy
-it into the consumer project's `packages/ui` (or configured `paths.ui`) during
-`adopt`. Refresh the same way. Keep Fumadocs shell dependencies on npm.
+Ship planning UI under
+`skills/oh-my-doc/templates/default/packages/docs-ui` and copy it into the
+consumer project's `packages/docs-ui` (or configured `paths.ui`) during local
+`adopt`. Refresh the same way. Keep Fumadocs shell dependencies on npm. Keep the
+workspace package name `@oh-my-docs/ui`. Notion SSOT adopt does not install this
+snapshot.
 
 ## Consequences
 
 - No shadcn-style registry or `npx` component pull for planning vocabulary.
 - Skill updates do not mutate projects until `adopt` runs again.
 - Divergent local edits require explicit `adopt --force`.
-- Dogfood `packages/ui` and the skill template must stay in sync in this repo.
+- Dogfood `packages/docs-ui` and the skill template must stay in sync in this
+  repo.
+- Legacy consumer `packages/ui` snapshots remain detectable.
 
 ## Rejected alternatives
 

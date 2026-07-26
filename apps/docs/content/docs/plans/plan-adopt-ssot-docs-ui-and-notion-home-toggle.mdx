@@ -1,0 +1,93 @@
+---
+title: Adopt SSOT docs-ui and Notion home toggle
+description: Require SSOT choice at adopt, default local UI to packages/docs-ui, skip UI for Notion, use home toggle IA, and stop triple-copying skills.
+type: guide
+summary: Close adopt UX gaps after PLAN-011 — explicit SSOT, docs-ui path, details-toggle-on-home, and skills.sh symlink install.
+id: PLAN-adopt-ssot-docs-ui-notion-home-toggle
+ticker: PLAN-012
+stage: done
+changeType: product
+prd: PRD-selectable-content-source
+specs:
+  - SPEC-content-source-contract
+  - SPEC-notion-content-port
+  - SPEC-skill-ui-refresh
+stories:
+  - US-choose-handbook-content-source
+  - US-refresh-skill-ui
+codeAreas:
+  - skills/oh-my-doc
+  - packages/docs-ui
+  - packages/ui
+  - scripts
+  - apps/docs
+  - plugins
+  - AGENTS.md
+  - README.md
+related:
+  - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/stories/us-choose-handbook-content-source
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+  - /docs/spec/system-model/cli
+  - /docs/adr/adr-ui-vocabulary-ships-as-skill-template-snapshot
+  - /docs/plans/plan-notion-content-port-with-references-templates
+---
+
+## Scope
+
+1. Greenfield adopt requires explicit `--ssot local|notion` (agent asks first).
+2. Notion adopt never scaffolds local docs app or UI vocabulary packages.
+3. Local default `paths.ui` is `packages/docs-ui`; dogfood/template dirs rename
+   accordingly; keep npm name `@oh-my-docs/ui`; legacy `packages/ui` still
+   detected.
+4. Notion IA default: `--notion-root` maps to `pages.home`; **데이터 원본** is a
+   `<details>` toggle on Home, not a child page (`details-toggle-on-home`).
+5. Skills install follows skills.sh symlink rules; adopt does not copy the skill
+   tree into three agent roots.
+
+## Implementation sequence
+
+1. Land this ready plan and handbook/SPEC/ADR/reference updates (docs-first).
+2. Wire greenfield `needsSsot` gate + SKILL.md ask-first state machine.
+3. Slim Notion contract/check/doctor for no local UI requirement.
+4. Switch IA graph + `planProvision` to `details-toggle-on-home` and seed
+   `pages.home` from the supplied root.
+5. Rename `packages/ui` → `packages/docs-ui` (dogfood + template) and update
+   snapshot/check scripts.
+6. Change `planSetup` to markers-only or canonical `.agents/skills` + symlinks.
+7. Extend tests; `pnpm sync:skills`; mark done after verification.
+
+## Verification
+
+- `pnpm test`
+- `pnpm check:planning`
+- `pnpm check:ui-snapshot`
+- `pnpm check:skills`
+- Greenfield adopt without `--ssot` returns `needsSsot`
+- Local adopt creates `packages/docs-ui` (not `packages/ui`)
+- Notion adopt has no UI scaffold ops; `pages.home` mapping equals root; no
+  `ensure:toggles.sources` page
+
+## Migration and compatibility
+
+- Existing `.omd` projects without `contentSource` remain `local`.
+- Brownfield `packages/ui` remains detectable.
+- Workspaces provisioned with `sources-page-parent` are not auto-migrated;
+  re-adopt or clean up the old **데이터 원본** page manually if needed.
+
+## Risks and rollback
+
+- Notion MCP may still surface child pages under Home when pages are parented
+  there; the failure mode to avoid is a named **데이터 원본** page. Mitigate by
+  never emitting `ensure_page` for the sources container.
+- Rollback: revert skill runtime + IA graph to `sources-page-parent` and
+  `packages/ui` defaults.
+
+## Completion criteria
+
+- Explicit SSOT choice at first adopt.
+- Notion home = supplied root; sources = details toggle.
+- Local scaffolds use `packages/docs-ui`.
+- Skill install is symlink-friendly without triple copies.
+- Plan marked `done` after verification.

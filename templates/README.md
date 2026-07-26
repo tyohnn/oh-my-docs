@@ -7,10 +7,10 @@
 the user scaffold. Both share the same docs-first IA and `@oh-my-docs/ui` shape;
 product content intentionally differs.
 
-When you change `packages/ui`, refresh the scaffold copy:
+When you change `packages/docs-ui`, refresh the scaffold copy:
 
 ```bash
-rm -rf templates/default/packages/ui
-cp -a packages/ui templates/default/packages/ui
-rm -rf templates/default/packages/ui/node_modules templates/default/packages/ui/.turbo
+rm -rf templates/default/packages/docs-ui
+cp -a packages/docs-ui templates/default/packages/docs-ui
+rm -rf templates/default/packages/docs-ui/node_modules templates/default/packages/docs-ui/.turbo
 ```

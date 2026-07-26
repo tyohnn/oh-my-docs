@@ -19,7 +19,8 @@ The agent should run:
 ```bash
 npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
 node <skill>/scripts/omd.mjs inspect --json
-node <skill>/scripts/omd.mjs adopt --yes --json
+node <skill>/scripts/omd.mjs adopt --ssot local --yes --json
+# or: adopt --ssot notion --notion-root <url-or-id> --yes --json
 node <skill>/scripts/omd.mjs check --json
 ```
 
@@ -28,7 +29,7 @@ node <skill>/scripts/omd.mjs check --json
 - Docs shell: **Fumadocs via npm** (`fumadocs-ui`, `fumadocs-core`, `fumadocs-mdx`)
 - Planning vocabulary: **copied from the skill template** by `adopt` (no shadcn registry)
 - Skill updates do not rewrite the project — re-run `adopt` (use `--force` if
-  `packages/ui` diverged) after updating the skill
+  `packages/docs-ui` diverged) after updating the skill
 
 ## Optional host plugins
 

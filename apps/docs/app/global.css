@@ -3,7 +3,7 @@
 @import 'fumadocs-ui/css/preset.css';
 
 @source '../content/**/*.mdx';
-@source '../../../packages/ui/src/**/*.tsx';
+@source '../../../packages/docs-ui/src/**/*.tsx';
 
 /*
  * Keep the Fumadocs sidebar scrollable in embedded browser previews where the

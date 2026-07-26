@@ -38,56 +38,81 @@ does not own OAuth or call a hidden Notion API.
 Catalog destinations are **pages** that embed their database **inline**. The
 navigable object is the page; the database is not a top-level sidebar target.
 
+The user-supplied `--notion-root` **is** Home (`pages.home`, role `home`).
+Do not create a separate Home page under a sources parent.
+
+Default `sourcesStrategy` is `details-toggle-on-home`: **데이터 원본** is a
+`<details>` block on Home, not a child page. Managed top-level pages parent
+under Home and appear inside that toggle.
+
 ```text
-Handbook root (user supplied)
+Home (user-supplied notion-root = pages.home)
 ├── columns
-│   ├── sidebar callout (mentions) + sources toggle
+│   ├── sidebar callout (mentions)
 │   └── Home body
-├── Vision (page)
-├── Start here (page)
-├── Workflow (page)
-│   ├── Workflow Planning (page)
-│   └── Development (page)
-├── Domain (page)
-│   ├── Glossary (page → inline DB)
-│   ├── Models (page → inline DB)
-│   └── Policies (page → inline DB)
-├── Planning (page)
-│   ├── PRDs (page → inline DB)
-│   └── Stories (page → inline DB)
-├── Spec (page)
-│   ├── Data model (page → inline DB)
-│   ├── System model (page → inline DB)
-│   └── CLI (page)
-├── Plans (page → inline DB)
-└── ADRs (page → inline DB)
+└── <details> 데이터 원본
+    ├── Vision (page)
+    ├── Start here (page)
+    ├── Workflow (page)
+    │   ├── Workflow Planning (page)
+    │   └── Development (page)
+    ├── Domain (page)
+    │   ├── Glossary (page → inline DB)
+    │   ├── Models (page → inline DB)
+    │   └── Policies (page → inline DB)
+    ├── Planning (page)
+    │   ├── PRDs (page → inline DB)
+    │   └── Stories (page → inline DB)
+    ├── Spec (page)
+    │   ├── Data model (page → inline DB)
+    │   └── System model (page → inline DB)
+    ├── Plans (page → inline DB)
+    └── ADRs (page → inline DB)
 ```
 
-Managed page and database children live under a single **데이터 원본** toggle on
-the root (or equivalent sources container). Sidebar navigation uses
-`<mention-page>` / page mentions only — never bare URLs as the primary nav.
+Sidebar navigation uses `<mention-page>` / page mentions only — never bare
+URLs as the primary nav. Notion adopt does not scaffold a local Fumadocs docs
+app or `packages/docs-ui`.
 
 ## Sidebar chrome
 
 Every managed content page uses the same two-column chrome:
 
 1. Left column (~18–20%): callout containing the shared nav mentions.
-2. Right column: page body (and inline database when the page is a catalog).
+2. Right column (~80%): **all** page body copy and preserved child `<page>` /
+   `<database>` / sources blocks.
+
+Child content must not appear after `</columns>`; otherwise it stays full width
+instead of shifting right of the sidebar.
+
+Leaf top-level items are bulleted `<mention-page>` mentions. Parents that have
+nested children wrap those children in a `<details>` toggle whose `<summary>`
+is the parent mention, so users can collapse/hide the child list.
 
 Active section highlighting uses block background `yellow_bg` on the active
-top-level mention. Sections with children use a **double layer**: when the
-section or one of its children is current, the parent mention keeps
-`yellow_bg` and children render as indented mention blocks beneath it.
+summary (or leaf bullet). The active nested leaf also gets `yellow_bg`.
+Details groups are emitted for every such parent on every page — not only when
+that section is active.
 
-| Parent | Nested children when active |
+| Parent | Nested children inside details |
 |---|---|
 | Workflow | Workflow Planning, Development |
 | Domain | Glossary, Models, Policies |
 | Planning | PRDs, Stories |
-| Spec | Data model, System model, CLI |
+| Spec | Data model, System model |
 
 Top-level nav (always present when not nested away): Home/root, Vision,
-Start here, Workflow, Domain, Planning, Spec, PRDs, Plans, ADRs.
+Start here, Workflow, Domain, Planning, Spec, Plans, ADRs. PRDs appear only
+under Planning.
+
+### Chrome validation
+
+`planProvision` must emit `write_page_body` content that passes
+`validateSidebarChrome` for every `pages.*` key. `omd check` (notion) re-runs
+that validation and fails on missing columns, missing yellow group, missing
+`<details>` toggles for nested parents, missing nested children inside those
+toggles, or page/database/details content left outside the right column.
+Agents must not write page bodies that omit this chrome.
 
 ## Database properties and relations
 

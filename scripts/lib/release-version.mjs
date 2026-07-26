@@ -161,9 +161,9 @@ export function createVersionFixture(options = {}) {
     );
   }
 
-  mkdirSync(join(root, 'packages/ui'), { recursive: true });
+  mkdirSync(join(root, 'packages/docs-ui'), { recursive: true });
   writeFileSync(
-    join(root, 'packages/ui', 'package.json'),
+    join(root, 'packages/docs-ui', 'package.json'),
     JSON.stringify({ name: '@oh-my-docs/ui', version, private: true }, null, 2),
   );
 

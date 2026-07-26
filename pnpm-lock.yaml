@@ -22,7 +22,7 @@ importers:
     dependencies:
       '@oh-my-docs/ui':
         specifier: workspace:*
-        version: link:../../packages/ui
+        version: link:../../packages/docs-ui
       fumadocs-core:
         specifier: ^16.11.5
         version: 16.11.5(@mdx-js/mdx@3.1.1)(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.2.17)(lucide-react@1.25.0(react@19.2.8))(next@16.2.11(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.4.3)
@@ -70,7 +70,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/ui:
+  packages/docs-ui:
     dependencies:
       '@xyflow/react':
         specifier: ^12.11.2
