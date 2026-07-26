@@ -46,8 +46,9 @@ page.
 <database url="{{dbs.prds}}" inline="true">PRDs</database>
 ```
 
-## Root sources page
+## Root sources toggle
 
-Canonical strategy (`sources-page-parent`): create page **데이터 원본** under the
-handbook root and parent all top-level managed pages beneath it. Optionally also
-render a `<details>` summary on the root that lists those children.
+Canonical strategy (`details-toggle-on-home`): the supplied Notion root **is**
+Home (`pages.home`). Write a `<details>` block titled **데이터 원본** on Home and
+parent managed top-level pages under Home so they appear inside that toggle.
+Do **not** create a child page titled 데이터 원본.

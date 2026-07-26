@@ -139,9 +139,30 @@ export async function main(argv = process.argv.slice(2)) {
           return;
         }
         const target = resolve(process.cwd(), positionals[0] ?? '.');
+        const existingContract = readProject(target);
+        const ssotFlag = flagSsot(flags);
+        if (!existingContract && !ssotFlag) {
+          const payload = {
+            ok: false,
+            code: 'needsSsot',
+            needsSsot: true,
+            options: ['local', 'notion'],
+            message:
+              'Greenfield adopt requires --ssot local|notion. Ask the user to choose the handbook SSOT first.',
+          };
+          if (json) printJson(payload);
+          else {
+            console.error(payload.message);
+            console.error('Examples:');
+            console.error('  adopt --ssot local --yes');
+            console.error('  adopt --ssot notion --notion-root <url-or-id> --yes');
+          }
+          process.exitCode = 1;
+          return;
+        }
         const source = resolveContentSource({
           cwd: target,
-          ssot: flagSsot(flags),
+          ssot: ssotFlag,
           notionRoot: typeof flags['notion-root'] === 'string' ? flags['notion-root'] : undefined,
         });
 
@@ -283,6 +304,10 @@ export async function main(argv = process.argv.slice(2)) {
             }
             if (state && digest(stableStringify(contract)) !== state.projectDigest) {
               problems.push('.omd/state.json projectDigest does not match project.json');
+            }
+            const home = state?.provider?.notion?.mappings?.['pages.home'];
+            if (!home?.id || home.id !== normalized.notion?.rootPageId) {
+              problems.push('pages.home mapping must equal contentSource.notion.rootPageId');
             }
             const pending = state?.provider?.notion?.pendingOperationIds ?? [];
             if (pending.length > 0) {
