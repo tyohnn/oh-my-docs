@@ -190,8 +190,59 @@ test('planProvision bodies all pass validateManifestSidebarChrome', () => {
   );
   assert.ok(bodyOps.length >= 18);
   for (const op of bodyOps) {
-    assert.match(String(op.payload.content), /<details>/);
-    assert.match(String(op.payload.content), /<summary>/);
-    assert.match(String(op.payload.content), /<columns>/);
+    const content = String(op.payload.content);
+    assert.match(content, /<details>/);
+    assert.match(content, /<summary>/);
+    assert.match(content, /<columns>/);
+    assert.doesNotMatch(content, /<\/columns>\s*<(?:page|database|details)\b/);
   }
+});
+
+test('validateSidebarChrome rejects content left after columns', () => {
+  const refs = loadNotionReferences(skillRoot);
+  const bad = `<columns>
+	<column ratio="20">
+		<callout icon="📌" color="gray_bg">
+			- <mention-page url="{{pages.home}}"/>
+			- <mention-page url="{{pages.vision}}"/> {color="yellow_bg"}
+			- <mention-page url="{{pages.starting}}"/>
+			<details>
+			<summary><mention-page url="{{pages.workflow}}"/></summary>
+				- <mention-page url="{{pages.workflow-planning}}"/>
+				- <mention-page url="{{pages.development}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.domain}}"/></summary>
+				- <mention-page url="{{pages.glossary}}"/>
+				- <mention-page url="{{pages.models}}"/>
+				- <mention-page url="{{pages.policies}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.planning}}"/></summary>
+				- <mention-page url="{{pages.prds}}"/>
+				- <mention-page url="{{pages.stories}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.spec}}"/></summary>
+				- <mention-page url="{{pages.data-model}}"/>
+				- <mention-page url="{{pages.system-model}}"/>
+				- <mention-page url="{{pages.cli}}"/>
+			</details>
+			- <mention-page url="{{pages.prds}}"/>
+			- <mention-page url="{{pages.plans}}"/>
+			- <mention-page url="{{pages.adrs}}"/>
+		</callout>
+	</column>
+	<column ratio="80">
+		# Vision
+	</column>
+</columns>
+<page url="{{pages.extra}}">Extra</page>
+`;
+  const result = validateSidebarChrome(bad, {
+    activeKey: 'pages.vision',
+    nav: refs.iaGraph.nav,
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.problems.some((p) => p.code === 'chrome_content_outside_right_column'));
 });
