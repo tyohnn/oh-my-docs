@@ -313,6 +313,26 @@ export async function main(argv = process.argv.slice(2)) {
             if (pending.length > 0) {
               problems.push(`Notion provision has ${pending.length} pending operation(s)`);
             }
+
+            const notionRoot =
+              normalized.notion?.rootPageUrl ||
+              normalized.notion?.rootPageId ||
+              source.notion?.rootPageUrl ||
+              source.notion?.rootPageId;
+            if (notionRoot) {
+              const planned = getContentAdapter('notion').planProvision({
+                skillRoot: SKILL_ROOT,
+                notionRoot,
+                mappings: state?.provider?.notion?.mappings ?? {},
+                pendingOperationIds: pending,
+              });
+              for (const problem of planned.blockers ?? []) {
+                problems.push(`${problem.code}: ${problem.message}`);
+              }
+              for (const problem of planned.manifest?.chromeValidation?.problems ?? []) {
+                problems.push(`${problem.code}: ${problem.message}`);
+              }
+            }
           }
           const ok = problems.length === 0;
           if (json) printJson({ ok, problems, contentSource: source });
@@ -320,7 +340,7 @@ export async function main(argv = process.argv.slice(2)) {
             console.error(`check found ${problems.length} problem(s):`);
             for (const problem of problems) console.error(`- ${problem}`);
           } else {
-            console.log('Notion content source contract looks valid.');
+            console.log('Notion content source contract and sidebar chrome look valid.');
           }
           if (!ok) process.exitCode = 1;
           return;

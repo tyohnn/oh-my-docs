@@ -7,6 +7,8 @@ import {
   defaultPageBody,
   renderSidebarPageContent,
   resolveActiveSection,
+  validateManifestSidebarChrome,
+  validateSidebarChrome,
 } from './sidebar.mjs';
 
 /**
@@ -295,6 +297,11 @@ export function planProvision(options) {
     };
   });
 
+  const chromeValidation = validateManifestSidebarChrome({
+    operations: planned,
+    nav: refs.iaGraph.nav,
+  });
+
   const manifest = {
     schemaVersion: '1.2',
     provider: 'notion',
@@ -311,14 +318,20 @@ export function planProvision(options) {
     nav: refs.iaGraph.nav,
     operations: planned,
     manualChecklist: ['page-full-width'],
+    chromeValidation,
   };
 
   return {
-    ok: true,
+    ok: chromeValidation.ok,
     provider: 'notion',
     manifest,
     manifestDigest: digest(stableStringify(manifest)),
-    blockers: [],
+    blockers: chromeValidation.ok
+      ? []
+      : chromeValidation.problems.map((problem) => ({
+          code: problem.code,
+          message: problem.message,
+        })),
     refs,
   };
 }
@@ -419,6 +432,24 @@ export function validateSnapshot(options) {
       }
     }
   }
+
+  // Always enforce planned body chrome structure (columns, yellow group, nested list).
+  const chromeValidation = validateManifestSidebarChrome({
+    operations: manifest.operations,
+    nav: manifest.nav,
+  });
+  problems.push(...chromeValidation.problems);
+
+  if (snapshot.chromeContent && typeof snapshot.chromeContent === 'object') {
+    for (const [key, content] of Object.entries(snapshot.chromeContent)) {
+      const result = validateSidebarChrome(String(content), {
+        activeKey: key,
+        nav: manifest.nav,
+      });
+      problems.push(...result.problems);
+    }
+  }
+
   return { ok: problems.length === 0, problems };
 }
 
@@ -547,4 +578,10 @@ export function planCreateDocument(options) {
   };
 }
 
-export { renderSidebarPageContent, defaultPageBody, resolveActiveSection };
+export {
+  renderSidebarPageContent,
+  defaultPageBody,
+  resolveActiveSection,
+  validateSidebarChrome,
+  validateManifestSidebarChrome,
+};
