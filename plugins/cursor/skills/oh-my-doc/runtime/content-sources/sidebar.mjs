@@ -3,12 +3,13 @@
  *
  * Layout contract (enforced by `validateSidebarChrome`):
  * - Two columns (20 / 80) with a gray callout nav on the left
- * - Top-level items are bulleted mentions
- * - Active section with children expands as a nested list under a yellow parent
- * - Active leaf mention also gets yellow_bg
+ * - Leaf top-level items are bulleted mentions
+ * - Parents with children wrap those children in a `<details>` toggle whose
+ *   `<summary>` is the parent mention (collapsible sidebar group)
+ * - Active section summary gets yellow_bg; active leaf also gets yellow_bg
  *
  * Highlight form Notion round-trips (suffix):
- *   - <mention-page url="..."/> {color="yellow_bg"}
+ *   <mention-page url="..."/> {color="yellow_bg"}
  */
 
 /**
@@ -33,11 +34,18 @@ export function renderSidebarPageContent(options) {
     const nested = nav.nested[key] ?? [];
     const isActiveParent = key === activeSection;
     const parentHighlight = isActiveParent || key === activeKey;
-    lines.push(`\t\t\t- ${renderMention(key, mappings, parentHighlight)}`);
-    if (isActiveParent && nested.length > 0) {
+
+    if (nested.length > 0) {
+      lines.push('\t\t\t<details>');
+      lines.push(`\t\t\t<summary>${renderMention(key, mappings, parentHighlight)}</summary>`);
       for (const childKey of nested) {
-        lines.push(`\t\t\t\t- ${renderMention(childKey, mappings, childKey === activeKey)}`);
+        lines.push(
+          `\t\t\t\t- ${renderMention(childKey, mappings, childKey === activeKey)}`,
+        );
       }
+      lines.push('\t\t\t</details>');
+    } else {
+      lines.push(`\t\t\t- ${renderMention(key, mappings, parentHighlight)}`);
     }
   }
 
@@ -58,7 +66,7 @@ export function renderSidebarPageContent(options) {
 }
 
 /**
- * Machine-check sidebar chrome against the double-layer nav contract.
+ * Machine-check sidebar chrome against the details-toggle nav contract.
  * @param {string} markdown
  * @param {{
  *   activeKey: string,
@@ -100,6 +108,32 @@ export function validateSidebarChrome(markdown, options) {
     }
   }
 
+  // Every parent with children must be a details toggle group.
+  for (const [parent, children] of Object.entries(nav.nested)) {
+    const block = extractDetailsBlock(text, parent);
+    if (!block) {
+      problems.push({
+        code: 'chrome_missing_details_toggle',
+        message: `${activeKey}: ${parent} must wrap children in a <details> toggle`,
+      });
+      continue;
+    }
+    if (!summaryMentions(block.summary, parent)) {
+      problems.push({
+        code: 'chrome_missing_details_summary',
+        message: `${activeKey}: details summary for ${parent} must mention ${parent}`,
+      });
+    }
+    for (const childKey of children) {
+      if (!block.body.includes(childKey) && !mentionPresent(block.body, childKey)) {
+        problems.push({
+          code: 'chrome_missing_nested_child',
+          message: `${activeKey}: details for ${parent} must include child ${childKey}`,
+        });
+      }
+    }
+  }
+
   if (!parentYellowPresent(text, activeSection)) {
     problems.push({
       code: 'chrome_missing_yellow_group',
@@ -108,14 +142,6 @@ export function validateSidebarChrome(markdown, options) {
   }
 
   if (nested.length > 0) {
-    for (const childKey of nested) {
-      if (!nestedMentionPresent(text, activeSection, childKey)) {
-        problems.push({
-          code: 'chrome_missing_nested_child',
-          message: `${activeKey}: expected indented nested child ${childKey} under ${activeSection}`,
-        });
-      }
-    }
     if (nested.includes(activeKey) && !childYellowPresent(text, activeKey)) {
       problems.push({
         code: 'chrome_missing_yellow_leaf',
@@ -127,27 +153,6 @@ export function validateSidebarChrome(markdown, options) {
       code: 'chrome_missing_yellow_leaf',
       message: `${activeKey}: active top-level page must have yellow_bg`,
     });
-  }
-
-  // Inactive nested groups must stay collapsed (no accidental nested bullets).
-  for (const [parent, children] of Object.entries(nav.nested)) {
-    if (parent === activeSection) continue;
-    for (const childKey of children) {
-      if (nestedMentionPresent(text, parent, childKey)) {
-        problems.push({
-          code: 'chrome_unexpected_nested',
-          message: `${activeKey}: nested child ${childKey} must not expand under inactive ${parent}`,
-        });
-      }
-    }
-  }
-
-  if (options.requirePlaceholders) {
-    for (const key of nav.topLevel) {
-      if (!text.includes(`{{${key}}}`) && !text.includes(`url="{{${key}}}"`)) {
-        // Allow either placeholder form or resolved URLs in planned bodies with {{key}} urls.
-      }
-    }
   }
 
   return { ok: problems.length === 0, problems };
@@ -223,20 +228,38 @@ function mentionPresent(text, key) {
   return (
     text.includes(`url="{{${key}}}"`) ||
     text.includes(`url="https://app.notion.com/p/${key}"`) ||
-    new RegExp(`url="[^"]*${escapeRegExp(key)}[^"]*"`).test(text) ||
-    text.includes(key)
+    new RegExp(`url="[^"]*${escapeRegExp(key)}[^"]*"`).test(text)
   );
 }
 
+function summaryMentions(summary, key) {
+  return mentionPresent(summary, key);
+}
+
+/**
+ * @param {string} text
+ * @param {string} parentKey
+ * @returns {{ summary: string, body: string } | null}
+ */
+function extractDetailsBlock(text, parentKey) {
+  const keyPattern = `(?:\\{\\{${escapeRegExp(parentKey)}\\}\\}|[^"\\n]*${escapeRegExp(parentKey)}[^"\\n]*)`;
+  const re = new RegExp(
+    String.raw`<details>\s*<summary>([\s\S]*?url="${keyPattern}"[\s\S]*?)</summary>([\s\S]*?)</details>`,
+    'm',
+  );
+  const match = re.exec(text);
+  if (!match) return null;
+  return { summary: match[1] ?? '', body: match[2] ?? '' };
+}
+
 function parentYellowPresent(text, key) {
-  // Top-level bullet with yellow_bg for this key.
+  // Yellow may be on a leaf bullet or on a details summary mention.
   const patterns = [
     new RegExp(
-      String.raw`^\t\t\t- <mention-page url="[^"]*${escapeRegExp(key)}[^"]*"/> \{color="yellow_bg"\}`,
-      'm',
+      String.raw`<summary><mention-page url="(?:\{\{${escapeRegExp(key)}\}\}|[^"]*${escapeRegExp(key)}[^"]*)"/> \{color="yellow_bg"\}</summary>`,
     ),
     new RegExp(
-      String.raw`^\t\t\t- <mention-page url="\{\{${escapeRegExp(key)}\}\}"/> \{color="yellow_bg"\}`,
+      String.raw`^\t\t\t- <mention-page url="(?:\{\{${escapeRegExp(key)}\}\}|[^"]*${escapeRegExp(key)}[^"]*)"/> \{color="yellow_bg"\}`,
       'm',
     ),
   ];
@@ -246,24 +269,11 @@ function parentYellowPresent(text, key) {
 function childYellowPresent(text, key) {
   const patterns = [
     new RegExp(
-      String.raw`^\t\t\t\t- <mention-page url="[^"]*${escapeRegExp(key)}[^"]*"/> \{color="yellow_bg"\}`,
-      'm',
-    ),
-    new RegExp(
-      String.raw`^\t\t\t\t- <mention-page url="\{\{${escapeRegExp(key)}\}\}"/> \{color="yellow_bg"\}`,
+      String.raw`^\t\t\t\t- <mention-page url="(?:\{\{${escapeRegExp(key)}\}\}|[^"]*${escapeRegExp(key)}[^"]*)"/> \{color="yellow_bg"\}`,
       'm',
     ),
   ];
   return patterns.some((re) => re.test(text));
-}
-
-function nestedMentionPresent(text, parentKey, childKey) {
-  // Child must appear as an indented nested bullet after the yellow parent group opens.
-  const parentRe = new RegExp(
-    String.raw`^\t\t\t- <mention-page url="(?:\{\{${escapeRegExp(parentKey)}\}\}|[^"]*${escapeRegExp(parentKey)}[^"]*)"/> \{color="yellow_bg"\}\n(?:\t\t\t\t- <mention-page[^\n]+\n)*?\t\t\t\t- <mention-page url="(?:\{\{${escapeRegExp(childKey)}\}\}|[^"]*${escapeRegExp(childKey)}[^"]*)"/>`,
-    'm',
-  );
-  return parentRe.test(text);
 }
 
 function escapeRegExp(value) {

@@ -9,27 +9,39 @@ this chrome for **all** `pages.*` keys — not only Home/Spec.
 
 ## Active highlight
 
-Nav items are **bulleted mentions**. Emit highlight in the form Notion
+Leaf top-level items are **bulleted mentions**. Emit highlight in the form Notion
 round-trips (suffix, not prefix):
 
 ```markdown
-- <mention-page url="{{pages.spec}}"/> {color="yellow_bg"}
+- <mention-page url="{{pages.vision}}"/> {color="yellow_bg"}
 ```
 
-## Double layer
+## Details toggle groups
 
-When the section or one of its children is current, the parent bullet keeps
-`yellow_bg` and children render as **indented nested bullets** beneath it
-(open sidebar-group appearance).
+Parents that have nested children wrap those children in a `<details>` toggle.
+The parent mention lives in `<summary>` so users can collapse/hide the children.
 
-| Parent | Nested children when active |
+```markdown
+<details>
+<summary><mention-page url="{{pages.spec}}"/> {color="yellow_bg"}</summary>
+	- <mention-page url="{{pages.data-model}}"/>
+	- <mention-page url="{{pages.system-model}}"/>
+	- <mention-page url="{{pages.cli}}"/>
+</details>
+```
+
+When the section or one of its children is current, the summary keeps
+`yellow_bg`. The active nested leaf also gets `yellow_bg`.
+
+| Parent | Nested children inside details |
 |---|---|
 | Workflow | Workflow Planning, Development |
 | Domain | Glossary, Models, Policies |
 | Planning | PRDs, Stories |
 | Spec | Data model, System model, CLI |
 
-Inactive groups stay collapsed (no nested bullets).
+Every such parent always emits its details group (not only when active), so the
+toggle remains available for hiding children on every page.
 
 ## Top-level nav
 
@@ -45,8 +57,8 @@ blocks after the columns. Omitting them deletes children or fails validation.
 Runtime helpers:
 
 - `renderSidebarPageContent` — emit chrome
-- `validateSidebarChrome` — assert columns, callout, yellow active group, nested
-  bullets for every page body
+- `validateSidebarChrome` — assert columns, callout, yellow active group,
+  details toggles for every parent with children
 - `validateManifestSidebarChrome` — run over all `write_page_body` ops
 
 `planProvision` and `omd check` (notion) fail when chrome validation fails.

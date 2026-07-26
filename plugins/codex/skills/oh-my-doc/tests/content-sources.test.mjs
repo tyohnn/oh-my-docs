@@ -184,7 +184,11 @@ test('sidebar renderer highlights active nested section', () => {
     childBlocks: ['<database url="https://app.notion.com/p/db" inline="true">Data model</database>'],
   });
   assert.match(md, /<columns>/);
-  assert.match(md, /- <mention-page url="https:\/\/app\.notion\.com\/p\/pages\.spec"\/> \{color="yellow_bg"\}/);
+  assert.match(md, /<details>/);
+  assert.match(
+    md,
+    /<summary><mention-page url="https:\/\/app\.notion\.com\/p\/pages\.spec"\/> \{color="yellow_bg"\}<\/summary>/,
+  );
   assert.match(
     md,
     /\t\t\t\t- <mention-page url="https:\/\/app\.notion\.com\/p\/pages\.data-model"\/> \{color="yellow_bg"\}/,

@@ -15,13 +15,28 @@ page.
 			- <mention-page url="{{pages.home}}"/>
 			- <mention-page url="{{pages.vision}}"/>
 			- <mention-page url="{{pages.starting}}"/>
-			- <mention-page url="{{pages.workflow}}"/>
-			- <mention-page url="{{pages.domain}}"/>
-			- <mention-page url="{{pages.planning}}"/>
-			- <mention-page url="{{pages.spec}}"/> {color="yellow_bg"}
+			<details>
+			<summary><mention-page url="{{pages.workflow}}"/></summary>
+				- <mention-page url="{{pages.workflow-planning}}"/>
+				- <mention-page url="{{pages.development}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.domain}}"/></summary>
+				- <mention-page url="{{pages.glossary}}"/>
+				- <mention-page url="{{pages.models}}"/>
+				- <mention-page url="{{pages.policies}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.planning}}"/></summary>
+				- <mention-page url="{{pages.prds}}"/>
+				- <mention-page url="{{pages.stories}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.spec}}"/> {color="yellow_bg"}</summary>
 				- <mention-page url="{{pages.data-model}}"/>
 				- <mention-page url="{{pages.system-model}}"/>
 				- <mention-page url="{{pages.cli}}"/>
+			</details>
 			- <mention-page url="{{pages.prds}}"/>
 			- <mention-page url="{{pages.plans}}"/>
 			- <mention-page url="{{pages.adrs}}"/>
@@ -37,8 +52,9 @@ page.
 <page url="{{pages.cli}}">CLI</page>
 ```
 
+Parents with children always use `<details>` so those children can be collapsed.
 When a nested child is current (for example Data model), that child bullet also
-gets `{color="yellow_bg"}` while the Spec parent group stays yellow and open.
+gets `{color="yellow_bg"}` while the Spec summary stays yellow.
 ## Catalog page (inline DB preserved)
 
 ```markdown
