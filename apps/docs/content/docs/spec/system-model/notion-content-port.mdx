@@ -80,7 +80,11 @@ app or `packages/docs-ui`.
 Every managed content page uses the same two-column chrome:
 
 1. Left column (~18–20%): callout containing the shared nav mentions.
-2. Right column: page body (and inline database when the page is a catalog).
+2. Right column (~80%): **all** page body copy and preserved child `<page>` /
+   `<database>` / sources blocks.
+
+Child content must not appear after `</columns>`; otherwise it stays full width
+instead of shifting right of the sidebar.
 
 Leaf top-level items are bulleted `<mention-page>` mentions. Parents that have
 nested children wrap those children in a `<details>` toggle whose `<summary>`
@@ -106,8 +110,9 @@ Start here, Workflow, Domain, Planning, Spec, PRDs, Plans, ADRs.
 `planProvision` must emit `write_page_body` content that passes
 `validateSidebarChrome` for every `pages.*` key. `omd check` (notion) re-runs
 that validation and fails on missing columns, missing yellow group, missing
-`<details>` toggles for nested parents, or missing nested children inside those
-toggles. Agents must not write page bodies that omit this chrome.
+`<details>` toggles for nested parents, missing nested children inside those
+toggles, or page/database/details content left outside the right column.
+Agents must not write page bodies that omit this chrome.
 
 ## Database properties and relations
 

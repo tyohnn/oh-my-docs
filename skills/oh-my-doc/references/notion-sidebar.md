@@ -4,8 +4,12 @@ Every managed content page uses the same two-column chrome. Provision must write
 this chrome for **all** `pages.*` keys — not only Home/Spec.
 
 1. Left column (`ratio="20"`): callout containing the shared nav mentions.
-2. Right column (`ratio="80"`): page body (and preserved child page/database blocks
-   below the columns).
+2. Right column (`ratio="80"`): **all** page body copy plus preserved child
+   `<page>` / `<database>` / sources `<details>` blocks.
+
+Nothing except the columns wrapper may sit after `</columns>`. Putting child
+blocks below the columns leaves them full-bleed; they must move into the right
+column so the sidebar shifts content rightward.
 
 ## Active highlight
 
