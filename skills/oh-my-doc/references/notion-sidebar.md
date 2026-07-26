@@ -30,7 +30,6 @@ The parent mention lives in `<summary>` so users can collapse/hide the children.
 <summary><mention-page url="{{pages.spec}}"/> {color="yellow_bg"}</summary>
 	- <mention-page url="{{pages.data-model}}"/>
 	- <mention-page url="{{pages.system-model}}"/>
-	- <mention-page url="{{pages.cli}}"/>
 </details>
 ```
 
@@ -42,14 +41,16 @@ When the section or one of its children is current, the summary keeps
 | Workflow | Workflow Planning, Development |
 | Domain | Glossary, Models, Policies |
 | Planning | PRDs, Stories |
-| Spec | Data model, System model, CLI |
+| Spec | Data model, System model |
 
 Every such parent always emits its details group (not only when active), so the
 toggle remains available for hiding children on every page.
 
 ## Top-level nav
 
-Home · Vision · Start here · Workflow · Domain · Planning · Spec · PRDs · Plans · ADRs
+Home · Vision · Start here · Workflow · Domain · Planning · Spec · Plans · ADRs
+
+PRDs stay under Planning only — not repeated at the root.
 
 ## Child preservation
 

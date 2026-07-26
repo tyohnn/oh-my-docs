@@ -94,7 +94,44 @@ test('sidebar always emits details toggles for every nested parent', () => {
     assert.match(md, /<details>/);
   }
   assert.match(md, /<summary><mention-page url="\{\{pages\.spec\}\}"\/><\/summary>/);
-  assert.match(md, /\t\t\t\t- <mention-page url="\{\{pages\.cli\}\}"\/>/);
+  assert.match(md, /\t\t\t\t- <mention-page url="\{\{pages\.system-model\}\}"\/>/);
+});
+
+test('PRDs appear under Planning only, not as a root nav leaf', () => {
+  const refs = loadNotionReferences(skillRoot);
+  assert.equal(refs.iaGraph.nav.topLevel.includes('pages.prds'), false);
+  assert.deepEqual(refs.iaGraph.nav.nested['pages.planning'], [
+    'pages.prds',
+    'pages.stories',
+  ]);
+  const mappings = placeholderMappings(refs.iaGraph.nav);
+  const md = renderSidebarPageContent({
+    activeKey: 'pages.plans',
+    mappings,
+    nav: refs.iaGraph.nav,
+    bodyMarkdown: '# Plans',
+  });
+  assert.match(
+    md,
+    /<summary><mention-page url="\{\{pages\.planning\}\}"\/><\/summary>[\s\S]*?- <mention-page url="\{\{pages\.prds\}\}"\/>/,
+  );
+  assert.doesNotMatch(
+    md,
+    /<\/details>\s*- <mention-page url="\{\{pages\.prds\}\}"\/>/,
+  );
+  assert.match(md, /- <mention-page url="\{\{pages\.plans\}\}"\/> \{color="yellow_bg"\}/);
+});
+
+test('Spec default IA has data-model and system-model only (no CLI page)', () => {
+  const refs = loadNotionReferences(skillRoot);
+  assert.deepEqual(refs.iaGraph.nav.nested['pages.spec'], [
+    'pages.data-model',
+    'pages.system-model',
+  ]);
+  assert.equal(
+    refs.iaGraph.objects.some((o) => o.key === 'pages.cli'),
+    false,
+  );
 });
 
 test('validateSidebarChrome rejects missing details toggle for nested parent', () => {
@@ -109,7 +146,6 @@ test('validateSidebarChrome rejects missing details toggle for nested parent', (
 			- <mention-page url="{{pages.domain}}"/>
 			- <mention-page url="{{pages.planning}}"/>
 			- <mention-page url="{{pages.spec}}"/> {color="yellow_bg"}
-			- <mention-page url="{{pages.prds}}"/>
 			- <mention-page url="{{pages.plans}}"/>
 			- <mention-page url="{{pages.adrs}}"/>
 		</callout>
@@ -155,9 +191,7 @@ test('validateSidebarChrome rejects missing yellow nested group', () => {
 			<summary><mention-page url="{{pages.spec}}"/></summary>
 				- <mention-page url="{{pages.data-model}}"/>
 				- <mention-page url="{{pages.system-model}}"/>
-				- <mention-page url="{{pages.cli}}"/>
 			</details>
-			- <mention-page url="{{pages.prds}}"/>
 			- <mention-page url="{{pages.plans}}"/>
 			- <mention-page url="{{pages.adrs}}"/>
 		</callout>
@@ -226,9 +260,7 @@ test('validateSidebarChrome rejects content left after columns', () => {
 			<summary><mention-page url="{{pages.spec}}"/></summary>
 				- <mention-page url="{{pages.data-model}}"/>
 				- <mention-page url="{{pages.system-model}}"/>
-				- <mention-page url="{{pages.cli}}"/>
 			</details>
-			- <mention-page url="{{pages.prds}}"/>
 			- <mention-page url="{{pages.plans}}"/>
 			- <mention-page url="{{pages.adrs}}"/>
 		</callout>

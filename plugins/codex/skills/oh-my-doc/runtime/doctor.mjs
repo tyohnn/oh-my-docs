@@ -7,7 +7,7 @@ export function doctorProject(options) {
     });
     const notes = [];
     if (project.empty)
-        notes.push('Directory is empty — run `node skills/oh-my-doc/scripts/omd.mjs adopt --yes` to scaffold.');
+        notes.push('Directory is empty — run `node skills/oh-my-doc/scripts/omd.mjs adopt --ssot local --yes` (or `--ssot notion --notion-root …`) to scaffold.');
     if (!project.packageManager)
         notes.push('No package manager lockfile or packageManager field detected.');
     else

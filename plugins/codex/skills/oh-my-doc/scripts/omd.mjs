@@ -468,16 +468,20 @@ Usage:
   node scripts/omd.mjs <action> [options]
 
 Actions:
-  inspect   Report project mode, docs/UI/.omd state
-  adopt     Greenfield scaffold or brownfield import
+  inspect   Report project mode, docs/UI/.omd state, SSOT
+  adopt     Greenfield scaffold or brownfield import (requires --ssot on first adopt)
   new       Create prd|story|spec|plan|adr
-  check     Validate planning graph + .omd contract
+  check     Validate planning graph + .omd contract (and Notion chrome)
   sync      Refresh managed IA/markers from .omd
 
 Common flags:
   --json --dry-run --yes --force
   --ssot local|notion --notion-root <url-or-id>
   --ui-path <path> --docs-path <path> --title <title> --id <id>
+
+Defaults:
+  --ssot          required for greenfield adopt (no silent local default)
+  --ui-path       packages/docs-ui (local SSOT only)
 `);
 }
 

@@ -357,12 +357,11 @@ export function defaultPageBody(key, title) {
       '# PRDs\nProduct requirements. Catalog rows live in the inline database below.',
     'pages.stories':
       '# Stories\nUser outcomes. Catalog rows live in the inline database below.',
-    'pages.spec': '# Spec\nObservable contracts for data model, system model, and CLI.',
+    'pages.spec': '# Spec\nObservable contracts for data model and system model.',
     'pages.data-model':
       '# Data model\nLiving data contracts. Catalog rows live in the inline database below.',
     'pages.system-model':
       '# System model\nLiving system contracts. Catalog rows live in the inline database below.',
-    'pages.cli': '# CLI\nAgent-facing runtime and command contracts.',
     'pages.plans':
       '# Plans\nImplementation plans. Catalog rows live in the inline database below.',
     'pages.adrs':

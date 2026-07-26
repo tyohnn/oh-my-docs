@@ -2,7 +2,7 @@
 title: CLI
 description: Observable contracts for omd.mjs inspect, check, adopt, and sync.
 type: reference
-summary: inspect and check report UI snapshot health; adopt restores it from the skill template.
+summary: Greenfield adopt requires an explicit SSOT; local restores packages/docs-ui from the skill template.
 id: SPEC-skill-ui-refresh
 ticker: SPEC-002
 stage: accepted
@@ -11,11 +11,16 @@ related:
   - /docs/planning/stories/us-detect-and-refresh-stale-skill-ui
   - /docs/adr/adr-ui-vocabulary-ships-as-skill-template-snapshot
   - /docs/plans/plan-skill-ui-refresh-detection
+  - /docs/plans/plan-adopt-ssot-docs-ui-and-notion-home-toggle
   - /docs/spec/system-model
   - /docs/spec/data-model
 ---
 
 ## Scope
+
+Product-specific skill runtime contract for this repository. It lives under
+System model (index-only) — not as a default Spec sidebar sibling. Adopted
+handbooks omit a CLI page unless the product needs one.
 
 Covers skill install plus the skill-era runtime actions that inspect, adopt,
 check, and refresh the planning UI vocabulary snapshot and managed IA files.
@@ -47,11 +52,13 @@ host plugin wrappers under `plugins/{cursor,codex,claude-code}` mirror it.
 
 | Action | Role |
 |---|---|
-| `inspect --json` | Report docs/UI/`.omd` presence and UI snapshot health hints |
-| `check --json` | Fail when `.omd` is missing, vocabulary contract is incomplete, or UI snapshot is missing/stale vs skill template |
-| `adopt --yes` | Create missing UI files from the skill template; skip identical files |
-| `adopt --yes --force` | Also overwrite UI files that differ from the skill template |
+| `inspect --json` | Report docs/UI/`.omd` presence, SSOT, and UI snapshot health hints |
+| `check --json` | Fail when `.omd` is missing, vocabulary/chrome is incomplete, or UI snapshot is missing/stale |
+| `adopt --ssot local --yes` | Scaffold docs + `packages/docs-ui`; create missing UI files from the skill template |
+| `adopt --ssot notion --notion-root <url-or-id> --yes` | Map root to Home; emit Notion MCP provision manifest (no local UI) |
+| `adopt --yes --force` | Also overwrite UI files that differ from the skill template (local) |
 | `sync --yes` | Refresh managed IA/`AGENTS.md`/`CLAUDE.md` markers only (not UI files) |
+| `new <kind> --title "…" --yes` | Create prd\|story\|spec\|plan\|adr |
 
 Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
 
@@ -68,26 +75,29 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
    `check` reports staleness so agents can ask before forcing.
 5. **Forced refresh** — `adopt --force` updates divergent skill-template UI
    files and refreshes `.omd` state digests related to the snapshot.
-6. **Skill vs project** — installing/updating the skill alone does not mutate
+6. **Notion chrome** — provisioned page bodies must pass `validateSidebarChrome`
+   (left nav, yellow details groups, all content in the right column).
+7. **Skill vs project** — installing/updating the skill alone does not mutate
    the project; agents must run `adopt`/`check` against the project.
 
 ## Data and invariants
 
-- `.omd/project.json` declares `ui.distribution: skill-template` and the
-  vocabulary list.
-- `.omd/state.json` records `uiSnapshot.vocabularyDigest` (and related file
-  digests when written by adopt).
-- Project UI lives under the configured `paths.ui`; the skill template remains
-  the source of truth for refresh.
+- `.omd/project.json` declares `contentSource.ssot` and, for local projects,
+  `ui.distribution: skill-template` plus the vocabulary list.
+- `.omd/state.json` records digests and, for Notion, provider mappings.
+- Project UI lives under the configured `paths.ui` (default `packages/docs-ui`);
+  the skill template remains the source of truth for refresh.
 
 ## Errors
 
 | Condition | Signal |
 |---|---|
+| Greenfield adopt without `--ssot` | `needsSsot` |
 | No `.omd/project.json` | `check` problem: run adopt first |
-| UI path missing | doctor/inspect missing note; check problem |
+| UI path missing (local) | doctor/inspect missing note; check problem |
 | Vocabulary name missing from contract | `check` problem naming the component |
 | Template file differs and not forced | adopt conflict/skip; check stale problem |
+| Notion sidebar chrome invalid | `planProvision` blockers / `check` chrome_* problems |
 
 ## Compatibility
 
@@ -99,10 +109,14 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
 
 ## Acceptance criteria
 
+- Greenfield `adopt` without `--ssot` returns `needsSsot` and writes nothing.
 - `check --json` returns `ok: false` with an explicit UI missing/stale problem
-  when the project snapshot does not match the skill template for managed UI
-  files (identical content is not stale).
-- `adopt --yes` restores missing files without `--force`.
-- `adopt --yes --force` makes the project UI match the skill template again.
+  when the local project snapshot does not match the skill template for managed
+  UI files (identical content is not stale).
+- `adopt --ssot local --yes` restores missing `packages/docs-ui` files without
+  `--force`.
+- `adopt --ssot local --yes --force` makes the project UI match the skill
+  template again.
+- Notion `check` fails when sidebar chrome validation fails.
 - Machine-readable JSON includes enough detail for an agent to choose adopt vs
   adopt `--force`.

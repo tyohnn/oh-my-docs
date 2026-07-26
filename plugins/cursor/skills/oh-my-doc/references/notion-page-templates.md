@@ -35,19 +35,16 @@ page.
 			<summary><mention-page url="{{pages.spec}}"/> {color="yellow_bg"}</summary>
 				- <mention-page url="{{pages.data-model}}"/>
 				- <mention-page url="{{pages.system-model}}"/>
-				- <mention-page url="{{pages.cli}}"/>
 			</details>
-			- <mention-page url="{{pages.prds}}"/>
 			- <mention-page url="{{pages.plans}}"/>
 			- <mention-page url="{{pages.adrs}}"/>
 		</callout>
 	</column>
 	<column ratio="80">
 		# Spec
-		Observable contracts for data model, system model, and CLI.
+		Observable contracts for data model and system model.
 		<page url="{{pages.data-model}}">Data model</page>
 		<page url="{{pages.system-model}}">System model</page>
-		<page url="{{pages.cli}}">CLI</page>
 	</column>
 </columns>
 ```

@@ -2,7 +2,7 @@
 
 Path: `skills/oh-my-doc/references/` (name **`references`**, not `ref`).
 
-Machine-readable companion: `notion-ia-graph.json` (`schemaVersion` 1.2).
+Machine-readable companion: `notion-ia-graph.json` (`schemaVersion` 1.3).
 
 Catalog destinations are **pages** that embed their database **inline**. The
 navigable object is the page; the database is not a top-level sidebar target.
@@ -33,8 +33,7 @@ Home (user-supplied notion-root = pages.home)
     │   └── Stories (page → inline DB)
     ├── Spec
     │   ├── Data model (page → inline DB)
-    │   ├── System model (page → inline DB)
-    │   └── CLI
+    │   └── System model (page → inline DB)
     ├── Plans (page → inline DB)
     └── ADRs (page → inline DB)
 ```

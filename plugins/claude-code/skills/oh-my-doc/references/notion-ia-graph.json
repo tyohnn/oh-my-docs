@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.2",
+  "schemaVersion": "1.3",
   "sourcesStrategy": "details-toggle-on-home",
   "sourcesToggle": {
     "key": "toggles.sources",
@@ -140,7 +140,6 @@
       "inline": true,
       "schema": "specs"
     },
-    { "key": "pages.cli", "kind": "page", "title": "CLI", "parent": "pages.spec" },
     {
       "key": "pages.plans",
       "kind": "page",
@@ -181,7 +180,6 @@
       "pages.domain",
       "pages.planning",
       "pages.spec",
-      "pages.prds",
       "pages.plans",
       "pages.adrs"
     ],
@@ -189,7 +187,7 @@
       "pages.workflow": ["pages.workflow-planning", "pages.development"],
       "pages.domain": ["pages.glossary", "pages.models", "pages.policies"],
       "pages.planning": ["pages.prds", "pages.stories"],
-      "pages.spec": ["pages.data-model", "pages.system-model", "pages.cli"]
+      "pages.spec": ["pages.data-model", "pages.system-model"]
     }
   },
   "chrome": {

@@ -303,7 +303,7 @@ export function planProvision(options) {
   });
 
   const manifest = {
-    schemaVersion: '1.2',
+    schemaVersion: '1.3',
     provider: 'notion',
     root,
     sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'details-toggle-on-home',

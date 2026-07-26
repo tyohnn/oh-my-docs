@@ -6,6 +6,7 @@
     "pdca-lifecycle",
     "task-orchestration",
     "task-board",
-    "notion-content-port"
+    "notion-content-port",
+    "cli"
   ]
 }

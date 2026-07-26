@@ -26,7 +26,7 @@ const dogfoodRoot = '3a7346da-c456-800a-85f4-cae724925f98';
 
 test('references Notion templates load details-toggle-on-home IA', () => {
   const refs = loadNotionReferences(skillRoot);
-  assert.equal(refs.iaGraph.schemaVersion, '1.2');
+  assert.equal(refs.iaGraph.schemaVersion, '1.3');
   assert.equal(refs.iaGraph.sourcesStrategy, 'details-toggle-on-home');
   assert.equal(refs.iaGraph.sourcesToggle.kind, 'details');
   assert.ok(!refs.iaGraph.objects.some((o) => o.key === 'toggles.sources'));

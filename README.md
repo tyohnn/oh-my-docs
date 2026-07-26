@@ -19,7 +19,8 @@ The agent should run:
 ```bash
 npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
 node <skill>/scripts/omd.mjs inspect --json
-node <skill>/scripts/omd.mjs adopt --yes --json
+node <skill>/scripts/omd.mjs adopt --ssot local --yes --json
+# or: adopt --ssot notion --notion-root <url-or-id> --yes --json
 node <skill>/scripts/omd.mjs check --json
 ```
 

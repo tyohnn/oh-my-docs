@@ -11,7 +11,7 @@ related:
   - /docs/planning/stories/us-browse-catalogs-without-sidebar-bloat
   - /docs/adr/adr-promote-adr-and-plans-to-top-level-catalogs
   - /docs/spec/data-model
-  - /docs/spec/cli
+  - /docs/spec/system-model/cli
   - /docs/adr/adr-001-fumadocs-ssot
 ---
 
@@ -68,14 +68,14 @@ Sidebar lists only:
 
 - [Data model](/docs/spec/data-model)
 - [System model](/docs/spec/system-model)
-- [CLI](/docs/spec/cli)
 
 Data model and System model are index-only folders (same mechanism as PRDs).
-CLI may remain a single page until it needs children.
+CLI (or other product-specific surfaces) are optional and are not part of the
+default Spec IA.
 
 ## Acceptance criteria
 
 - Catalog and Spec-boundary detail pages do not appear as sidebar children.
 - Domain sidebar shows only Glossary, Models, and Policies (indexes).
-- Spec sidebar shows only the three boundary entries.
+- Spec sidebar shows only Data model and System model.
 - ADR and Plans remain second-level sidebar items.
