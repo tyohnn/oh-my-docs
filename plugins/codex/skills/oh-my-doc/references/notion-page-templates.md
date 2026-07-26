@@ -12,19 +12,19 @@ page.
 <columns>
 	<column ratio="20">
 		<callout icon="📌" color="gray_bg">
-			<mention-page url="{{pages.home}}"/>
-			<mention-page url="{{pages.vision}}"/>
-			<mention-page url="{{pages.starting}}"/>
-			<mention-page url="{{pages.workflow}}"/>
-			<mention-page url="{{pages.domain}}"/>
-			<mention-page url="{{pages.planning}}"/>
-			<mention-page url="{{pages.spec}}"/> {color="yellow_bg"}
-				<mention-page url="{{pages.data-model}}"/>
-				<mention-page url="{{pages.system-model}}"/>
-				<mention-page url="{{pages.cli}}"/>
-			<mention-page url="{{pages.prds}}"/>
-			<mention-page url="{{pages.plans}}"/>
-			<mention-page url="{{pages.adrs}}"/>
+			- <mention-page url="{{pages.home}}"/>
+			- <mention-page url="{{pages.vision}}"/>
+			- <mention-page url="{{pages.starting}}"/>
+			- <mention-page url="{{pages.workflow}}"/>
+			- <mention-page url="{{pages.domain}}"/>
+			- <mention-page url="{{pages.planning}}"/>
+			- <mention-page url="{{pages.spec}}"/> {color="yellow_bg"}
+				- <mention-page url="{{pages.data-model}}"/>
+				- <mention-page url="{{pages.system-model}}"/>
+				- <mention-page url="{{pages.cli}}"/>
+			- <mention-page url="{{pages.prds}}"/>
+			- <mention-page url="{{pages.plans}}"/>
+			- <mention-page url="{{pages.adrs}}"/>
 		</callout>
 	</column>
 	<column ratio="80">
@@ -37,6 +37,8 @@ page.
 <page url="{{pages.cli}}">CLI</page>
 ```
 
+When a nested child is current (for example Data model), that child bullet also
+gets `{color="yellow_bg"}` while the Spec parent group stays yellow and open.
 ## Catalog page (inline DB preserved)
 
 ```markdown
