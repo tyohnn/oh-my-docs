@@ -14,7 +14,7 @@ wrappers around the same `oh-my-doc` skill.
 Preferred install:
 
 ```bash
-npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
+npx skills add tyohnn/oh-my-docs --skill oh-my-doc -y
 ```
 
 `skills add` defaults to **symlink** installs: one canonical copy (typically

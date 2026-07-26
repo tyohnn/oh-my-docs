@@ -11,7 +11,7 @@ bundled runtime.
 ## Install (first time)
 
 ```bash
-npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
+npx skills add tyohnn/oh-my-docs --skill oh-my-doc -y
 ```
 
 `skills add` defaults to **symlinks** (one canonical copy). Prefer
@@ -87,6 +87,10 @@ written into that SSOT.
   the only handbook SSOT; ask + `adopt` when `.omd` is missing.
 - Documentation is always first: write decisions, agreements, and new discussions
   into the SSOT instead of leaving truth only in chat.
+- Catalog entries (PRD, story, plan, ADR, …) go in the catalog store (Notion
+  inline DB or local catalog folder + `meta.json`), never as ad-hoc section
+  children. **Planning ≠ Plans**: implementation plans belong in Plans
+  (`dbs.plans`), not under Planning.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
 - Prefer `inspect → ask SSOT → adopt → check` over inventing handbook files.
