@@ -1,7 +1,30 @@
 # Oh My Docs
 
-This repository uses a docs-first workflow. Canonical product intent lives under
-`docs/content/docs` (or `apps/docs/content/docs` when present).
+This repository uses a docs-first workflow. Canonical product intent lives in
+**one** handbook SSOT — either local docs (`docs/content/docs` or
+`apps/docs/content/docs`) or Notion — never both as authoritative.
+
+## Content source (SSOT)
+
+1. Read `.omd/project.json` and use `contentSource.ssot` (`local` | `notion`).
+2. Missing `contentSource` means `local`.
+3. If `.omd/project.json` is missing, run `inspect` / ask the user to choose
+   SSOT and `adopt` before inventing handbook files.
+4. For `notion`, edit the mapped Notion handbook (via the host Notion MCP).
+   For `local`, edit the docs content tree. Do not treat the other side as truth.
+
+## Keep the SSOT current during planning talk
+
+Whenever the conversation touches vision, roadmap, PRDs, user stories, Domain
+terms/models/policies, specifications, ADRs, implementation plans, or similar
+product intent:
+
+1. Check whether the agreed outcome already exists in the selected SSOT.
+2. Create or update the matching handbook artifacts in that SSOT so decisions
+   are not left only in chat.
+3. Prefer `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes` (local)
+   or the Notion catalog workflow (notion) over ad-hoc files.
+4. Run `node <skill>/scripts/omd.mjs check` after meaningful planning edits.
 
 ## Docs-first gate
 
@@ -16,8 +39,5 @@ This repository uses a docs-first workflow. Canonical product intent lives under
 Dependency direction:
 
 `product vision → PRD → story → specification/ADR → implementation plan → code`
-
-Create drafts with `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes`.
-Run `node <skill>/scripts/omd.mjs check` before opening an implementation PR.
 
 > Managed by Oh My Docs (`adopt` / `sync`). Prefer re-running the skill runtime over hand-editing this body.

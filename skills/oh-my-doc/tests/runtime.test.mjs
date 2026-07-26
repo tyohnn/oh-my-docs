@@ -71,6 +71,10 @@ test('adopt greenfield writes .omd and docs skeleton', () => {
     assert.equal(result.contract.ui.distribution, 'skill-template');
     assert.equal(result.contract.paths.ui, 'packages/docs-ui');
     assert.ok(result.contract.ui.shellDependencies.includes('fumadocs-ui'));
+    const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
+    assert.match(agents, /contentSource\.ssot/);
+    assert.match(agents, /Keep the SSOT current during planning talk/);
+    assert.match(agents, /vision, roadmap, PRDs/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

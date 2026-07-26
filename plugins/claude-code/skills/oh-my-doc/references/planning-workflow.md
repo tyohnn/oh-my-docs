@@ -1,5 +1,9 @@
 # Planning workflow
 
+0. Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`). Missing
+   means `local`. During vision/roadmap/PRD/story/Domain/SPEC/ADR/plan talk,
+   check that SSOT and create or update artifacts there — do not leave product
+   decisions only in chat.
 1. Classify the change (`product`, `bugfix`, `maintenance`, or docs-only).
 2. Discover candidate user stories. Moderate unresolved decisions one at a
    time and record only agreed outcomes. `grill-me` is optional.

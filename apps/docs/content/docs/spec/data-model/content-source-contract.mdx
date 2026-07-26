@@ -86,3 +86,10 @@ State is rebuildable and never authoritative content.
 - No secret appears in project/state JSON or logs.
 - Legacy projects validate as local.
 - Notion projects validate without local docs/UI packages.
+- Adopted projects instruct agents (via the managed `AGENTS.md` marker) to read
+  `.omd/project.json` `contentSource.ssot` and treat that provider as the only
+  handbook SSOT.
+- During product conversations about vision, roadmap, PRDs, stories, Domain,
+  specs, ADRs, or plans, agents must check whether the agreed outcome already
+  exists in the SSOT and create or update the matching handbook artifacts
+  there — not leave decisions only in chat.
