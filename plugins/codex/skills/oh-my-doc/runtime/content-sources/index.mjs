@@ -8,18 +8,25 @@ import {
   planCreateDocument as planNotionCreateDocument,
   planProvision as planNotionProvision,
   recordResult as recordNotionResult,
+  validateMapping,
   validateSnapshot as validateNotionSnapshot,
+  renderSidebarPageContent,
+  defaultPageBody,
 } from './notion.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
 import { loadNotionReferences } from './load-references.mjs';
+import { extractChildBlocks } from './sidebar.mjs';
 
-export { loadNotionReferences, parseNotionRoot };
+export { loadNotionReferences, parseNotionRoot, extractChildBlocks };
 export {
   capabilityBlockers,
   planNotionCreateDocument,
   planNotionProvision,
   recordNotionResult,
+  validateMapping,
   validateNotionSnapshot,
+  renderSidebarPageContent,
+  defaultPageBody,
 };
 
 /**

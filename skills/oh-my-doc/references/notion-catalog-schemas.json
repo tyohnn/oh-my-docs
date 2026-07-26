@@ -71,12 +71,23 @@
         { "name": "codeAreas", "type": "multi_select" },
         { "name": "PRD", "type": "relation", "relationSchema": "prds" },
         { "name": "Stories", "type": "relation", "relationSchema": "stories" },
-        { "name": "Specs", "type": "relation", "relationSchema": "specs" }
+        { "name": "Specs", "type": "relation", "relationSchema": "specs", "toDatabaseKey": "dbs.data-model" },
+        {
+          "name": "Specs (System model)",
+          "type": "relation",
+          "relationSchema": "specs",
+          "toDatabaseKey": "dbs.system-model"
+        }
       ],
       "relations": [
         { "from": "PRD", "toSchema": "prds", "toDatabaseKey": "dbs.prds" },
         { "from": "Stories", "toSchema": "stories", "toDatabaseKey": "dbs.stories" },
-        { "from": "Specs", "toSchema": "specs", "toDatabaseKeys": ["dbs.data-model", "dbs.system-model"] }
+        { "from": "Specs", "toSchema": "specs", "toDatabaseKey": "dbs.data-model" },
+        {
+          "from": "Specs (System model)",
+          "toSchema": "specs",
+          "toDatabaseKey": "dbs.system-model"
+        }
       ]
     },
     "specs": {
