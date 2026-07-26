@@ -23,7 +23,7 @@ function placeholderMappings(nav) {
   return Object.fromEntries([...keys].map((key) => [key, { url: `{{${key}}}` }]));
 }
 
-test('sidebar uses nested bullets and yellow group for every nested section', () => {
+test('sidebar wraps nested children in details toggles with yellow active summary', () => {
   const refs = loadNotionReferences(skillRoot);
   const mappings = placeholderMappings(refs.iaGraph.nav);
 
@@ -37,7 +37,7 @@ test('sidebar uses nested bullets and yellow group for every nested section', ()
       });
       assert.match(md, /<columns>/);
       assert.match(md, /ratio="20"/);
-      assert.match(md, /- <mention-page/);
+      assert.match(md, /<details>/);
       assert.equal(resolveActiveSection(activeKey, refs.iaGraph.nav), parent);
 
       const result = validateSidebarChrome(md, {
@@ -50,7 +50,12 @@ test('sidebar uses nested bullets and yellow group for every nested section', ()
         `${activeKey}: ${result.problems.map((p) => p.message).join('; ')}`,
       );
 
-      assert.match(md, new RegExp(`- <mention-page url="\\{\\{${parent}\\}\\}"/> \\{color="yellow_bg"\\}`));
+      assert.match(
+        md,
+        new RegExp(
+          `<summary><mention-page url="\\{\\{${parent}\\}\\}"/> \\{color="yellow_bg"\\}</summary>`,
+        ),
+      );
       for (const child of children) {
         assert.match(
           md,
@@ -69,7 +74,7 @@ test('sidebar uses nested bullets and yellow group for every nested section', ()
   }
 });
 
-test('sidebar keeps inactive nested groups collapsed', () => {
+test('sidebar always emits details toggles for every nested parent', () => {
   const refs = loadNotionReferences(skillRoot);
   const mappings = placeholderMappings(refs.iaGraph.nav);
   const md = renderSidebarPageContent({
@@ -83,33 +88,16 @@ test('sidebar keeps inactive nested groups collapsed', () => {
     nav: refs.iaGraph.nav,
   });
   assert.equal(result.ok, true, result.problems.map((p) => p.message).join('; '));
-  assert.doesNotMatch(md, /\t\t\t\t- <mention-page/);
   assert.match(md, new RegExp('- <mention-page url="\\{\\{pages\\.vision\\}\\}"/> \\{color="yellow_bg"\\}'));
+  for (const parent of Object.keys(refs.iaGraph.nav.nested)) {
+    assert.match(md, new RegExp(`url="\\{\\{${parent}\\}\\}"`));
+    assert.match(md, /<details>/);
+  }
+  assert.match(md, /<summary><mention-page url="\{\{pages\.spec\}\}"\/><\/summary>/);
+  assert.match(md, /\t\t\t\t- <mention-page url="\{\{pages\.cli\}\}"\/>/);
 });
 
-test('validateSidebarChrome rejects missing yellow nested group', () => {
-  const refs = loadNotionReferences(skillRoot);
-  const bad = `<columns>
-	<column ratio="20">
-		<callout icon="📌" color="gray_bg">
-			- <mention-page url="{{pages.home}}"/>
-			- <mention-page url="{{pages.spec}}"/>
-		</callout>
-	</column>
-	<column ratio="80">
-		# Spec
-	</column>
-</columns>
-`;
-  const result = validateSidebarChrome(bad, {
-    activeKey: 'pages.spec',
-    nav: refs.iaGraph.nav,
-  });
-  assert.equal(result.ok, false);
-  assert.ok(result.problems.some((p) => p.code === 'chrome_missing_yellow_group'));
-});
-
-test('validateSidebarChrome rejects missing nested children under open group', () => {
+test('validateSidebarChrome rejects missing details toggle for nested parent', () => {
   const refs = loadNotionReferences(skillRoot);
   const bad = `<columns>
 	<column ratio="20">
@@ -136,7 +124,55 @@ test('validateSidebarChrome rejects missing nested children under open group', (
     nav: refs.iaGraph.nav,
   });
   assert.equal(result.ok, false);
-  assert.ok(result.problems.some((p) => p.code === 'chrome_missing_nested_child'));
+  assert.ok(result.problems.some((p) => p.code === 'chrome_missing_details_toggle'));
+});
+
+test('validateSidebarChrome rejects missing yellow nested group', () => {
+  const refs = loadNotionReferences(skillRoot);
+  const bad = `<columns>
+	<column ratio="20">
+		<callout icon="📌" color="gray_bg">
+			- <mention-page url="{{pages.home}}"/>
+			- <mention-page url="{{pages.vision}}"/>
+			- <mention-page url="{{pages.starting}}"/>
+			<details>
+			<summary><mention-page url="{{pages.workflow}}"/></summary>
+				- <mention-page url="{{pages.workflow-planning}}"/>
+				- <mention-page url="{{pages.development}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.domain}}"/></summary>
+				- <mention-page url="{{pages.glossary}}"/>
+				- <mention-page url="{{pages.models}}"/>
+				- <mention-page url="{{pages.policies}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.planning}}"/></summary>
+				- <mention-page url="{{pages.prds}}"/>
+				- <mention-page url="{{pages.stories}}"/>
+			</details>
+			<details>
+			<summary><mention-page url="{{pages.spec}}"/></summary>
+				- <mention-page url="{{pages.data-model}}"/>
+				- <mention-page url="{{pages.system-model}}"/>
+				- <mention-page url="{{pages.cli}}"/>
+			</details>
+			- <mention-page url="{{pages.prds}}"/>
+			- <mention-page url="{{pages.plans}}"/>
+			- <mention-page url="{{pages.adrs}}"/>
+		</callout>
+	</column>
+	<column ratio="80">
+		# Spec
+	</column>
+</columns>
+`;
+  const result = validateSidebarChrome(bad, {
+    activeKey: 'pages.spec',
+    nav: refs.iaGraph.nav,
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.problems.some((p) => p.code === 'chrome_missing_yellow_group'));
 });
 
 test('planProvision bodies all pass validateManifestSidebarChrome', () => {
@@ -154,7 +190,8 @@ test('planProvision bodies all pass validateManifestSidebarChrome', () => {
   );
   assert.ok(bodyOps.length >= 18);
   for (const op of bodyOps) {
-    assert.match(String(op.payload.content), /- <mention-page/);
+    assert.match(String(op.payload.content), /<details>/);
+    assert.match(String(op.payload.content), /<summary>/);
     assert.match(String(op.payload.content), /<columns>/);
   }
 });
