@@ -45,12 +45,16 @@ page.
 	<column ratio="80">
 		# Spec
 		Observable contracts for data model, system model, and CLI.
+		<page url="{{pages.data-model}}">Data model</page>
+		<page url="{{pages.system-model}}">System model</page>
+		<page url="{{pages.cli}}">CLI</page>
 	</column>
 </columns>
-<page url="{{pages.data-model}}">Data model</page>
-<page url="{{pages.system-model}}">System model</page>
-<page url="{{pages.cli}}">CLI</page>
 ```
+
+All body copy and child `<page>` / `<database>` / sources blocks must live in the
+right column so the sidebar pushes content rightward. Do not place them after
+`</columns>`.
 
 Parents with children always use `<details>` so those children can be collapsed.
 When a nested child is current (for example Data model), that child bullet also
@@ -60,10 +64,13 @@ gets `{color="yellow_bg"}` while the Spec summary stays yellow.
 ```markdown
 <columns>
 	...sidebar...
+	<column ratio="80">
+		# PRDs
+		...
+		<database url="{{dbs.prds}}" inline="true">PRDs</database>
+	</column>
 </columns>
-<database url="{{dbs.prds}}" inline="true">PRDs</database>
 ```
-
 ## Root sources toggle
 
 Canonical strategy (`details-toggle-on-home`): the supplied Notion root **is**

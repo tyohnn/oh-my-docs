@@ -3,6 +3,8 @@
  *
  * Layout contract (enforced by `validateSidebarChrome`):
  * - Two columns (20 / 80) with a gray callout nav on the left
+ * - All page body copy and child `<page>` / `<database>` / sources blocks live
+ *   in the right column (never below `</columns>`)
  * - Leaf top-level items are bulleted mentions
  * - Parents with children wrap those children in a `<details>` toggle whose
  *   `<summary>` is the parent mention (collapsible sidebar group)
@@ -55,12 +57,13 @@ export function renderSidebarPageContent(options) {
   for (const line of String(bodyMarkdown).split('\n')) {
     lines.push(line.length ? `\t\t${line}` : '\t\t');
   }
+  for (const block of childBlocks) {
+    for (const line of String(block).split('\n')) {
+      lines.push(line.length ? `\t\t${line}` : '\t\t');
+    }
+  }
   lines.push('\t</column>');
   lines.push('</columns>');
-
-  for (const block of childBlocks) {
-    lines.push(block);
-  }
 
   return `${lines.join('\n')}\n`;
 }
@@ -96,6 +99,27 @@ export function validateSidebarChrome(markdown, options) {
     problems.push({
       code: 'chrome_missing_callout',
       message: `${activeKey}: missing gray_bg callout nav`,
+    });
+  }
+
+  const rightColumn = extractRightColumn(text);
+  if (!rightColumn) {
+    problems.push({
+      code: 'chrome_missing_right_column',
+      message: `${activeKey}: missing right column ratio="80"`,
+    });
+  } else if (!/#\s+\S+/.test(rightColumn)) {
+    problems.push({
+      code: 'chrome_empty_right_column',
+      message: `${activeKey}: right column must contain page body content`,
+    });
+  }
+
+  const trailing = contentAfterColumns(text);
+  if (/<(?:page|database|details)\b/.test(trailing)) {
+    problems.push({
+      code: 'chrome_content_outside_right_column',
+      message: `${activeKey}: page/database/details content must live inside the right column, not after </columns>`,
     });
   }
 
@@ -222,6 +246,18 @@ function resolveUrl(key, mappings) {
     return `https://app.notion.com/p/${compact}`;
   }
   return `{{${key}}}`;
+}
+
+function extractRightColumn(text) {
+  const match = /<column ratio="80">([\s\S]*?)<\/column>\s*<\/columns>/.exec(text);
+  return match?.[1] ?? null;
+}
+
+function contentAfterColumns(text) {
+  const marker = '</columns>';
+  const idx = text.indexOf(marker);
+  if (idx < 0) return '';
+  return text.slice(idx + marker.length).trim();
 }
 
 function mentionPresent(text, key) {

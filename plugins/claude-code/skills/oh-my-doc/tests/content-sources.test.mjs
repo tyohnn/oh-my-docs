@@ -193,7 +193,8 @@ test('sidebar renderer highlights active nested section', () => {
     md,
     /\t\t\t\t- <mention-page url="https:\/\/app\.notion\.com\/p\/pages\.data-model"\/> \{color="yellow_bg"\}/,
   );
-  assert.match(md, /inline="true"/);
+  assert.match(md, /ratio="80">[\s\S]*inline="true"[\s\S]*<\/column>\s*<\/columns>/);
+  assert.doesNotMatch(md, /<\/columns>\s*<database/);
 });
 
 test('validateMapping rejects wrong type/parent', () => {
