@@ -105,6 +105,12 @@ State is rebuildable and never authoritative content.
 - No secret appears in project/state JSON or logs.
 - Legacy projects validate as local.
 - Notion projects validate without local docs/UI packages.
+- Adopted projects instruct agents (via the managed `AGENTS.md` marker) to read
+  `.omd/project.json` `contentSource.ssot` and treat that provider as the only
+  handbook content SSOT.
+- Documentation is always first: any decision, agreement, or new discussion that
+  should outlive chat must be written into the selected SSOT, not left only in
+  conversation.
 - Structure metadata comes from one IA graph stamped into `.omd/project.json`
   `informationArchitecture` for both local and Notion projects.
 - Catalog entries write to the catalog store (local folder + `meta.json`, or

@@ -11,7 +11,7 @@ bundled runtime.
 ## Install (first time)
 
 ```bash
-npx skills add ssota-labs/oh-my-docs --skill oh-my-doc -y
+npx skills add tyohnn/oh-my-docs --skill oh-my-doc -y
 ```
 
 `skills add` defaults to **symlinks** (one canonical copy). Prefer
@@ -32,7 +32,9 @@ node <skill>/scripts/omd.mjs sync --yes --json
 ```
 
 Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before choosing a
-workflow. Missing `contentSource` means `local`.
+workflow. Missing `contentSource` means `local`. Documentation is always first:
+any decision, agreement, or new discussion that should outlive chat must be
+written into that SSOT.
 
 ### State machine
 
@@ -84,10 +86,13 @@ workflow. Missing `contentSource` means `local`.
 - Never skip the docs-first gate for product, bugfix, or maintenance work.
 - Always read `.omd/project.json` `contentSource.ssot` and treat that provider as
   the only handbook **content** SSOT; structure metadata comes from the shared
-  IA graph stamped into `.omd/project.json`.
-- Documentation is always first: write decisions into the SSOT, not only chat.
-- Catalog entries go in the catalog store (Notion inline DB or local catalog
-  folder + `meta.json`). Never create Plans as children of Planning.
+  IA graph stamped into `.omd/project.json`. Ask + `adopt` when `.omd` is missing.
+- Documentation is always first: write decisions, agreements, and new discussions
+  into the SSOT instead of leaving truth only in chat.
+- Catalog entries (PRD, story, plan, ADR, …) go in the catalog store (Notion
+  inline DB or local catalog folder + `meta.json`), never as ad-hoc section
+  children. **Planning ≠ Plans**: implementation plans belong in Plans
+  (`dbs.plans`), not under Planning.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
 - Prefer `inspect → ask SSOT → adopt → check` over inventing handbook files.

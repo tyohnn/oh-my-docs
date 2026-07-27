@@ -77,6 +77,7 @@ test('adopt greenfield writes .omd and docs skeleton', () => {
     const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
     assert.match(agents, /contentSource\.ssot/);
     assert.match(agents, /Documentation is always first/);
+    assert.match(agents, /not left only in conversation/);
     assert.match(agents, /Planning ≠ Plans|dbs\.plans/);
   } finally {
     rmSync(root, { recursive: true, force: true });

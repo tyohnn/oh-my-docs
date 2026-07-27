@@ -279,6 +279,8 @@ test('adoptNotion --yes writes contract with pages.home mapping and no UI scaffo
     assert.ok(!state.provider.notion.pendingOperationIds.includes('ensure:pages.home'));
     const agents = readFileSync(join(root, 'AGENTS.md'), 'utf8');
     assert.match(agents, /contentSource\.ssot/);
+    assert.match(agents, /Documentation is always first/);
+    assert.match(agents, /<!-- oh-my-docs:start -->/);
     assert.match(agents, /Planning ≠ Plans|dbs\.plans/);
   } finally {
     rmSync(root, { recursive: true, force: true });
