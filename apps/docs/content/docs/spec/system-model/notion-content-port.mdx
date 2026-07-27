@@ -11,6 +11,8 @@ related:
   - /docs/planning/stories/us-choose-handbook-content-source
   - /docs/spec/data-model/content-source-contract
   - /docs/adr/adr-select-one-content-source-per-project
+  - /docs/planning/stories/us-unified-handbook-structure-metadata
+  - /docs/plans/plan-unified-handbook-structure-metadata
 ---
 
 ## Scope
@@ -127,6 +129,22 @@ its lifecycle property when applicable.
 
 Relations are applied after their databases and referenced rows exist.
 
+## Catalog writes
+
+Catalog kinds map to inline databases (or local catalog folders). Agents must
+not create catalog documents as child pages of the parent section.
+
+| Kind | Destination |
+|---|---|
+| PRD | `dbs.prds` on **PRDs** (under Planning) |
+| Story | `dbs.stories` on **Stories** (under Planning) |
+| Plan | `dbs.plans` on top-level **Plans** — not under Planning |
+| ADR | `dbs.adrs` on top-level **ADRs** |
+| Spec | `dbs.data-model` or `dbs.system-model` as appropriate |
+
+**Planning** ≠ **Plans**. Planning only nests the PRDs and Stories catalog
+pages. Implementation plans are rows in the Plans database.
+
 ## Skill `references` templates
 
 Default Notion provisioning templates ship under the skill package path
@@ -210,3 +228,5 @@ as their display layer in v1; no editable MDX mirror is generated.
   checklist items).
 - Credentials and untrusted Notion text are never persisted as executable
   instructions.
+- Provision and create-document paths use the same IA graph as local structure
+  metadata; catalog creates target the mapped databases above.

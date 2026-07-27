@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.3",
+  "schemaVersion": "2.0",
   "sourcesStrategy": "details-toggle-on-home",
   "sourcesToggle": {
     "key": "toggles.sources",
@@ -15,30 +15,73 @@
       "title": "Home",
       "parent": "root",
       "role": "home",
-      "suppliedAsRoot": true
+      "suppliedAsRoot": true,
+      "localPath": "index",
+      "metaRole": "home"
     },
-    { "key": "pages.vision", "kind": "page", "title": "Vision", "parent": "pages.home" },
-    { "key": "pages.starting", "kind": "page", "title": "Start here", "parent": "pages.home" },
-    { "key": "pages.workflow", "kind": "page", "title": "Workflow", "parent": "pages.home" },
+    {
+      "key": "pages.vision",
+      "kind": "page",
+      "title": "Vision",
+      "parent": "pages.home",
+      "localPath": "vision",
+      "metaRole": "leaf-page"
+    },
+    {
+      "key": "pages.starting",
+      "kind": "page",
+      "title": "Start here",
+      "parent": "pages.home",
+      "localPath": "starting",
+      "metaRole": "leaf-page"
+    },
+    {
+      "key": "pages.workflow",
+      "kind": "page",
+      "title": "Workflow",
+      "parent": "pages.home",
+      "localPath": "workflow",
+      "metaRole": "section-folder"
+    },
     {
       "key": "pages.workflow-planning",
       "kind": "page",
       "title": "Workflow Planning",
-      "parent": "pages.workflow"
+      "parent": "pages.workflow",
+      "localPath": "workflow/planning",
+      "metaRole": "leaf-page"
     },
     {
       "key": "pages.development",
       "kind": "page",
       "title": "Development",
-      "parent": "pages.workflow"
+      "parent": "pages.workflow",
+      "localPath": "workflow/development",
+      "metaRole": "leaf-page"
     },
-    { "key": "pages.domain", "kind": "page", "title": "Domain", "parent": "pages.home" },
+    {
+      "key": "pages.domain",
+      "kind": "page",
+      "title": "Domain",
+      "parent": "pages.home",
+      "localPath": "domain",
+      "metaRole": "section-folder"
+    },
     {
       "key": "pages.glossary",
       "kind": "page",
       "title": "Glossary",
       "parent": "pages.domain",
-      "inlineDatabase": "dbs.glossary"
+      "inlineDatabase": "dbs.glossary",
+      "localPath": "domain/glossary",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.glossary",
+      "documentKinds": ["term"],
+      "indexOnly": true,
+      "indexUrl": "/docs/domain/glossary",
+      "catalogId": "glossary",
+      "catalogLabel": "Glossary"
     },
     {
       "key": "dbs.glossary",
@@ -53,7 +96,16 @@
       "kind": "page",
       "title": "Models",
       "parent": "pages.domain",
-      "inlineDatabase": "dbs.models"
+      "inlineDatabase": "dbs.models",
+      "localPath": "domain/models",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.models",
+      "documentKinds": ["model"],
+      "indexOnly": true,
+      "indexUrl": "/docs/domain/models",
+      "catalogId": "models",
+      "catalogLabel": "Domain models"
     },
     {
       "key": "dbs.models",
@@ -68,7 +120,16 @@
       "kind": "page",
       "title": "Policies",
       "parent": "pages.domain",
-      "inlineDatabase": "dbs.policies"
+      "inlineDatabase": "dbs.policies",
+      "localPath": "domain/policies",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.policies",
+      "documentKinds": ["policy"],
+      "indexOnly": true,
+      "indexUrl": "/docs/domain/policies",
+      "catalogId": "policies",
+      "catalogLabel": "Domain policies"
     },
     {
       "key": "dbs.policies",
@@ -78,13 +139,29 @@
       "inline": true,
       "schema": "policies"
     },
-    { "key": "pages.planning", "kind": "page", "title": "Planning", "parent": "pages.home" },
+    {
+      "key": "pages.planning",
+      "kind": "page",
+      "title": "Planning",
+      "parent": "pages.home",
+      "localPath": "planning",
+      "metaRole": "section-folder"
+    },
     {
       "key": "pages.prds",
       "kind": "page",
       "title": "PRDs",
       "parent": "pages.planning",
-      "inlineDatabase": "dbs.prds"
+      "inlineDatabase": "dbs.prds",
+      "localPath": "planning/prds",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.prds",
+      "documentKinds": ["prd"],
+      "indexOnly": true,
+      "indexUrl": "/docs/planning/prds",
+      "catalogId": "prds",
+      "catalogLabel": "Product requirements"
     },
     {
       "key": "dbs.prds",
@@ -99,7 +176,16 @@
       "kind": "page",
       "title": "Stories",
       "parent": "pages.planning",
-      "inlineDatabase": "dbs.stories"
+      "inlineDatabase": "dbs.stories",
+      "localPath": "planning/stories",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.stories",
+      "documentKinds": ["story"],
+      "indexOnly": true,
+      "indexUrl": "/docs/planning/stories",
+      "catalogId": "stories",
+      "catalogLabel": "User stories"
     },
     {
       "key": "dbs.stories",
@@ -109,13 +195,29 @@
       "inline": true,
       "schema": "stories"
     },
-    { "key": "pages.spec", "kind": "page", "title": "Spec", "parent": "pages.home" },
+    {
+      "key": "pages.spec",
+      "kind": "page",
+      "title": "Spec",
+      "parent": "pages.home",
+      "localPath": "spec",
+      "metaRole": "section-folder"
+    },
     {
       "key": "pages.data-model",
       "kind": "page",
       "title": "Data model",
       "parent": "pages.spec",
-      "inlineDatabase": "dbs.data-model"
+      "inlineDatabase": "dbs.data-model",
+      "localPath": "spec/data-model",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.data-model",
+      "documentKinds": ["spec"],
+      "indexOnly": true,
+      "indexUrl": "/docs/spec/data-model",
+      "catalogId": "spec-data-model",
+      "catalogLabel": "Data model"
     },
     {
       "key": "dbs.data-model",
@@ -130,7 +232,16 @@
       "kind": "page",
       "title": "System model",
       "parent": "pages.spec",
-      "inlineDatabase": "dbs.system-model"
+      "inlineDatabase": "dbs.system-model",
+      "localPath": "spec/system-model",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.system-model",
+      "documentKinds": ["spec"],
+      "indexOnly": true,
+      "indexUrl": "/docs/spec/system-model",
+      "catalogId": "spec-system-model",
+      "catalogLabel": "System model"
     },
     {
       "key": "dbs.system-model",
@@ -145,7 +256,17 @@
       "kind": "page",
       "title": "Plans",
       "parent": "pages.home",
-      "inlineDatabase": "dbs.plans"
+      "inlineDatabase": "dbs.plans",
+      "localPath": "plans",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.plans",
+      "documentKinds": ["plan"],
+      "forbiddenParents": ["pages.planning"],
+      "indexOnly": true,
+      "indexUrl": "/docs/plans",
+      "catalogId": "plans",
+      "catalogLabel": "Implementation plans"
     },
     {
       "key": "dbs.plans",
@@ -160,7 +281,16 @@
       "kind": "page",
       "title": "ADRs",
       "parent": "pages.home",
-      "inlineDatabase": "dbs.adrs"
+      "inlineDatabase": "dbs.adrs",
+      "localPath": "adr",
+      "metaRole": "catalog-index",
+      "writeTarget": "database-row",
+      "databaseKey": "dbs.adrs",
+      "documentKinds": ["adr"],
+      "indexOnly": true,
+      "indexUrl": "/docs/adr",
+      "catalogId": "adr",
+      "catalogLabel": "ADR"
     },
     {
       "key": "dbs.adrs",
@@ -183,6 +313,17 @@
       "pages.plans",
       "pages.adrs"
     ],
+    "localRootOrder": [
+      "pages.home",
+      "pages.vision",
+      "pages.starting",
+      "pages.domain",
+      "pages.workflow",
+      "pages.planning",
+      "pages.plans",
+      "pages.adrs",
+      "pages.spec"
+    ],
     "nested": {
       "pages.workflow": ["pages.workflow-planning", "pages.development"],
       "pages.domain": ["pages.glossary", "pages.models", "pages.policies"],
@@ -194,5 +335,12 @@
     "requiredOn": "all-pages",
     "yellowBgForm": "suffix",
     "preserveChildren": ["page", "database"]
+  },
+  "kindToDatabase": {
+    "prd": "dbs.prds",
+    "story": "dbs.stories",
+    "plan": "dbs.plans",
+    "adr": "dbs.adrs",
+    "spec": "dbs.data-model"
   }
 }

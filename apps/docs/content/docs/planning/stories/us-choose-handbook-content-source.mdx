@@ -45,6 +45,9 @@ lifecycles.
 - Repeated provisioning is idempotent.
 - Skills route `inspect`, `adopt`, `new`, `check`, and `sync` through the
   selected provider.
+- Structure metadata (sections, catalogs, write destinations) is shared via one
+  IA graph for local and Notion; catalog entries go in the catalog store, not as
+  section child pages (Planning ≠ Plans).
 - Missing MCP capability or root access produces an actionable blocker without
   partial writes outside the supplied root.
 

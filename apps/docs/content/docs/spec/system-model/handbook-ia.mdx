@@ -13,12 +13,15 @@ related:
   - /docs/spec/data-model
   - /docs/spec/system-model/cli
   - /docs/adr/adr-001-fumadocs-ssot
+  - /docs/planning/stories/us-unified-handbook-structure-metadata
+  - /docs/plans/plan-unified-handbook-structure-metadata
 ---
 
 ## Scope
 
 Observable navigation and rendering contracts for the handbook app and the
-default skill template IA.
+default skill template IA. Structure metadata is defined once in the skill IA
+graph and projected to Fumadocs `meta.json` skeletons and Notion provision.
 
 ## Routes
 
@@ -79,3 +82,6 @@ default Spec IA.
 - Domain sidebar shows only Glossary, Models, and Policies (indexes).
 - Spec sidebar shows only Data model and System model.
 - ADR and Plans remain second-level sidebar items.
+- Default structure includes Domain; Spec has no default CLI page.
+- Local folder `meta.json` skeletons are generated from the shared IA graph;
+  catalog detail `pages[]` remain project-owned.
