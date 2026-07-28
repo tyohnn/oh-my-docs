@@ -2,6 +2,10 @@ import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { createCatalogNavigation, indexOnlyPageTree } from '@oh-my-docs/ui/navigation';
 import handbookIa from '../../../skills/oh-my-doc/references/handbook-ia-graph.json';
+import { isSupabaseSsot } from './content-ssot';
+
+/** True when contract selects Supabase; content must be pulled or env-pointed. */
+export const usingSupabaseContent = isSupabaseSsot();
 
 const CATALOGS = (
   handbookIa.objects as Array<{

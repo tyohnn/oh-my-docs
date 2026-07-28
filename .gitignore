@@ -4,6 +4,7 @@ node_modules/
 .next/
 dist/
 apps/docs/.source/
+apps/docs/.supabase-content/
 docs/.source/
 packages/cli/templates/
 packages/cli/skills/

@@ -69,15 +69,19 @@ export function stableStringify(value) {
  */
 /**
  * @param {unknown} project
- * @returns {{ ssot: 'local' | 'notion', notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string } }}
+ * @returns {{
+ *   ssot: 'local' | 'notion' | 'supabase',
+ *   notion: null | { rootPageId: string, rootPageUrl: string, schemaVersion: string },
+ *   supabase: null | { projectRef: string, schemaVersion: string },
+ * }}
  */
 export function normalizeContentSource(project) {
   const raw = project && typeof project === 'object' ? project.contentSource : null;
   if (!raw || typeof raw !== 'object' || !raw.ssot) {
-    return { ssot: 'local', notion: null };
+    return { ssot: 'local', notion: null, supabase: null };
   }
   if (raw.ssot === 'local') {
-    return { ssot: 'local', notion: null };
+    return { ssot: 'local', notion: null, supabase: null };
   }
   if (raw.ssot === 'notion') {
     const notion = raw.notion && typeof raw.notion === 'object' ? raw.notion : {};
@@ -88,16 +92,29 @@ export function normalizeContentSource(project) {
         rootPageUrl: String(notion.rootPageUrl ?? ''),
         schemaVersion: String(notion.schemaVersion ?? '1.0'),
       },
+      supabase: null,
+    };
+  }
+  if (raw.ssot === 'supabase') {
+    const supabase = raw.supabase && typeof raw.supabase === 'object' ? raw.supabase : {};
+    return {
+      ssot: 'supabase',
+      notion: null,
+      supabase: {
+        projectRef: String(supabase.projectRef ?? ''),
+        schemaVersion: String(supabase.schemaVersion ?? '1.0'),
+      },
     };
   }
   throw new Error(`unsupported contentSource.ssot: ${raw.ssot}`);
 }
 
 /**
- * @param {'local' | 'notion'} [ssot]
+ * @param {'local' | 'notion' | 'supabase'} [ssot]
  * @param {{ rootPageId: string, rootPageUrl: string, schemaVersion?: string } | null} [notion]
+ * @param {{ projectRef: string, schemaVersion?: string } | null} [supabase]
  */
-export function createContentSource(ssot = 'local', notion = null) {
+export function createContentSource(ssot = 'local', notion = null, supabase = null) {
   if (ssot === 'local') {
     return { ssot: 'local' };
   }
@@ -114,6 +131,18 @@ export function createContentSource(ssot = 'local', notion = null) {
       },
     };
   }
+  if (ssot === 'supabase') {
+    if (!supabase?.projectRef) {
+      throw new Error('supabase contentSource requires projectRef');
+    }
+    return {
+      ssot: 'supabase',
+      supabase: {
+        projectRef: supabase.projectRef,
+        schemaVersion: supabase.schemaVersion ?? '1.0',
+      },
+    };
+  }
   throw new Error(`unsupported contentSource.ssot: ${ssot}`);
 }
 
@@ -123,7 +152,11 @@ export function createContentSource(ssot = 'local', notion = null) {
  *   mode?: 'greenfield' | 'brownfield',
  *   docsPath?: string,
  *   uiPath?: string,
- *   contentSource?: { ssot: 'local' | 'notion', notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string } },
+ *   contentSource?: {
+ *     ssot: 'local' | 'notion' | 'supabase',
+ *     notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string },
+ *     supabase?: { projectRef: string, schemaVersion?: string },
+ *   },
  * }} [options]
  */
 export function createDefaultProject(root, options = {}) {
@@ -131,6 +164,7 @@ export function createDefaultProject(root, options = {}) {
     ? createContentSource(
         options.contentSource.ssot,
         options.contentSource.ssot === 'notion' ? options.contentSource.notion ?? null : null,
+        options.contentSource.ssot === 'supabase' ? options.contentSource.supabase ?? null : null,
       )
     : createContentSource('local');
 

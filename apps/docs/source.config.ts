@@ -1,8 +1,10 @@
 import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from 'fumadocs-mdx/config';
 import { z } from 'zod';
 
+// For `ssot: supabase`, materialize with `node scripts/pull-supabase-content.mjs`
+// then set OMD_CONTENT_DIR=.supabase-content/docs. Local MDX remains default.
 export const docs = defineDocs({
-  dir: 'content/docs',
+  dir: process.env.OMD_CONTENT_DIR || 'content/docs',
   docs: {
     postprocess: { includeProcessedMarkdown: true },
     schema: frontmatterSchema.extend({
