@@ -65,8 +65,8 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
 
 ## Behavior
 
-1. **Greenfield SSOT** — first adopt requires `--ssot local|notion`. Without it
-   the runtime returns `needsSsot` and does not write.
+1. **Greenfield SSOT** — first adopt requires `--ssot local|notion|supabase`.
+   Without it the runtime returns `needsSsot` and does not write.
 2. **Missing UI package or files (local only)** — `doctor`/`inspect` note a
    missing UI path; `check` includes a problem; `adopt --ssot local` creates
    files from `<skill>/templates/default/packages/docs-ui` into the configured
