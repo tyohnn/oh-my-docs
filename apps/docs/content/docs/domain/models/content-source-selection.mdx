@@ -9,6 +9,7 @@ related:
   - /docs/domain/glossary/content-port
   - /docs/domain/glossary/provider-mapping
   - /docs/domain/policies/single-content-source
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
 ---
 
 ## Model
@@ -26,7 +27,8 @@ timestamps. Credentials remain with the host integration.
 
 ## Invariants
 
-- One project has exactly one authoritative source.
-- Local and Notion adapters expose equivalent planning operations.
+- One project has exactly one authoritative source (`local`, `notion`, or
+  `supabase`).
+- Local, Notion, and Supabase adapters expose equivalent planning operations.
 - Provider mappings can be discarded and reconstructed.
 - Changing source is an explicit migration, never an implicit sync.

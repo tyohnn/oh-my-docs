@@ -40,4 +40,11 @@ as Markdown to agents, and verifiable as a graph.
 ## Not yet in scope
 
 Phase 1 does not provide a public component registry, a visual planning canvas,
-authentication, persistence services, or project-management integrations.
+or project-management integrations.
+
+**Exception (content ports):** a project may select `supabase` as a BYO
+handbook content SSOT (user-owned Supabase project, Fumadocs renderer, no web
+editor). That path is specified under PRD-006 / ADR-006 and is not a
+general-purpose Oh My Docs–hosted persistence or auth platform. Other
+hosted persistence (for example a live task control-plane database) remains
+out of scope unless separately decided.

@@ -1,0 +1,72 @@
+---
+title: BYO Supabase cloud handbook SSOT
+description: Store structured MDX in a user-owned Supabase project and render it with Fumadocs without Git content conflicts.
+type: conceptual
+summary: Add a third content SSOT—BYO Supabase—so teams keep fumadocs templates and IA while collaborating in the cloud.
+id: PRD-byo-supabase-cloud-handbook-ssot
+ticker: PRD-006
+period: supabase-content-port
+status: active
+changeType: product
+reviewStatus: moderated
+reviewMethod: pdca-discovery
+stories:
+  - US-adopt-byo-supabase-as-handbook-ssot
+---
+
+## Problem
+
+Local Git-tracked MDX causes merge conflicts when several people or agents
+edit the handbook at once. Notion avoids Git collisions but does not keep the
+same fumadocs templates, typed frontmatter, and IA as a single managed
+structure—each workspace drifts as humans reshape pages by hand.
+
+Teams need a cloud store that preserves structured MDX and the shared handbook
+IA, without making Oh My Docs host a multi-tenant database.
+
+## Outcome
+
+During adoption, a team may select `supabase` as the one handbook content
+SSOT. Oh My Docs provisions (or links) a **user-owned** Supabase project,
+applies a versioned schema, and seeds the default IA. Document bodies and
+catalog registration live in Postgres. Fumadocs reads that store for `/docs`
+and `/md`. Writers use the skill/`omd` content port only—there is no web
+editor in this initiative.
+
+Selection and non-secret project identity live in `.omd/project.json`.
+Credentials stay with the host login (Supabase CLI or MCP), never in the repo.
+
+## Goals
+
+- Preserve exactly one authoritative content source per project (extend the
+  selectable-source model with `supabase`).
+- Keep local MDX templates, frontmatter lifecycles, and the shared IA graph.
+- Auto-provision schema and IA after the user is logged into Supabase.
+- Route `inspect`, `adopt`, `new`, `check`, and `sync` through a Supabase
+  content port (plan → host execute → validate).
+- Render handbook pages with Fumadocs from the remote store.
+- Never store tokens or `service_role` keys in project/state JSON.
+
+## Non-goals
+
+- Web WYSIWYG or in-browser handbook editing.
+- Oh My Docs–hosted multi-tenant Supabase.
+- Bidirectional local↔Supabase sync or treating Git MDX as a second authority.
+- Automatic Notion→Supabase or local→Supabase migration (separate work).
+- The Node runtime owning OAuth or calling Management APIs with hidden
+  credentials (the host login/MCP/CLI executes provision manifests).
+
+## Included stories
+
+- `US-adopt-byo-supabase-as-handbook-ssot`
+
+## Success measures
+
+- A greenfield user can select `supabase`, complete host login, and receive a
+  linked project with the handbook schema and IA skeleton.
+- Running provisioning twice creates no duplicate schema objects or catalog
+  rows for the same stable keys.
+- `omd new` and `check` operate against Supabase for `ssot: supabase`.
+- Fumadocs serves `/docs` and `/md` from Supabase-backed content without a
+  local authoritative MDX tree.
+- Existing `local` and `notion` projects keep their current contracts.

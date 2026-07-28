@@ -1,4 +1,10 @@
 {
   "title": "Data model",
-  "pages": ["index", "handbook-artifacts", "tasks", "content-source-contract"]
+  "pages": [
+    "index",
+    "handbook-artifacts",
+    "tasks",
+    "content-source-contract",
+    "content-source-supabase"
+  ]
 }

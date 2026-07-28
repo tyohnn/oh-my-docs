@@ -56,6 +56,7 @@ host plugin wrappers under `plugins/{cursor,codex,claude-code}` mirror it.
 | `check --json` | Fail when `.omd` is missing, vocabulary/chrome is incomplete, or UI snapshot is missing/stale |
 | `adopt --ssot local --yes` | Scaffold docs + `packages/docs-ui`; create missing UI files from the skill template |
 | `adopt --ssot notion --notion-root <url-or-id> --yes` | Map root to Home; emit Notion MCP provision manifest (no local UI) |
+| `adopt --ssot supabase --yes` | Link/create BYO Supabase project; emit SQL/seed provision manifest (see SPEC-011) |
 | `adopt --yes --force` | Also overwrite UI files that differ from the skill template (local) |
 | `sync --yes` | Refresh managed IA/`AGENTS.md`/`CLAUDE.md` markers only (not UI files) |
 | `new <kind> --title "…" --yes` | Create prd\|story\|spec\|plan\|adr |
@@ -64,8 +65,8 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
 
 ## Behavior
 
-1. **Greenfield SSOT** — first adopt requires `--ssot local|notion`. Without it
-   the runtime returns `needsSsot` and does not write.
+1. **Greenfield SSOT** — first adopt requires `--ssot local|notion|supabase`.
+   Without it the runtime returns `needsSsot` and does not write.
 2. **Missing UI package or files (local only)** — `doctor`/`inspect` note a
    missing UI path; `check` includes a problem; `adopt --ssot local` creates
    files from `<skill>/templates/default/packages/docs-ui` into the configured

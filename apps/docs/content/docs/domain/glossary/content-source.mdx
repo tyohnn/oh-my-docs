@@ -2,11 +2,13 @@
 title: Content source
 description: The one authoritative store selected for a repository's handbook.
 type: reference
-summary: A project uses either local MDX or Notion as its handbook SSOT.
+summary: A project uses local MDX, Notion, or BYO Supabase as its handbook SSOT.
 id: TERM-content-source
 related:
   - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
   - /docs/spec/data-model/content-source-contract
+  - /docs/spec/data-model/content-source-supabase
 ---
 
 ## Meaning
@@ -18,6 +20,8 @@ Supported values:
 
 - `local`: MDX under the configured docs content path
 - `notion`: pages and databases beneath one configured Notion root page
+- `supabase`: structured MDX rows in a user-owned Supabase project (Fumadocs
+  renders; no web editor)
 
 Generated state, caches, previews, and provider mappings are not additional
 content sources.

@@ -1,0 +1,104 @@
+---
+title: Supabase content source contract
+description: Project and state fields for ssot supabase on a user-owned Supabase project.
+type: reference
+summary: Contract stores projectRef and schemaVersion; state stores rebuildable digests without secrets.
+id: SPEC-supabase-content-source-contract
+ticker: SPEC-010
+stage: accepted
+related:
+  - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/planning/stories/us-adopt-byo-supabase-as-handbook-ssot
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/supabase-content-port
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+---
+
+## Scope
+
+Extends the content-source contract for `contentSource.ssot: "supabase"`.
+Structure metadata remains the shared IA graph stamped into
+`.omd/project.json` `informationArchitecture` (see SPEC-008 / SPEC-007).
+
+## Interface
+
+```json
+{
+  "contentSource": {
+    "ssot": "supabase",
+    "supabase": {
+      "projectRef": "abcdefghijklmnopqrst",
+      "schemaVersion": "1.0"
+    }
+  }
+}
+```
+
+- `projectRef` identifies the linked Supabase project and grants no access by
+  itself.
+- `schemaVersion` names the bundled declarative migration set the runtime
+  expects.
+- Tokens, OAuth secrets, cookies, `service_role` keys, and database passwords
+  are forbidden in project or state JSON.
+
+## Behavior
+
+- Greenfield adopt without `--ssot` still fails with `needsSsot`; allowed
+  options include `local`, `notion`, and `supabase`.
+- For `ssot: supabase`, handbook document bodies and catalog registration are
+  authoritative only in the linked project’s Postgres tables.
+- A local MDX tree, if present, is a non-authoritative cache or scaffold and
+  must not be treated as SSOT.
+- Fumadocs remains the presentation layer and loads content from Supabase.
+- Writes go through the Supabase content port only.
+
+## Data and invariants
+
+### State (`provider.supabase`)
+
+Rebuildable observations may include:
+
+- last applied `schemaVersion` / migration digest
+- last successful provision manifest digest
+- incomplete operation IDs for safe retry
+- optional row/key digests used by `check`
+
+State is never authoritative content.
+
+### Postgres shape (v1)
+
+One linked Supabase project (or dedicated schema) holds:
+
+- `documents`: stable `id`, `kind`, `ticker`, `path`/`slug`, `frontmatter`
+  jsonb, `body_mdx` text, timestamps
+- `catalog_meta`: catalog key → ordered `pages[]` (local `meta.json` analogue)
+
+Lifecycle enums and planning IDs remain those of the handbook templates.
+RLS protects writes; publishable read may use `anon` only with explicit
+read-only policies when the docs app needs it.
+
+## Errors
+
+| Code | When |
+|---|---|
+| `needsSsot` | Greenfield adopt omitted `--ssot` |
+| `supabase_login_required` | Host is not authenticated to Supabase |
+| `project_inaccessible` | `projectRef` missing or host cannot access project |
+| `schema_drift` | Live schema digest ≠ expected `schemaVersion` |
+| `secret_in_contract` | Forbidden credential material detected in JSON |
+
+## Compatibility
+
+- SPEC-008’s legacy default (`contentSource` absent → `local`) is unchanged.
+- `local` and `notion` contracts remain valid.
+- Switching to or from `supabase` requires an explicit migration plan; no
+  bidirectional sync.
+
+## Acceptance criteria
+
+- `ssot: supabase` round-trips through project metadata with `projectRef` and
+  `schemaVersion`.
+- No secret appears in project/state JSON or runtime logs.
+- Agents reading managed `AGENTS.md` treat Supabase as the only content SSOT
+  when selected.
+- Structure metadata still comes from one IA graph for all providers.

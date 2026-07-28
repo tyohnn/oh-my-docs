@@ -1,0 +1,108 @@
+---
+title: Supabase content port
+description: Plan-then-host-execute provisioning and document ops for BYO Supabase handbook SSOT.
+type: reference
+summary: Runtime plans SQL/seed manifests; host Supabase CLI or MCP applies them; Fumadocs reads remote MDX.
+id: SPEC-supabase-content-port
+ticker: SPEC-011
+stage: accepted
+related:
+  - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/planning/stories/us-adopt-byo-supabase-as-handbook-ssot
+  - /docs/spec/data-model/content-source-supabase
+  - /docs/spec/system-model/notion-content-port
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+---
+
+## Scope
+
+Defines the Supabase adapter for the provider-neutral content port, the
+provisioning manifest, document create/update behavior, validation, and how
+Fumadocs loads remote MDX. There is no web editor.
+
+## Interface
+
+Adapters expose the same operations as the Notion port:
+
+- `inspect`
+- `planProvision`
+- `planCreateDocument`
+- `validateSnapshot`
+- `recordResult`
+
+The Node runtime plans and validates JSON manifests (SQL migrations, seed
+rows, document upserts). The invoking skill checks host capability (Supabase
+CLI login and/or Supabase MCP), executes operations, and returns a provider
+snapshot. The runtime does not own OAuth or call Management APIs with hidden
+credentials.
+
+## Behavior
+
+### Provision (`adopt --ssot supabase`)
+
+1. Resolve host login / project access capability blockers.
+2. Link an existing project or create one when the host can.
+3. `planProvision` emits a deterministic, idempotent manifest: schema
+   migrations for `documents` / `catalog_meta` (+ RLS), then IA seed rows for
+   catalog keys from the shared IA graph.
+4. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
+   update `.omd/state.json` and write `contentSource.supabase` into the
+   project contract.
+
+Re-running provision must not duplicate stable document or catalog keys.
+
+### Create document (`omd new`)
+
+`planCreateDocument` targets the catalog implied by kind (same destinations as
+local/Notion IA write targets). The host upserts a `documents` row from the
+MDX template and updates `catalog_meta.pages[]`.
+
+### Check / sync
+
+- `check` loads a Supabase snapshot and validates the planning graph,
+  lifecycles, and catalog registration.
+- `sync` refreshes managed structure metadata / markers; it does not invent a
+  second content authority.
+
+### Fumadocs remote loader
+
+For `ssot: supabase`, the docs app fetches documents and catalog nav from the
+linked project (publishable URL + appropriate key via environment—not from
+git-tracked secrets in `.omd`). Generated local caches (for example `.source`)
+remain non-authoritative. Routes `/docs/*` and `/md/*` stay available.
+
+## Data and invariants
+
+- One project ↔ one linked Supabase project for handbook content.
+- Stable handbook IDs (`PRD-…`, `US-…`, …) are primary keys in `documents`.
+- Catalog entries live in `catalog_meta`, never as ad-hoc unstructured blobs
+  outside the IA.
+- Idempotency keys and digests make retries safe.
+- Web UI editing of bodies is out of scope; only port writes mutate content.
+
+## Errors
+
+| Code | Meaning |
+|---|---|
+| `supabase_login_required` | Host not logged in |
+| `capability_missing` | Neither CLI nor MCP can apply the manifest |
+| `project_inaccessible` | Cannot create/link/read the project |
+| `schema_drift` | Live schema does not match bundled `schemaVersion` |
+| `mapping_conflict` | Snapshot contradicts expected stable keys |
+| `partial_apply` | Manifest interrupted; retry from pending ops |
+
+## Compatibility
+
+- Does not change Notion MCP manifests or local filesystem adopt.
+- Does not publish Supabase content into Git as a second SSOT.
+- Provider migration from local/Notion is a separate plan.
+
+## Acceptance criteria
+
+- Adopt with `--ssot supabase` after host login yields schema + IA seed and a
+  valid project contract.
+- Second provision is idempotent.
+- `omd new` and `check` succeed against Supabase for that project.
+- Fumadocs renders a provisioned document over `/docs` and `/md` without
+  treating a local MDX tree as authoritative.
+- No web editor surface is required or shipped for this port.
