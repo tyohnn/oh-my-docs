@@ -1,0 +1,75 @@
+---
+title: BYO Supabase as MDX cloud SSOT
+description: Store authoritative handbook MDX in a user-owned Supabase project and keep Fumadocs as the renderer.
+type: decision
+summary: Add ssot supabase as BYO cloud MDX storage without a web editor or hosted multi-tenant database.
+id: ADR-byo-supabase-as-mdx-cloud-ssot
+ticker: ADR-006
+stage: accepted
+related:
+  - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/spec/data-model/content-source-supabase
+  - /docs/spec/system-model/supabase-content-port
+  - /docs/adr/adr-001-fumadocs-ssot
+  - /docs/adr/adr-select-one-content-source-per-project
+---
+
+## Context
+
+ADR-005 allows exactly one content source per project (`local` or `notion`).
+Local MDX collides under Git when many writers edit the handbook. Notion is
+cloud-hosted but does not preserve fumadocs templates and typed IA the way
+local MDX does.
+
+Teams asked for a cloud SSOT that keeps structured MDX. Product vision Phase 1
+excluded authentication and persistence services; this decision opens a
+narrow, BYO persistence path for handbook content only.
+
+## Decision
+
+- Extend the selectable SSOT enum with `supabase`.
+- Authority for `ssot: supabase` is a **user-owned** Supabase project
+  (BYO)—Oh My Docs does not host a multi-tenant handbook database in v1.
+- Persist MDX bodies and catalog registration in Postgres (`documents` +
+  `catalog_meta`) under a versioned schema.
+- Keep **Fumadocs as the renderer** (ADR-001): the docs app loads remote MDX
+  for `/docs` and `/md`.
+- **No web editor** in v1; mutations go through the content port
+  (`omd` / agent + host Supabase CLI or MCP), mirroring Notion’s
+  plan → host execute → validate split.
+- Store only non-secret identity (`projectRef`, `schemaVersion`) in
+  `.omd/project.json`. Credentials never enter the repository.
+- ADR-005’s exclusivity rule still holds: never co-authoritative with local or
+  Notion.
+
+## Consequences
+
+- Contract schemas, `needsSsot` options, SKILL/AGENTS markers, and `check`
+  become provider-aware for three values.
+- Adopt depends on host Supabase login capability.
+- Docs apps for Supabase projects need a remote content loader and env-based
+  publishable access configuration.
+- Vision “no persistence services” no longer applies to this BYO handbook
+  path; other persistence (for example live task DBs) stays out of scope
+  unless separately decided.
+
+## Rejected alternatives
+
+### Oh My Docs–hosted multi-tenant Supabase
+
+Rejected for v1: expands operational, auth, and tenancy scope beyond BYO
+provisioning and conflicts with keeping credentials/host ownership clear.
+
+### Web cloud editor as the write path
+
+Rejected for v1: the goal is structured MDX + agent/CLI workflows, not a
+second Notion-like freeform UI.
+
+### Supabase as a sync mirror while Git MDX stays authoritative
+
+Rejected: it recreates dual authority and Git merge conflicts.
+
+### Runtime-owned OAuth calling Management APIs with embedded secrets
+
+Rejected: same reason as Notion—host login/MCP/CLI owns credentials; the
+runtime plans and validates.

@@ -1,6 +1,6 @@
 ---
 title: Content source contract
-description: Versioned .omd metadata for local or Notion handbook authority and provider state.
+description: Versioned .omd metadata for local, Notion, or Supabase handbook authority and provider state.
 type: reference
 summary: Project metadata selects one provider; state records rebuildable mappings without credentials.
 id: SPEC-content-source-contract
@@ -8,10 +8,13 @@ ticker: SPEC-008
 stage: accepted
 related:
   - /docs/planning/prds/prd-selectable-content-source
+  - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
   - /docs/planning/stories/us-choose-handbook-content-source
   - /docs/planning/stories/us-unified-handbook-structure-metadata
   - /docs/domain/models/content-source-selection
+  - /docs/spec/data-model/content-source-supabase
   - /docs/spec/system-model/notion-content-port
+  - /docs/spec/system-model/supabase-content-port
   - /docs/spec/system-model/handbook-ia
   - /docs/plans/plan-unified-handbook-structure-metadata
 ---
@@ -20,15 +23,16 @@ related:
 
 Defines provider selection in `.omd/project.json`, operational provider
 observations in `.omd/state.json`, and how **structure metadata** relates to
-the content SSOT.
+the content SSOT. Supabase field shapes are detailed in
+`SPEC-supabase-content-source-contract`.
 
 ## Structure metadata vs content SSOT
 
 | Layer | Authority | Examples |
 |---|---|---|
-| Content SSOT | `contentSource.ssot` (`local` \| `notion`) | MDX bodies or Notion page/DB row bodies |
-| Structure metadata SSOT | Skill IA graph stamped into `.omd/project.json` `informationArchitecture` | Sections, catalogs, Notion keys, local paths, write targets |
-| Provider state | `.omd/state.json` (rebuildable) | Notion key → object ID mappings, digests |
+| Content SSOT | `contentSource.ssot` (`local` \| `notion` \| `supabase`) | MDX bodies, Notion page/DB rows, or Supabase MDX rows |
+| Structure metadata SSOT | Skill IA graph stamped into `.omd/project.json` `informationArchitecture` | Sections, catalogs, provider keys, local paths, write targets |
+| Provider state | `.omd/state.json` (rebuildable) | Provider key → object ID mappings, digests |
 
 Fumadocs `meta.json` files remain on disk for local projects. Folder **structure**
 skeletons are generated from the IA graph on adopt/sync. Catalog **detail**
@@ -68,8 +72,27 @@ or:
 (`pages.home`) but grant no access. Tokens, OAuth secrets, cookies, and MCP
 session data are forbidden.
 
+For `ssot: supabase`:
+
+```json
+{
+  "contentSource": {
+    "ssot": "supabase",
+    "supabase": {
+      "projectRef": "stable-project-ref",
+      "schemaVersion": "1.0"
+    }
+  }
+}
+```
+
+See `SPEC-supabase-content-source-contract` for Postgres tables, state digests,
+and errors.
+
 For `ssot: notion`, local docs-app paths and UI vocabulary snapshots are not
 required. For `ssot: local`, `paths.ui` defaults to `packages/docs-ui`.
+For `ssot: supabase`, Fumadocs remains required as the renderer; the local MDX
+tree is not authoritative.
 
 ## State contract
 
@@ -80,7 +103,9 @@ Notion state contains:
 - last successful manifest digest
 - incomplete operation IDs for safe retry
 
-State is rebuildable and never authoritative content.
+Supabase state contains rebuildable schema/provision digests and pending
+operation IDs (see SPEC-010). State is rebuildable and never authoritative
+content.
 
 ## Compatibility
 
@@ -92,8 +117,9 @@ State is rebuildable and never authoritative content.
 
 ## Validation
 
-- Exactly one `ssot` value is present.
+- Exactly one `ssot` value is present (`local`, `notion`, or `supabase`).
 - Notion requires a parseable root ID and canonical root URL mapped as Home.
+- Supabase requires `projectRef` and `schemaVersion`.
 - Local requires configured content paths and a UI vocabulary path.
 - Notion must not require a local UI package.
 - State mappings must reference known IA/catalog/document keys.
