@@ -146,7 +146,8 @@ export async function main(argv = process.argv.slice(2)) {
           process.exitCode = 1;
           return;
         }
-        const target = resolve(process.cwd(), positionals[0] ?? '.');
+        // Prefer --directory / resolved cwd; positional path remains a synonym.
+        const target = cwd;
         const existingContract = readProject(target);
         const ssotFlag = flagSsot(flags);
         if (!existingContract && !ssotFlag) {
