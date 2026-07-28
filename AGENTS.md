@@ -148,12 +148,12 @@ discussion that should outlive this chat must be written into the selected SSOT
 3. Bug fixes require an existing PRD/specification and a ready plan.
 4. Maintenance requires a ready plan; add a specification if an observable contract changes.
 5. If required documents are missing, create and review a docs-only change first.
-6. Open separate PRs that both target \`main\` and merge sequentially:
-   docs-only planning PR to \`main\` first, then the implementation PR to
-   \`main\` (do not use the planning branch as the implementation PR base).
-7. An implementation PR must reference a plan that already exists on \`main\`
-   (the PR base) with \`stage: ready|active\` and covering \`codeAreas\`.
-8. Docs-only edits under the docs content/templates trees (plus root \`README.md\` / \`CHANGELOG.md\`) are exempt. There is no general bypass.
+6. Open separate PRs that both target `main` and merge sequentially:
+   docs-only planning PR to `main` first, then the implementation PR to
+   `main` (do not use the planning branch as the implementation PR base).
+7. An implementation PR must reference a plan that already exists on `main`
+   (the PR base) with `stage: ready|active` and covering `codeAreas`.
+8. Docs-only edits under the docs content/templates trees (plus root `README.md` / `CHANGELOG.md`) are exempt. There is no general bypass.
 
 Dependency direction:
 
