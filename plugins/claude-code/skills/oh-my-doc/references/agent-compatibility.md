@@ -42,4 +42,9 @@ node <skill>/scripts/omd.mjs check --json
 Before the first adopt, ask the user to choose SSOT (`local` docs app vs
 `notion` | `supabase`). Greenfield adopt without `--ssot` fails with `needsSsot`.
 
-Do not tell users to run a public npm CLI.
+Do not tell users to run a public npm CLI. Prefer running `omd.mjs` yourself and
+summarizing results in chat.
+
+For `ssot: supabase`, you also own handbook freshness: configure
+`OMD_DOCS_URL` + `OMD_REVALIDATE_SECRET`, call revalidate after writes, and
+explain status to the user. See `supabase-handbook-freshness.md`.

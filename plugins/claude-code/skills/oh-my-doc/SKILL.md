@@ -38,18 +38,42 @@ chat must be written into that SSOT.
 
 ### State machine
 
-1. `inspect` — classify greenfield vs brownfield; never mutate.
+1. `inspect` — classify greenfield vs brownfield; never mutate. For
+   `ssot: supabase`, also report `revalidate` readiness
+   (`OMD_DOCS_URL` + `OMD_REVALIDATE_SECRET`).
 2. **Ask SSOT** — before the first adopt, ask the user to choose `local`
-   (Fumadocs docs app) or `notion`. Greenfield `adopt` without `--ssot` fails
-   with `needsSsot`.
+   (Fumadocs docs app), `notion`, or `supabase`. Greenfield `adopt` without
+   `--ssot` fails with `needsSsot`.
 3. `adopt --ssot local --dry-run` / `--yes` — scaffold docs + `packages/docs-ui`,
    write `.omd/`.
 4. `adopt --ssot notion --notion-root …` — map root to `pages.home`, emit a
    Notion MCP provisioning manifest from `references/notion-*` (never a `ref/`
    path); execute via host MCP; record mappings. Does **not** install local UI.
-5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
-   or Notion root/mappings/pending ops (notion).
-6. `new` / `sync` as needed for later work.
+5. `adopt --ssot supabase …` — scaffold local Fumadocs shell + emit Supabase
+   provision manifest; handbook content SSOT is Supabase.
+6. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
+   Notion root/mappings/pending ops (notion), or Supabase contract (supabase).
+   Supabase `check` may emit soft `hints` when revalidate env is unset.
+7. `new` / `sync` as needed for later work.
+
+### Supabase freshness (agent duty)
+
+When SSOT is `supabase`, **you** keep `/docs` and `/md` fresh. Do not ask the
+user to run `curl`, `openssl`, or revalidate commands themselves.
+
+1. Read `references/supabase-handbook-freshness.md`.
+2. Run `inspect --json` and read `revalidate`. If not `ready`, generate
+   `OMD_REVALIDATE_SECRET` (`openssl rand -hex 32`), set the **same** value on
+   the docs deploy (Vercel) and in agent runtime secrets, and set `OMD_DOCS_URL`
+   to the public docs origin. Prefer host MCP/CLI for env writes; only ask the
+   user to paste when the host UI requires it.
+3. After a successful content-port upsert, call `notifyDocsRevalidate` (or
+   `POST $OMD_DOCS_URL/api/revalidate` with `Authorization: Bearer …`).
+4. Tell the user in chat what you configured and whether refresh succeeded —
+   never print the secret unless they must paste it into a UI you cannot write.
+
+Publishable Supabase keys are for **reads** only. The revalidate secret is a
+separate shared password for the cache-bust API.
 
 ## UI distribution
 
@@ -71,6 +95,7 @@ chat must be written into that SSOT.
 | `references/implementation-workflow.md` | How to implement under a ready plan |
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
+| `references/supabase-handbook-freshness.md` | ISR + revalidate setup (agent-owned) |
 | `references/notion-information-architecture.md` | Notion page + details-toggle IA |
 | `references/notion-catalog-writes.md` | Where PRD/story/plan/ADR rows go (Planning ≠ Plans) |
 | `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |

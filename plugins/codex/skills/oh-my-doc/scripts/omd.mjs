@@ -19,6 +19,8 @@ import {
 import {
   getContentAdapter,
   resolveContentSource,
+  readRevalidateEnv,
+  revalidateAgentGuidance,
 } from '../runtime/content-sources/index.mjs';
 import { adoptNotionProject } from '../runtime/content-sources/adopt-notion.mjs';
 import { adoptSupabaseProject } from '../runtime/content-sources/adopt-supabase.mjs';
@@ -126,7 +128,16 @@ export async function main(argv = process.argv.slice(2)) {
           ...(typeof flags['ui-path'] === 'string' ? { uiPath: flags['ui-path'] } : {}),
         });
         const contentSource = resolveContentSourceSafe(cwd, flags);
-        const payload = { ...report, contentSource };
+        const revalidateStatus = readRevalidateEnv();
+        const revalidate =
+          contentSource.ssot === 'supabase'
+            ? {
+                applicable: true,
+                ...revalidateStatus,
+                guidance: revalidateAgentGuidance(revalidateStatus),
+              }
+            : { applicable: false };
+        const payload = { ...report, contentSource, revalidate };
         if (json) printJson(payload);
         else {
           console.log(`mode: ${report.mode}`);
@@ -135,6 +146,15 @@ export async function main(argv = process.argv.slice(2)) {
           console.log(`ui: ${report.project.uiPath ?? '(none)'}`);
           console.log(`.omd: ${report.omd.present ? 'present' : 'missing'}`);
           console.log(`recommended: ${report.recommended.join(', ')}`);
+          if (revalidate.applicable) {
+            console.log(
+              `revalidate: ${revalidate.ready ? 'ready' : `missing ${revalidate.missing.join(', ')}`}`,
+            );
+            if (!revalidate.ready) {
+              console.log(`- ${revalidate.guidance.principle}`);
+              console.log(`- ${revalidate.guidance.blockerWhenUnset}`);
+            }
+          }
           for (const note of report.doctor.notes) console.log(`- ${note}`);
         }
         if (!report.doctor.ok && report.mode !== 'greenfield') process.exitCode = 1;
@@ -307,13 +327,30 @@ export async function main(argv = process.argv.slice(2)) {
             title,
             id,
           });
-          if (json) printJson(planned);
-          else {
+          const revalidateStatus = readRevalidateEnv();
+          const guidance = revalidateAgentGuidance(revalidateStatus);
+          if (json) {
+            printJson({
+              ...planned,
+              revalidate: { applicable: true, ...revalidateStatus, guidance },
+              afterUpsert: {
+                notify: 'Call notifyDocsRevalidate (or POST /api/revalidate) after a successful upsert.',
+                agentOwnsSetup: true,
+              },
+            });
+          } else {
             console.log(`Supabase new ${kind} → manifest ${planned.operation.id}`);
             console.log('Execute upsert_document via Supabase CLI/MCP; local MDX is not authoritative.');
-            console.log(
-              'After upsert, POST /api/revalidate on the docs site (OMD_DOCS_URL + OMD_REVALIDATE_SECRET) so ISR cache refreshes without Redeploy.',
-            );
+            console.log(guidance.principle);
+            if (!revalidateStatus.ready) {
+              console.log(`revalidate not ready (missing ${revalidateStatus.missing.join(', ')}).`);
+              console.log(guidance.blockerWhenUnset);
+              for (const step of guidance.steps) console.log(`- ${step}`);
+            } else {
+              console.log(
+                'After upsert, call notifyDocsRevalidate / POST /api/revalidate so /docs and /md refresh without Redeploy.',
+              );
+            }
           }
           return;
         }
@@ -396,14 +433,28 @@ export async function main(argv = process.argv.slice(2)) {
             });
             problems.push(...validated.problems);
           }
+          const revalidateStatus = readRevalidateEnv();
+          const revalidate = {
+            applicable: true,
+            ...revalidateStatus,
+            guidance: revalidateAgentGuidance(revalidateStatus),
+          };
+          /** Soft hints — missing revalidate env must not fail the planning graph check. */
+          const hints = [];
+          if (!revalidateStatus.ready) {
+            hints.push(
+              `revalidate_env_unset: missing ${revalidateStatus.missing.join(', ')} — agent should configure (see references/supabase-handbook-freshness.md); handbook writes will not refresh /docs until set`,
+            );
+          }
           const ok = problems.length === 0;
-          if (json) printJson({ ok, problems, contentSource: source });
+          if (json) printJson({ ok, problems, hints, contentSource: source, revalidate });
           else if (!ok) {
             console.error(`check found ${problems.length} problem(s):`);
             for (const problem of problems) console.error(`- ${problem}`);
           } else {
             console.log('Supabase content source contract looks valid.');
           }
+          for (const hint of hints) console.error(`hint: ${hint}`);
           if (!ok) process.exitCode = 1;
           return;
         }
