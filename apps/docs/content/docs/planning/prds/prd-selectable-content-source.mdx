@@ -24,9 +24,10 @@ information architecture without maintaining a second authoritative copy.
 
 During adoption, a team selects exactly one content source:
 
-- `local`: Git-tracked MDX rendered by Fumadocs
-- `notion`: a user-supplied Notion root whose pages and catalog databases are
-  provisioned and operated through a host Notion MCP
+- `local`: Git-tracked MDX rendered by Fumadocs (full handbook IA)
+- `notion`: a user-supplied Notion Home whose **inline catalog databases**
+  are provisioned and operated through a host Notion MCP (slim IA; no Vision /
+  Workflow chrome — see `PRD-008` / `ADR-008`)
 
 The selection and non-secret provider identity live in `.omd/project.json`.
 All skill operations route through the selected content port.
@@ -49,8 +50,8 @@ All skill operations route through the selected content port.
 - Treating MCP as a hidden network dependency of the Node runtime.
 - Destructive deletion of user-authored Notion content.
 
-Supabase as a third SSOT is specified under
-`PRD-byo-supabase-cloud-handbook-ssot` (PRD-006), not this PRD.
+Supabase as a third SSOT was explored under PRD-006 / PRD-007 and is
+**withdrawn** by `PRD-slim-local-and-notion-ssot` (PRD-008) and `ADR-008`.
 
 ## Included stories
 

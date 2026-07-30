@@ -17,6 +17,7 @@
     "plan-byo-supabase-content-port-and-fumadocs-remote-loader",
     "plan-multi-handbook-supabase-tenancy-and-schema-versions",
     "plan-sync-env-local-from-runtime-secrets",
-    "plan-supabase-fumadocs-isr-on-demand-revalidate"
+    "plan-supabase-fumadocs-isr-on-demand-revalidate",
+    "plan-slim-local-notion-drop-supabase"
   ]
 }

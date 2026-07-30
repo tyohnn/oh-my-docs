@@ -1,60 +1,41 @@
 ---
 title: Development contract
-description: The machine-checkable contract between planning and implementation.
+description: Optional guidance for implementing against handbook catalogs; no mandatory planning gate.
 type: reference
-summary: Implementation must be covered by a reviewed plan that already exists on the base branch.
+summary: Agents may implement freely; handbook catalogs are optional durable memory, not a merge gate.
 id: SPEC-docs-first-development
 stage: accepted
 related:
   - /docs/workflow/planning
   - /docs/plans
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
+  - /docs/planning/prds/prd-slim-local-and-notion-ssot
 ---
 
-## Artifact states
+## Scope
 
-| Artifact | Ready for implementation |
-|---|---|
-| PRD | `status: active` |
-| Specification | `stage: accepted` |
-| Implementation plan | `stage: ready` or `active` |
+Defines how implementation relates to handbook artifacts after `ADR-008` /
+`PRD-008`. There is **no** machine-enforced docs-first gate.
 
-## Implementation changes
+## No mandatory gate
 
-An implementation change names its plan in the change description:
+- Pull requests do **not** require a `Plan: …` trailer.
+- Product, bugfix, and maintenance code may land without a prior ready plan
+  on the base branch.
+- `pnpm check:docs-first` is removed (or becomes a no-op that always passes).
+- Agents must not block on missing PRD / story / SPEC / PLAN before coding.
 
-`Plan: apps/docs/content/docs/plans/plan-<initiative>.mdx`
+## Optional durable memory
 
-(Scaffolded projects using a top-level `docs/` app use
-`Plan: docs/content/docs/plans/plan-<initiative>.mdx`.)
+When a decision should outlive chat, agents **may** write or update catalog
+rows (local MDX or Notion inline DB)—ADR, Data model, API/system spec, plan
+notes, etc. That is recommended for cold-start agents, not a merge
+requirement.
 
-The plan must already exist on the base branch, cover changed code paths through
-`codeAreas`, and reference all required artifacts. If implementation changes
-the intended behavior or scope, update and review planning before continuing.
-
-## Exemptions
-
-| Change | Prior plan required |
-|---|---|
-| Docs under `content/docs/` or `templates/` | No |
-| Root `README.md` / `CHANGELOG.md` | No |
-| Product, bugfix, or maintenance code | Yes |
-
-There is no general bypass marker. Local `pnpm check:docs-first` skips when
-`BASE_SHA` is unset; pull-request CI always sets it.
+`pnpm check:planning` may remain as an **optional** integrity check for
+handbook IDs/navigation when catalogs exist; it is not a development gate.
 
 ## Completion
 
-Run the plan's verification steps, then mark it `done`. A PRD becomes `done`
-only when its promised outcomes and linked work are complete.
-
-## Automated boundary
-
-```bash
-pnpm check:planning
-pnpm check:docs-first
-```
-
-The graph checker validates IDs, titles, references, lifecycle states,
-`codeAreas` declarations, and navigation registration. The docs-first checker
-ensures implementation diffs cite a `ready|active` plan from the PR base.
-Reviewers remain responsible for product correctness and clarity.
+Mark catalog plans `done` only if the team still uses them; otherwise leave
+or delete. Reviewers remain responsible for product correctness.

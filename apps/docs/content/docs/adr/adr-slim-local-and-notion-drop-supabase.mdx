@@ -1,0 +1,66 @@
+---
+title: Slim local/Notion SSOT and drop Supabase and docs gates
+description: Keep local Fumadocs MDX and a one-page Notion catalog model; remove BYO Supabase, deploy/revalidate surface, and mandatory planning/development gates.
+type: decision
+summary: SSOT is local or Notion catalogs only; Supabase and Vercel revalidate are out; docs-first planning/development gates are removed.
+id: ADR-slim-local-and-notion-drop-supabase
+ticker: ADR-008
+stage: accepted
+related:
+  - /docs/adr/adr-select-one-content-source-per-project
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+  - /docs/planning/prds/prd-slim-local-and-notion-ssot
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+  - /docs/workflow/development
+  - /docs/workflow/planning
+---
+
+## Context
+
+BYO Supabase as a third handbook SSOT plus ISR/revalidate made setup heavy.
+Operators do not read full handbook chrome in Notion. Separately, the
+docs-first **planning gate** and **development gate** (required PRD → story →
+SPEC → ready plan, `Plan:` trailer, `check:docs-first`) forced ceremony the
+primary user does not follow—agents already read the repo, and humans track
+work lightly elsewhere.
+
+## Decision
+
+1. **SSOT choices are only `local` and `notion`.** `supabase` is removed from
+   the product contract, runtime, and adopt UX.
+2. **`local`** keeps the existing Fumadocs MDX handbook (full section tree).
+3. **`notion`** provisions **one Home root** with **inline catalog databases
+   only**. No Vision / Start here / Workflow narrative pages in Notion.
+4. **Remove** productized Vercel deploy / revalidate surface
+   (`OMD_REVALIDATE_*`, `POST /api/revalidate`, `notifyDocsRevalidate`, vercel
+   ensure/sync ops in specs).
+5. **Remove mandatory planning and development gates:**
+   - No required artifact chain before implementation.
+   - No `Plan:` PR requirement; no sequential planning-then-code merge rule.
+   - Remove or no-op `pnpm check:docs-first` and skill/AGENTS language that
+     blocks coding without a ready plan.
+   - Handbook catalogs remain **optional** durable memory for agents.
+6. Prior Supabase ADRs/specs/plans are **superseded**. The old docs-first
+   development contract is replaced by the amended
+   `SPEC-docs-first-development` (no gate).
+
+ADR-005’s “exactly one SSOT” rule remains; its allowed set is
+`local` | `notion`.
+
+## Consequences
+
+- Dogfood on `ssot: supabase` migrates to `local` or `notion`.
+- Skill IA graph splits: full for local; slim catalogs for Notion.
+- CI and agent instructions stop enforcing docs-first merge policy.
+- Teams may still use `omd new` / `check:planning` voluntarily.
+
+## Rejected alternatives
+
+- **Keep Supabase, drop only revalidate** — still too heavy.
+- **Notion keeps full Vision/Workflow chrome** — rejected.
+- **Keep the gate but make it warnings-only** — still trains agents to block;
+  remove the gate entirely.
+- **Docs only in chat with no catalogs** — rejected for cold agents; optional
+  catalogs remain available.

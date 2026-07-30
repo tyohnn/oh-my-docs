@@ -1,0 +1,49 @@
+---
+title: Slim local or Notion handbook SSOT
+description: Adopt with local MDX or a one-page Notion catalog workspace; Supabase and docs-first gates are not offered.
+type: conceptual
+summary: Pick local Fumadocs or Notion catalogs; no Supabase, revalidate setup, or mandatory planning/development gate.
+id: US-slim-local-or-notion-handbook-ssot
+ticker: US-013
+stage: accepted
+related:
+  - /docs/planning/prds/prd-slim-local-and-notion-ssot
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
+---
+
+As a builder, I want Oh My Docs to support either a local Fumadocs handbook or
+a simple Notion page of catalog databases, without forcing planning ceremony
+before code, so that agents have optional durable indexes and I can ship.
+
+## Context
+
+Replaces the three-way SSOT choice and the docs-first merge gate. Supabase-era
+stories (`US-009`–`US-012`) no longer describe the shipping product.
+
+## Acceptance criteria
+
+- Greenfield `adopt` accepts `--ssot local|notion` only; `--ssot supabase`
+  fails with an actionable error.
+- Agents ask for `local` vs `notion` before first adopt (`needsSsot` options
+  exclude supabase).
+- `local` keeps the full Fumadocs MDX handbook IA (unchanged section set).
+- `notion` maps `--notion-root` to Home and provisions **inline catalog DBs**
+  under that page only—no Vision, Start here, or Workflow pages.
+- Notion catalog documents are database rows (ADR, Data model, API/system
+  specs, Plans, PRDs, Stories, and other catalogs in the slim graph).
+- `.omd/project.json` never records `contentSource.ssot: supabase` on new
+  adopts; dogfood migrates off supabase as part of the implementation plan.
+- Managed `AGENTS.md` / skill hard rules do **not** require a ready plan,
+  `Plan:` trailer, or sequential planning-then-code PRs before implementation.
+- `check:docs-first` is removed or always succeeds; CI does not fail PRs for
+  missing plans.
+- No skill guidance requires `OMD_REVALIDATE_SECRET`, `OMD_DOCS_URL`, or
+  Vercel content-port setup for handbook freshness.
+- Local and Notion projects remain mutually exclusive SSOTs.
+
+## Out of scope
+
+- Migrating existing Supabase handbook row data automatically into Notion.
+- In-browser handbook editors.

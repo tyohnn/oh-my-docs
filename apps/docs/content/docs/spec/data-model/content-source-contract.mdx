@@ -1,49 +1,45 @@
 ---
 title: Content source contract
-description: Versioned .omd metadata for local, Notion, or Supabase handbook authority and provider state.
+description: Versioned .omd metadata for local or Notion handbook authority and provider state.
 type: reference
-summary: Project metadata selects one provider; state records rebuildable mappings without credentials.
+summary: Project metadata selects local or Notion; state records rebuildable mappings without credentials.
 id: SPEC-content-source-contract
 ticker: SPEC-008
 stage: accepted
 related:
+  - /docs/planning/prds/prd-slim-local-and-notion-ssot
   - /docs/planning/prds/prd-selectable-content-source
-  - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/planning/stories/us-slim-local-or-notion-handbook-ssot
   - /docs/planning/stories/us-choose-handbook-content-source
-  - /docs/planning/stories/us-unified-handbook-structure-metadata
   - /docs/domain/models/content-source-selection
-  - /docs/spec/data-model/content-source-supabase
   - /docs/spec/system-model/notion-content-port
-  - /docs/spec/system-model/supabase-content-port
   - /docs/spec/system-model/handbook-ia
-  - /docs/plans/plan-unified-handbook-structure-metadata
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
 ## Scope
 
 Defines provider selection in `.omd/project.json`, operational provider
 observations in `.omd/state.json`, and how **structure metadata** relates to
-the content SSOT. Supabase field shapes are detailed in
-`SPEC-supabase-content-source-contract`.
+the content SSOT. Allowed SSOTs are **`local` and `notion` only**
+(`ADR-008`). Supabase field shapes in older documents are superseded.
 
 ## Structure metadata vs content SSOT
 
 | Layer | Authority | Examples |
 |---|---|---|
-| Content SSOT | `contentSource.ssot` (`local` \| `notion` \| `supabase`) | MDX bodies, Notion page/DB rows, or Supabase MDX rows |
+| Content SSOT | `contentSource.ssot` (`local` \| `notion`) | MDX bodies or Notion page/DB rows |
 | Structure metadata SSOT | Skill IA graph stamped into `.omd/project.json` `informationArchitecture` | Sections, catalogs, provider keys, local paths, write targets |
 | Provider state | `.omd/state.json` (rebuildable) | Provider key → object ID mappings, digests |
 
-Fumadocs `meta.json` files remain on disk for local projects. Folder **structure**
-skeletons are generated from the IA graph on adopt/sync. Catalog **detail**
-`pages[]` lists stay project-owned (updated by `new` / planning check). Notion
-catalog entries are rows in the catalog inline database — never ad-hoc child
-pages of the parent section (for example Plans go under `pages.plans` /
-`dbs.plans`, not as children of Planning).
+Local projects use the **full** handbook IA graph (Fumadocs sections).
+Notion projects use the **slim** catalog-only IA graph (Home + inline DBs).
+Fumadocs `meta.json` files remain on disk for local projects. Catalog
+**detail** `pages[]` lists stay project-owned. Notion catalog entries are
+rows in the catalog inline database — never ad-hoc child pages of a
+narrative section.
 
 ## Project contract
-
-The next contract version adds:
 
 ```json
 {
@@ -72,30 +68,11 @@ or:
 (`pages.home`) but grant no access. Tokens, OAuth secrets, cookies, and MCP
 session data are forbidden.
 
-For `ssot: supabase`:
-
-```json
-{
-  "contentSource": {
-    "ssot": "supabase",
-    "supabase": {
-      "projectRef": "stable-project-ref",
-      "handbookId": "skills-docs",
-      "schemaVersion": "1.1"
-    }
-  }
-}
-```
-
-See `SPEC-supabase-content-source-contract` and
-`SPEC-multi-handbook-supabase-tenancy` for Postgres tables, multi-handbook
-isolation, state digests, and errors. Legacy single-handbook projects may
-omit `handbookId` (defaults to `"default"`).
-
 For `ssot: notion`, local docs-app paths and UI vocabulary snapshots are not
 required. For `ssot: local`, `paths.ui` defaults to `packages/docs-ui`.
-For `ssot: supabase`, Fumadocs remains required as the renderer; the local MDX
-tree is not authoritative.
+
+`ssot: supabase` is **invalid** on new contracts. Existing dogfood must
+migrate to `local` or `notion` (implementation plan).
 
 ## State contract
 
@@ -106,41 +83,34 @@ Notion state contains:
 - last successful manifest digest
 - incomplete operation IDs for safe retry
 
-Supabase state contains rebuildable schema/provision digests and pending
-operation IDs (see SPEC-010). State is rebuildable and never authoritative
-content.
+State is rebuildable and never authoritative content.
 
 ## Compatibility
 
 - A version `1.0` project without `contentSource` is interpreted as `local`.
 - Migration writes the explicit local selection without altering docs.
-- Existing local paths, UI snapshot, ownership, and lifecycle contracts remain
-  valid for local projects.
-- Greenfield adopt without an explicit `ssot` flag is rejected (`needsSsot`).
+- Greenfield adopt without an explicit `ssot` flag is rejected (`needsSsot`)
+  with options `local` and `notion` only.
+- Projects that still record `supabase` fail `check` with a migration hint.
 
 ## Validation
 
-- Exactly one `ssot` value is present (`local`, `notion`, or `supabase`).
+- Exactly one `ssot` value is present (`local` or `notion`).
 - Notion requires a parseable root ID and canonical root URL mapped as Home.
-- Supabase requires `projectRef` and `schemaVersion`.
 - Local requires configured content paths and a UI vocabulary path.
 - Notion must not require a local UI package.
 - State mappings must reference known IA/catalog/document keys.
 - Project and state digests must agree.
+- No `contentSource.supabase` object is accepted.
 
 ## Acceptance criteria
 
-- Provider choice round-trips through project metadata.
+- Provider choice round-trips through project metadata for `local` | `notion`.
 - No secret appears in project/state JSON or logs.
-- Legacy projects validate as local.
+- Legacy projects without `contentSource` validate as local.
 - Notion projects validate without local docs/UI packages.
-- Adopted projects instruct agents (via the managed `AGENTS.md` marker) to read
-  `.omd/project.json` `contentSource.ssot` and treat that provider as the only
-  handbook content SSOT.
-- Documentation is always first: any decision, agreement, or new discussion that
-  should outlive chat must be written into the selected SSOT, not left only in
-  conversation.
-- Structure metadata comes from one IA graph stamped into `.omd/project.json`
-  `informationArchitecture` for both local and Notion projects.
+- Managed `AGENTS.md` instructs agents to treat the selected provider as the
+  only handbook content SSOT.
+- Documentation is always first: durable decisions go into the selected SSOT.
 - Catalog entries write to the catalog store (local folder + `meta.json`, or
-  Notion inline DB), never as misplaced section child pages.
+  Notion inline DB).
