@@ -23,7 +23,10 @@ codeAreas:
   - skills/oh-my-doc/references/
   - apps/docs/
   - apps/docs/lib/
+  - apps/docs/scripts/
   - apps/docs/source.config.ts
+  - packages/docs-ui
+  - packages/ui
   - AGENTS.md
   - .gitignore
 related:
@@ -65,6 +68,10 @@ local/Notion→Supabase migration, runtime-owned OAuth secrets.
 6. Add/extend runtime tests (`content-sources`, contract, adopt `needsSsot`
    options) and a docs read smoke path where feasible without a live project
    (mocked snapshot).
+7. Keep index-only catalogs collapsed in the sidebar when content is pulled from
+   Supabase: emit section `meta.json` from handbook IA, omit catalog `index`
+   entries from pulled metas (Fumadocs otherwise demotes `folder.index`), and
+   harden `indexOnlyPageTree` for demoted indexes.
 
 ## Verification
 

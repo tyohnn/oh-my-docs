@@ -1,4 +1,8 @@
 {
   "title": "Domain policies",
-  "pages": ["index", "task-runnable", "code-area-exclusion", "single-content-source"]
+  "pages": [
+    "task-runnable",
+    "code-area-exclusion",
+    "single-content-source"
+  ]
 }
