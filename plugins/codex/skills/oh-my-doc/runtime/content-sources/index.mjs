@@ -23,11 +23,16 @@ import {
   SUPABASE_SCHEMA_VERSION,
 } from './supabase.mjs';
 import { notifyDocsRevalidate } from './notify-revalidate.mjs';
+import {
+  readRevalidateEnv,
+  revalidateAgentGuidance,
+} from './revalidate-env.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
 import { loadNotionReferences } from './load-references.mjs';
 import { extractChildBlocks } from './sidebar.mjs';
 
 export { loadNotionReferences, parseNotionRoot, extractChildBlocks };
+export { readRevalidateEnv, revalidateAgentGuidance };
 export {
   capabilityBlockers,
   planNotionCreateDocument,

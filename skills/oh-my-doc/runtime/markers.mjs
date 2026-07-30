@@ -72,6 +72,11 @@ discussion that should outlive this chat must be written into the selected SSOT
    or the provider catalog workflow (notion/supabase) over ad-hoc files or
    chat-only notes.
 5. Run \`node <skill>/scripts/omd.mjs check\` after meaningful documentation edits.
+6. For \`supabase\`, the agent configures \`OMD_DOCS_URL\` +
+   \`OMD_REVALIDATE_SECRET\` (same secret on the docs deploy), calls
+   revalidate after content-port writes, and explains status in chat — do not
+   ask the user to run terminal revalidate commands. See the skill reference
+   \`supabase-handbook-freshness.md\`.
 
 ## Docs-first gate
 
