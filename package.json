@@ -17,6 +17,7 @@
     "check:skills": "pnpm --filter @oh-my-docs/plugins sync:check",
     "sync:skills": "pnpm --filter @oh-my-docs/plugins sync",
     "omd": "node skills/oh-my-doc/scripts/omd.mjs",
+    "sync:env": "pnpm --filter @oh-my-docs/docs sync:env",
     "check:ui-snapshot": "node scripts/check-ui-snapshot.mjs"
   },
   "devDependencies": {

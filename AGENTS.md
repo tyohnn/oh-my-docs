@@ -99,6 +99,12 @@ publish from a developer machine.
 - The only long-running service is the docs handbook (`apps/docs`, Next.js). Run it
   with `pnpm --filter @oh-my-docs/docs dev` (or `pnpm dev`); it serves on
   `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
+- For `contentSource.ssot: supabase`, add the key names from
+  `apps/docs/.env.example` as Cursor Cloud **runtime secrets** (publishable URL/key
+  only). During environment setup (or before `dev`/`build`), run `pnpm sync:env` to
+  copy those process-env values into `apps/docs/.env.local` (gitignored). Use
+  `pnpm sync:env -- --dry-run` to preview, or `--force` to overwrite existing local
+  keys.
 - Agent-runtime smoke test (no server needed):
   `node skills/oh-my-doc/scripts/omd.mjs inspect --json` and `... check --json`.
   Test `adopt` against a throwaway temp dir, never the repo root — it scaffolds files.
