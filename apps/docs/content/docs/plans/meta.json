@@ -15,6 +15,7 @@
     "plan-adopt-ssot-docs-ui-and-notion-home-toggle",
     "plan-unified-handbook-structure-metadata",
     "plan-byo-supabase-content-port-and-fumadocs-remote-loader",
-    "plan-multi-handbook-supabase-tenancy-and-schema-versions"
+    "plan-multi-handbook-supabase-tenancy-and-schema-versions",
+    "plan-supabase-fumadocs-isr-on-demand-revalidate"
   ]
 }

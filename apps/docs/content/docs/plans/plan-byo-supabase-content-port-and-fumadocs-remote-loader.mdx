@@ -35,6 +35,7 @@ related:
   - /docs/spec/data-model/content-source-supabase
   - /docs/spec/system-model/supabase-content-port
   - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/plans/plan-supabase-fumadocs-isr-on-demand-revalidate
 ---
 
 ## Scope
@@ -49,6 +50,11 @@ Deliver `contentSource.ssot: "supabase"` end to end:
 - Fumadocs remote loader for `/docs` and `/md`
 - Tests for contract round-trip, idempotent provision planning, and loader
   wiring
+
+The production **serve/cache** model (ISR + on-demand revalidate after
+writes) is specified in SPEC-011 and implemented under
+`PLAN-supabase-fumadocs-isr-on-demand-revalidate`. Build-time pull remains an
+interim/non-authoritative aid until that plan lands.
 
 Out of scope: web editor, OMD-hosted multi-tenant DB, automatic
 local/Notion→Supabase migration, runtime-owned OAuth secrets.
