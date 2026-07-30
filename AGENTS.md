@@ -105,6 +105,10 @@ publish from a developer machine.
   copy those process-env values into `apps/docs/.env.local` (gitignored). Use
   `pnpm sync:env -- --dry-run` to preview, or `--force` to overwrite existing local
   keys.
+- With those keys present, the docs app reads PostgREST at render time with
+  ISR/tag cache. After handbook writes, POST `/api/revalidate` with
+  `OMD_REVALIDATE_SECRET` (and set `OMD_DOCS_URL` for skill notify helpers) so
+  `/docs` and `/md` refresh without Redeploy.
 - Agent-runtime smoke test (no server needed):
   `node skills/oh-my-doc/scripts/omd.mjs inspect --json` and `... check --json`.
   Test `adopt` against a throwaway temp dir, never the repo root — it scaffolds files.

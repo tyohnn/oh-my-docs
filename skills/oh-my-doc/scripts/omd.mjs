@@ -311,6 +311,9 @@ export async function main(argv = process.argv.slice(2)) {
           else {
             console.log(`Supabase new ${kind} → manifest ${planned.operation.id}`);
             console.log('Execute upsert_document via Supabase CLI/MCP; local MDX is not authoritative.');
+            console.log(
+              'After upsert, POST /api/revalidate on the docs site (OMD_DOCS_URL + OMD_REVALIDATE_SECRET) so ISR cache refreshes without Redeploy.',
+            );
           }
           return;
         }
