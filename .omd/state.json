@@ -6,7 +6,7 @@
     "distribution": "none",
     "vocabularyDigest": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
   },
-  "projectDigest": "ff331a06a6ecffa2fed04616584a02596e61f64863a675e939dbad4c2c50a352",
+  "projectDigest": "6e93a5bb30728972a898f689df42598a391952beac6c5a3a866ca35e2730dd7d",
   "inventory": {
     "sections": [
       "home",
@@ -37,9 +37,9 @@
   "provider": {
     "notion": {
       "schemaVersion": "1.1",
-      "schemaDigest": "6e1b5b956ace915dc49be77535affbc5f634c990b6210394984f2611abe95468",
-      "lastObservedAt": "2026-07-30T21:56:43.431Z",
-      "lastManifestDigest": "fb76a620e4cbe3bce8195a1eb635e77a2b3473bea5fbeb1effd2dfeb46ca9ff5",
+      "schemaDigest": "8ab5eb473af5595a3d852a8b5d4fd4576a2ea8cc67e02bffb55e68e533c5f216",
+      "lastObservedAt": "2026-07-30T22:00:39.866Z",
+      "lastManifestDigest": "d31e4da5b4a3c9269e3e647aefaf4d96c0752477769c7e30eaf313fb56bc2368",
       "mappings": {
         "pages.home": {
           "id": "3a7346da-c456-800a-85f4-cae724925f98",
@@ -47,120 +47,66 @@
           "parentKey": "root",
           "url": "https://app.notion.com/p/3a7346dac456800a85f4cae724925f98"
         },
-        "pages.glossary": {
-          "id": "3ad346da-c456-81f5-ba49-df6a72a6b2b5",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac45681f5ba49df6a72a6b2b5"
-        },
         "dbs.glossary": {
           "id": "ccb08155-61b6-48df-a5b2-379141bc8168",
           "type": "database",
-          "parentKey": "pages.glossary",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/ccb0815561b648dfa5b2379141bc8168",
           "dataSourceId": "3cc87b23-9bba-45ef-b7da-adafe785f771"
-        },
-        "pages.models": {
-          "id": "3ad346da-c456-814c-b044-d41a1bcac523",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac456814cb044d41a1bcac523"
         },
         "dbs.models": {
           "id": "c2d90dd4-eea3-4dda-a26b-172444ac8de1",
           "type": "database",
-          "parentKey": "pages.models",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/c2d90dd4eea34ddaa26b172444ac8de1",
           "dataSourceId": "9abe291e-51e8-4285-a397-53b5199b718f"
-        },
-        "pages.policies": {
-          "id": "3ad346da-c456-8147-b4bd-d1f70c990081",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac4568147b4bdd1f70c990081"
         },
         "dbs.policies": {
           "id": "66a68c0c-77f3-47d3-b6c8-0f2de33b94a1",
           "type": "database",
-          "parentKey": "pages.policies",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/66a68c0c77f347d3b6c80f2de33b94a1",
           "dataSourceId": "473896f1-5ce6-4d76-9e0d-f4ab247b4dbe"
-        },
-        "pages.prds": {
-          "id": "3ad346da-c456-81c6-b0e5-cef5f180e2bc",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac45681c6b0e5cef5f180e2bc"
         },
         "dbs.prds": {
           "id": "901a5821-a12a-4236-8838-a560c325d3f1",
           "type": "database",
-          "parentKey": "pages.prds",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/901a5821a12a42368838a560c325d3f1",
           "dataSourceId": "b5113da1-c24a-4dfd-8501-d1d0c5761a90"
-        },
-        "pages.stories": {
-          "id": "3ad346da-c456-8192-a949-e7af513b4bba",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac4568192a949e7af513b4bba"
         },
         "dbs.stories": {
           "id": "a3516fef-7ade-46a4-80db-72e63f71410e",
           "type": "database",
-          "parentKey": "pages.stories",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/a3516fef7ade46a480db72e63f71410e",
           "dataSourceId": "67bab542-abc3-477b-b2ba-a0a2c720df7d"
-        },
-        "pages.data-model": {
-          "id": "3ad346da-c456-8180-aa86-f82a6cb0f2d3",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac4568180aa86f82a6cb0f2d3"
         },
         "dbs.data-model": {
           "id": "10fcb883-4cc9-4b11-88b7-702bfb90e870",
           "type": "database",
-          "parentKey": "pages.data-model",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/10fcb8834cc94b1188b7702bfb90e870",
           "dataSourceId": "28dffc35-cd19-46d0-9055-9cb5c4d7d4da"
-        },
-        "pages.system-model": {
-          "id": "3ad346da-c456-8113-8d31-dfa6d4936967",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac45681138d31dfa6d4936967"
         },
         "dbs.system-model": {
           "id": "27108e64-0c6f-4c51-9a42-e5571f761ecd",
           "type": "database",
-          "parentKey": "pages.system-model",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/27108e640c6f4c519a42e5571f761ecd",
           "dataSourceId": "a3044845-3dca-434c-88ba-43197f3dfb92"
-        },
-        "pages.plans": {
-          "id": "3ad346da-c456-8147-bf78-d5d455cde844",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac4568147bf78d5d455cde844"
         },
         "dbs.plans": {
           "id": "a8fee0d9-6bb0-4b95-8a45-37767d16c8c0",
           "type": "database",
-          "parentKey": "pages.plans",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/a8fee0d96bb04b958a4537767d16c8c0",
           "dataSourceId": "f07db74c-55ec-41cc-9430-423ba350890e"
-        },
-        "pages.adrs": {
-          "id": "3ad346da-c456-8185-8483-fe8bfcbd60d5",
-          "type": "page",
-          "parentKey": "pages.home",
-          "url": "https://app.notion.com/p/3ad346dac45681858483fe8bfcbd60d5"
         },
         "dbs.adrs": {
           "id": "bc40a6ce-dd0b-4081-ad5a-35764b118c91",
           "type": "database",
-          "parentKey": "pages.adrs",
+          "parentKey": "pages.home",
           "url": "https://app.notion.com/p/bc40a6cedd0b4081ad5a35764b118c91",
           "dataSourceId": "7c9ee738-8847-4333-bfb1-04e0723d5c47"
         }
@@ -168,31 +114,22 @@
       "pendingOperationIds": [],
       "completedOperationIds": [
         "ensure:pages.home",
-        "ensure:pages.glossary",
         "ensure:dbs.glossary",
         "inline:dbs.glossary",
-        "ensure:pages.models",
         "ensure:dbs.models",
         "inline:dbs.models",
-        "ensure:pages.policies",
         "ensure:dbs.policies",
         "inline:dbs.policies",
-        "ensure:pages.prds",
         "ensure:dbs.prds",
         "inline:dbs.prds",
-        "ensure:pages.stories",
         "ensure:dbs.stories",
         "inline:dbs.stories",
-        "ensure:pages.data-model",
         "ensure:dbs.data-model",
         "inline:dbs.data-model",
-        "ensure:pages.system-model",
         "ensure:dbs.system-model",
         "inline:dbs.system-model",
-        "ensure:pages.plans",
         "ensure:dbs.plans",
         "inline:dbs.plans",
-        "ensure:pages.adrs",
         "ensure:dbs.adrs",
         "inline:dbs.adrs",
         "relation:dbs.prds:Stories:dbs.stories",
@@ -201,16 +138,7 @@
         "relation:dbs.plans:Stories:dbs.stories",
         "relation:dbs.plans:Specs:dbs.data-model",
         "relation:dbs.plans:Specs (System model):dbs.system-model",
-        "body:pages.home",
-        "body:pages.glossary",
-        "body:pages.models",
-        "body:pages.policies",
-        "body:pages.prds",
-        "body:pages.stories",
-        "body:pages.data-model",
-        "body:pages.system-model",
-        "body:pages.plans",
-        "body:pages.adrs"
+        "body:pages.home"
       ]
     }
   }

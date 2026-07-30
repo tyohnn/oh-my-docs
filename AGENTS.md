@@ -6,10 +6,10 @@ only points here.
 ## Project
 
 Oh My Docs is a docs-first product workspace. Dogfood handbook SSOT is
-**Notion** (Home + inline catalog DBs). See `.omd/project.json`
-`contentSource.notion.rootPageUrl`. The `apps/docs` Fumadocs app remains the
-local product shell / template mirror — it is **not** the content SSOT while
-`ssot: notion`.
+**Notion**: one Home page with stacked inline catalog DBs (no child pages,
+no sidebar). See `.omd/project.json` `contentSource.notion.rootPageUrl`.
+The `apps/docs` Fumadocs app remains the local product shell / template
+mirror — it is **not** the content SSOT while `ssot: notion`.
 
 - Node.js >= 24
 - pnpm 11.5.2 and Turborepo
@@ -75,9 +75,10 @@ This repository uses a docs-first workflow. Canonical product intent lives in
 2. Missing `contentSource` means `local`.
 3. If `.omd/project.json` is missing, run `inspect` / ask the user to choose
    SSOT and `adopt` before inventing handbook files.
-4. For `local`, edit the Fumadocs MDX tree. For `notion`, edit Home +
-   inline catalog DBs via the host Notion MCP. Do not treat an unselected
-   provider as truth.
+4. For `local`, edit the Fumadocs MDX tree. For `notion`, edit the single
+   Home page where catalog DBs are stacked inline (no child pages, no
+   sidebar) via the host Notion MCP. Do not treat an unselected provider as
+   truth.
 
 ## Documentation is always first
 
@@ -88,9 +89,9 @@ discussion that should outlive this chat must be written into the selected SSOT
 1. Before and during the talk, check whether the topic already exists in the SSOT.
 2. Create or update the matching handbook artifacts as the discussion progresses.
 3. Catalog entries (PRD, story, plan, ADR, …) go in the **catalog store** — a
-   Notion inline database row or a local catalog folder + `meta.json` — never
-   as ad-hoc section children. **Planning ≠ Plans**: implementation plans
-   belong in Plans (`dbs.plans`), not under Planning.
+   Notion inline database row on Home, or a local catalog folder +
+   `meta.json` — never as ad-hoc child pages. **Planning ≠ Plans**:
+   implementation plans belong in Plans (`dbs.plans`).
 4. Prefer `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes` (local)
    or the Notion catalog workflow (notion) over ad-hoc files or chat-only notes.
 5. Run `node <skill>/scripts/omd.mjs check` after meaningful documentation edits.

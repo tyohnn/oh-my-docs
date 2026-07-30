@@ -7,6 +7,7 @@ import { parseNotionRoot } from './notion-root.mjs';
 import {
   defaultPageBody,
   renderSidebarPageContent,
+  renderStackedHomeContent,
   resolveActiveSection,
   validateManifestSidebarChrome,
   validateSidebarChrome,
@@ -217,67 +218,109 @@ export function planProvision(options) {
     }
   }
 
-  // 4) Write sidebar chrome for every managed page.
+  // 4) Write Home body. stacked-on-home = agent stack (no sidebar / no child pages).
   const placeholderMappings = Object.fromEntries(
     refs.iaGraph.objects
       .filter((o) => o.kind === 'page' || o.kind === 'database')
       .map((o) => [o.key, { url: `{{${o.key}}}` }]),
   );
 
-  for (const object of refs.iaGraph.objects.filter((o) => o.kind === 'page')) {
-    const childBlocks = [];
-    if (object.role === 'home' && sourcesToggleMarkdown) {
-      childBlocks.push(sourcesToggleMarkdown);
-    } else {
-      for (const child of refs.iaGraph.objects.filter((o) => o.parent === object.key)) {
-        if (child.kind === 'page') {
-          childBlocks.push(`<page url="{{${child.key}}}">${child.title}</page>`);
-        } else if (child.kind === 'database') {
-          childBlocks.push(
-            `<database url="{{${child.key}}}" inline="true">${child.title}</database>`,
-          );
-        }
-      }
-    }
-
-    const content = renderSidebarPageContent({
-      activeKey: object.key,
-      mappings: placeholderMappings,
-      nav: refs.iaGraph.nav,
-      bodyMarkdown: defaultPageBody(object.key, object.title),
-      childBlocks,
+  if (sourcesStrategy === 'stacked-on-home') {
+    const homeObject =
+      refs.iaGraph.objects.find((o) => o.role === 'home') ??
+      refs.iaGraph.objects.find((o) => o.key === homeKey);
+    const databases = refs.iaGraph.objects
+      .filter((o) => o.kind === 'database' && o.parent === homeKey)
+      .map((o) => ({
+        key: o.key,
+        title: o.title,
+        url: placeholderMappings[o.key]?.url ?? `{{${o.key}}}`,
+      }));
+    const content = renderStackedHomeContent({
+      bodyMarkdown: defaultPageBody(homeKey, homeObject?.title ?? 'Home'),
+      databases,
     });
-
     const payload = {
-      key: object.key,
-      template: 'shared-sidebar',
-      activeSection: resolveActiveSection(object.key, refs.iaGraph.nav),
+      key: homeKey,
+      template: 'stacked-on-home',
       content,
       preserveChildren: true,
     };
     operations.push({
-      id: `body:${object.key}`,
-      key: object.key,
+      id: `body:${homeKey}`,
+      key: homeKey,
       op: 'write_page_body',
       dependsOn: [
-        `ensure:${object.key}`,
-        ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`),
-        ...(object.role === 'home' && sourcesToggleMarkdown ? ['sources:root-index'] : []),
+        `ensure:${homeKey}`,
+        ...databases.map((d) => `ensure:${d.key}`),
+        ...databases.map((d) => `inline:${d.key}`),
       ],
-      expectedParentKey: object.parent,
-      desiredDigest: digest(stableStringify({ key: object.key, content })),
+      expectedParentKey: 'root',
+      desiredDigest: digest(stableStringify({ key: homeKey, content })),
       payload,
       mcp: {
         tool: 'notion-update-page',
         command: 'replace_content',
         notes:
-          object.role === 'home'
-            ? sourcesToggleMarkdown
-              ? 'Home is the supplied root. Include <details> 데이터 원본 with top-level children. Preserve child page/database blocks.'
-              : 'Home is the supplied root. Flat catalog nav only (ADR-008). Preserve child page/database blocks.'
-            : 'Required for every pages.* key. Preserve child <page>/<database> blocks. Substitute {{pages.*}}/{{dbs.*}} from state mappings before write.',
+          'Home is the only managed page. Stack inline catalog databases vertically. No sidebar columns, no child catalog pages. Substitute {{dbs.*}} from mappings before write.',
       },
     });
+  } else {
+    for (const object of refs.iaGraph.objects.filter((o) => o.kind === 'page')) {
+      const childBlocks = [];
+      if (object.role === 'home' && sourcesToggleMarkdown) {
+        childBlocks.push(sourcesToggleMarkdown);
+      } else {
+        for (const child of refs.iaGraph.objects.filter((o) => o.parent === object.key)) {
+          if (child.kind === 'page') {
+            childBlocks.push(`<page url="{{${child.key}}}">${child.title}</page>`);
+          } else if (child.kind === 'database') {
+            childBlocks.push(
+              `<database url="{{${child.key}}}" inline="true">${child.title}</database>`,
+            );
+          }
+        }
+      }
+
+      const content = renderSidebarPageContent({
+        activeKey: object.key,
+        mappings: placeholderMappings,
+        nav: refs.iaGraph.nav,
+        bodyMarkdown: defaultPageBody(object.key, object.title),
+        childBlocks,
+      });
+
+      const payload = {
+        key: object.key,
+        template: 'shared-sidebar',
+        activeSection: resolveActiveSection(object.key, refs.iaGraph.nav),
+        content,
+        preserveChildren: true,
+      };
+      operations.push({
+        id: `body:${object.key}`,
+        key: object.key,
+        op: 'write_page_body',
+        dependsOn: [
+          `ensure:${object.key}`,
+          ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`),
+          ...(object.role === 'home' && sourcesToggleMarkdown ? ['sources:root-index'] : []),
+        ],
+        expectedParentKey: object.parent,
+        desiredDigest: digest(stableStringify({ key: object.key, content })),
+        payload,
+        mcp: {
+          tool: 'notion-update-page',
+          command: 'replace_content',
+          notes:
+            object.role === 'home'
+              ? sourcesToggleMarkdown
+                ? 'Home is the supplied root. Include <details> 데이터 원본 with top-level children. Preserve child page/database blocks.'
+                : 'Home is the supplied root. Flat catalog nav only (ADR-008). Preserve child page/database blocks.'
+              : 'Required for every pages.* key. Preserve child <page>/<database> blocks. Substitute {{pages.*}}/{{dbs.*}} from state mappings before write.',
+        },
+      });
+    }
   }
 
   const pending = new Set(options.pendingOperationIds ?? []);
@@ -314,14 +357,19 @@ export function planProvision(options) {
   const chromeValidation = validateManifestSidebarChrome({
     operations: planned,
     nav: refs.iaGraph.nav,
+    sourcesStrategy,
   });
 
   const manifest = {
-    schemaVersion: '1.3',
+    schemaVersion: '1.4',
     provider: 'notion',
     root,
-    sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'catalogs-on-home',
-    chrome: refs.iaGraph.chrome ?? { requiredOn: 'all-pages' },
+    sourcesStrategy,
+    chrome:
+      refs.iaGraph.chrome ??
+      (sourcesStrategy === 'stacked-on-home'
+        ? { requiredOn: 'none' }
+        : { requiredOn: 'all-pages' }),
     references: {
       iaGraph: 'references/notion-ia-graph.json',
       catalogSchemas: 'references/notion-catalog-schemas.json',
@@ -447,10 +495,11 @@ export function validateSnapshot(options) {
     }
   }
 
-  // Always enforce planned body chrome structure (columns, yellow group, nested list).
+  // Enforce body chrome for the active Notion strategy (stacked vs legacy sidebar).
   const chromeValidation = validateManifestSidebarChrome({
     operations: manifest.operations,
     nav: manifest.nav,
+    sourcesStrategy: manifest.sourcesStrategy,
   });
   problems.push(...chromeValidation.problems);
 
@@ -590,6 +639,7 @@ export function planCreateDocument(options) {
 
 export {
   renderSidebarPageContent,
+  renderStackedHomeContent,
   defaultPageBody,
   resolveActiveSection,
   validateSidebarChrome,

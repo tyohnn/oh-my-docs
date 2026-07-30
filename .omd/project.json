@@ -1,6 +1,6 @@
 {
   "contractVersion": "1.0",
-  "mode": "greenfield",
+  "mode": "brownfield",
   "contentSource": {
     "ssot": "notion",
     "notion": {
