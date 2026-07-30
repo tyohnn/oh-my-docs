@@ -97,8 +97,16 @@ publish from a developer machine.
   (when `BASE_SHA` is set) `pnpm check:docs-first`. Release publishing uses
   `.github/workflows/release.yml`.
 - The only long-running service is the docs handbook (`apps/docs`, Next.js). Run it
-  with `pnpm --filter @oh-my-docs/docs dev` (or `pnpm dev`); it serves on
-  `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
+ with `pnpm --filter @oh-my-docs/docs dev` (or `pnpm dev`); it serves on
+ `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
+- SSOT is `supabase` (`.omd/project.json`). Before `dev`/`build`, run `pnpm sync:env`
+ to write `apps/docs/.env.local` from the injected `NEXT_PUBLIC_SUPABASE_URL` /
+ `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` secrets (see `apps/docs/.env.example`);
+ `build` then pulls remote handbook rows. Without those secrets the app falls back
+ to the local `content/docs` cache.
+- `node skills/oh-my-doc/scripts/omd.mjs check` can report `schema_drift` /
+ `projectDigest` mismatches from committed SSOT state; that is the runtime working,
+ not a broken environment.
 - For `contentSource.ssot: supabase`, add the key names from
   `apps/docs/.env.example` as Cursor Cloud **runtime secrets** (publishable URL/key
   only). During environment setup (or before `dev`/`build`), run `pnpm sync:env` to
