@@ -8,10 +8,14 @@ ticker: SPEC-010
 stage: accepted
 related:
   - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/planning/prds/prd-multi-handbook-byo-supabase
   - /docs/planning/stories/us-adopt-byo-supabase-as-handbook-ssot
+  - /docs/planning/stories/us-share-one-supabase-across-handbooks
   - /docs/spec/data-model/content-source-contract
+  - /docs/spec/data-model/multi-handbook-supabase-tenancy
   - /docs/spec/system-model/supabase-content-port
   - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
 ---
 
 ## Scope
@@ -19,6 +23,8 @@ related:
 Extends the content-source contract for `contentSource.ssot: "supabase"`.
 Structure metadata remains the shared IA graph stamped into
 `.omd/project.json` `informationArchitecture` (see SPEC-008 / SPEC-007).
+Multi-handbook isolation rules live in
+`SPEC-multi-handbook-supabase-tenancy` (SPEC-012).
 
 ## Interface
 
@@ -28,7 +34,8 @@ Structure metadata remains the shared IA graph stamped into
     "ssot": "supabase",
     "supabase": {
       "projectRef": "abcdefghijklmnopqrst",
-      "schemaVersion": "1.0"
+      "handbookId": "skills-docs",
+      "schemaVersion": "1.1"
     }
   }
 }
@@ -36,8 +43,11 @@ Structure metadata remains the shared IA graph stamped into
 
 - `projectRef` identifies the linked Supabase project and grants no access by
   itself.
+- `handbookId` selects one Supabase handbook inside that project (see
+  SPEC-012). Legacy single-handbook layouts may omit it and default to
+  `"default"`.
 - `schemaVersion` names the bundled declarative migration set the runtime
-  expects.
+  expects **for this handbook**.
 - Tokens, OAuth secrets, cookies, `service_role` keys, and database passwords
   are forbidden in project or state JSON.
 
@@ -65,13 +75,17 @@ Rebuildable observations may include:
 
 State is never authoritative content.
 
-### Postgres shape (v1)
+### Postgres shape
 
-One linked Supabase project (or dedicated schema) holds:
+**Legacy v1.0 (single handbook):** tables in `public`:
 
-- `documents`: stable `id`, `kind`, `ticker`, `path`/`slug`, `frontmatter`
-  jsonb, `body_mdx` text, timestamps
-- `catalog_meta`: catalog key → ordered `pages[]` (local `meta.json` analogue)
+- `omd_documents`: stable `id`, `kind`, `ticker`, `path`/`slug`,
+  `frontmatter` jsonb, `body_mdx` text, timestamps
+- `omd_catalog_meta`: catalog key → ordered `pages[]`
+
+**Multi-handbook (v1.1+):** `public.omd_handbooks` registry plus the same
+content tables inside each handbook’s Postgres schema (`omd_h_…`). See
+SPEC-012. `schemaVersion` and drift checks are per handbook.
 
 Lifecycle enums and planning IDs remain those of the handbook templates.
 RLS protects writes; publishable read may use `anon` only with explicit
@@ -84,7 +98,8 @@ read-only policies when the docs app needs it.
 | `needsSsot` | Greenfield adopt omitted `--ssot` |
 | `supabase_login_required` | Host is not authenticated to Supabase |
 | `project_inaccessible` | `projectRef` missing or host cannot access project |
-| `schema_drift` | Live schema digest ≠ expected `schemaVersion` |
+| `schema_drift` | Selected handbook’s live schema digest ≠ expected `schemaVersion` |
+| `handbook_id_required` | Multi-handbook project missing `handbookId` |
 | `secret_in_contract` | Forbidden credential material detected in JSON |
 
 ## Compatibility
@@ -96,9 +111,10 @@ read-only policies when the docs app needs it.
 
 ## Acceptance criteria
 
-- `ssot: supabase` round-trips through project metadata with `projectRef` and
-  `schemaVersion`.
+- `ssot: supabase` round-trips through project metadata with `projectRef`,
+  `schemaVersion`, and `handbookId` (or legacy default).
 - No secret appears in project/state JSON or runtime logs.
 - Agents reading managed `AGENTS.md` treat Supabase as the only content SSOT
   when selected.
 - Structure metadata still comes from one IA graph for all providers.
+- Co-hosted handbooks keep independent schema versions (SPEC-012).

@@ -80,14 +80,17 @@ For `ssot: supabase`:
     "ssot": "supabase",
     "supabase": {
       "projectRef": "stable-project-ref",
-      "schemaVersion": "1.0"
+      "handbookId": "skills-docs",
+      "schemaVersion": "1.1"
     }
   }
 }
 ```
 
-See `SPEC-supabase-content-source-contract` for Postgres tables, state digests,
-and errors.
+See `SPEC-supabase-content-source-contract` and
+`SPEC-multi-handbook-supabase-tenancy` for Postgres tables, multi-handbook
+isolation, state digests, and errors. Legacy single-handbook projects may
+omit `handbookId` (defaults to `"default"`).
 
 For `ssot: notion`, local docs-app paths and UI vocabulary snapshots are not
 required. For `ssot: local`, `paths.ui` defaults to `packages/docs-ui`.

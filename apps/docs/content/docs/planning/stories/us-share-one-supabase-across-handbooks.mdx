@@ -1,0 +1,49 @@
+---
+title: Share one Supabase across handbooks
+description: Link several repositories to one BYO Supabase project with per-handbook schema isolation.
+type: conceptual
+summary: A team reuses one Supabase project for many handbooks without coupling schema upgrades.
+id: US-share-one-supabase-across-handbooks
+ticker: US-010
+stage: accepted
+related:
+  - /docs/planning/prds/prd-multi-handbook-byo-supabase
+  - /docs/spec/data-model/multi-handbook-supabase-tenancy
+  - /docs/spec/data-model/content-source-supabase
+  - /docs/spec/system-model/supabase-content-port
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+---
+
+As a product team with several Oh My Docs repositories, I want to store each
+handbook in one shared Supabase project under its own isolated schema so that
+I stay within free-plan project limits and can upgrade one handbook’s schema
+without forcing the others.
+
+## Context
+
+PRD-006 delivered one-handbook-per-Supabase-project BYO SSOT. Free-plan
+project caps and the risk of shared-table schema drift make that insufficient
+when one org runs multiple handbooks. Isolation must be part of the data
+contract, not an application-only filter.
+
+## Acceptance criteria
+
+- Adopt (or re-link) accepts a non-secret `handbookId` alongside `projectRef`
+  and `schemaVersion` in `.omd/project.json`.
+- Provisioning creates or reuses a registry entry and a dedicated Postgres
+  schema for that handbook; document/catalog tables live only in that schema.
+- `omd new`, `check`, pull, and Fumadocs remote reads operate only on the
+  selected `handbookId`.
+- Two handbooks on the same `projectRef` may declare different
+  `schemaVersion` values; migrating one does not rewrite the other’s schema.
+- A legacy v1 layout with `public.omd_*` and no registry remains usable as
+  the default handbook until an explicit migrate.
+- Missing or colliding `handbookId` values fail with actionable errors before
+  partial authority writes.
+- Secrets still never appear in project or state JSON.
+
+## Out of scope
+
+- Oh My Docs hosting a shared database for every customer.
+- Cross-handbook search or shared navigation across repositories.
+- Automatically consolidating two already-provisioned Supabase projects.

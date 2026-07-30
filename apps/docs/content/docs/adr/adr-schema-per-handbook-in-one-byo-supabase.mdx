@@ -1,0 +1,125 @@
+---
+title: Schema-per-handbook in one BYO Supabase
+description: Isolate each handbook in its own Postgres schema so co-hosted handbooks can diverge on schemaVersion.
+type: decision
+summary: One BYO Supabase project may host many handbooks via Postgres schema-per-handbook, not shared tables.
+id: ADR-schema-per-handbook-byo-supabase
+ticker: ADR-007
+stage: accepted
+related:
+  - /docs/planning/prds/prd-multi-handbook-byo-supabase
+  - /docs/planning/stories/us-share-one-supabase-across-handbooks
+  - /docs/spec/data-model/multi-handbook-supabase-tenancy
+  - /docs/spec/data-model/content-source-supabase
+  - /docs/spec/system-model/supabase-content-port
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-select-one-content-source-per-project
+---
+
+## Context
+
+ADR-006 chose BYO Supabase as a third content SSOT with one linked project per
+handbook. Operators hit Supabase free-plan active-project limits when each
+repository needs its own project. Collapsing handbooks into shared
+`public.omd_documents` / `omd_catalog_meta` tables would make every
+`schemaVersion` migration global: a breaking DDL change for one handbook
+breaks siblings still on an older contract.
+
+The product still must not become an Oh My Docs–hosted multi-tenant cloud.
+Ownership remains the user’s Supabase project; the question is only how many
+handbooks that project may hold safely.
+
+## Decision
+
+- Allow **many handbooks per BYO Supabase `projectRef`**.
+- The shared BYO **Supabase** project’s display name is exactly
+  `oh-my-docs`. Adopt discovers it with Supabase MCP `list_projects`
+  (match on `name`); if missing, create with that name when the host can.
+  This name is **not** a Vercel project.
+- Each handbook is its own git repository with its **own Vercel
+  project/deployment**. There is no shared “oh-my-docs” Vercel app for all
+  handbooks.
+- Isolate each handbook with **Postgres schema-per-handbook**:
+  - Registry row in `public.omd_handbooks`
+    (`handbook_id`, `pg_schema`, `schema_version`, timestamps).
+  - Content tables only inside that handbook’s Postgres schema
+    (`{pg_schema}.omd_documents`, `{pg_schema}.omd_catalog_meta`).
+- Derive `pg_schema` as `omd_h_<sanitized_handbook_id>` (stable, lowercase,
+  `[a-z0-9_]`); reject collisions and reserved names (`public`, `auth`,
+  `storage`, `extensions`, …).
+- On `--ssot supabase`, the **skill scaffolds schema SQL into that
+  handbook repo** as static docs-app files (`docs/supabase/*.sql` from the
+  skill template; dogfood: `apps/docs/supabase/`). The content port applies
+  the same SQL to Postgres. Schema must not live only as a skill-private
+  reference the deployed repo never contains.
+- SSOT remains an adopt-time choice. **Only when** the user selects
+  `supabase`, the repo contract (`.omd/project.json`) records
+  `ssot: supabase`. Operators do not also set `OMD_CONTENT_SSOT` on that
+  repo’s Vercel. `local` / `notion` projects are unchanged.
+- Deploy-time credentials are Connect publishable vars on **that handbook
+  repo’s** Vercel project, synced during adopt via Vercel CLI/REST or
+  Connect when available.
+- Store non-secret identity in `.omd/project.json`:
+
+  ```json
+  {
+    "contentSource": {
+      "ssot": "supabase",
+      "supabase": {
+        "projectRef": "…",
+        "handbookId": "skills-docs",
+        "schemaVersion": "1.0"
+      }
+    }
+  }
+  ```
+
+- Apply schema migrations **only** to the target handbook’s Postgres schema.
+  Never upgrade every handbook in a project as one atomic step unless the
+  operator explicitly migrates each `handbookId`.
+- Treat a legacy v1 layout (`public.omd_*` present, no registry) as
+  `handbookId: "default"` with `pg_schema: public` until an explicit migrate
+  moves it into a dedicated schema.
+- Ongoing delivery stays **per-repo GitHub → that repo’s Vercel**; adopt may
+  smoke one initial deploy of that handbook but does not own CD.
+- ADR-005 exclusivity still holds per repository: one SSOT, one
+  `handbookId`.
+
+## Consequences
+
+- Provision / adopt / new / check / Fumadocs loaders must set `search_path` or
+  qualify table names with the handbook schema.
+- `schema_drift` is evaluated per handbook, not per Supabase project.
+- Skill templates **must include** `docs/supabase/` so every supabase-adopted
+  handbook repo carries the SQL its Vercel deploy expects.
+- Adopt manifests gain host ops: `resolve_project_by_name` (Supabase),
+  `scaffold_docs_supabase_sql`, `vercel.sync_supabase_env` targeting the
+  **current repo’s** Vercel project (plan → host execute).
+- Orgs keep one Supabase project `oh-my-docs` and many Vercel projects (one
+  per handbook repo) when free-plan Supabase limits matter.
+- Vercel CLI/REST auth is a host capability blocker when env sync is required
+  and Connect is not already linked on that handbook’s Vercel project.
+
+## Rejected alternatives
+
+### Shared tables with a `handbook_id` column
+
+Rejected as the primary isolation model: physical DDL is shared, so
+`schemaVersion` cannot diverge without compatibility shims that grow into a
+second versioning system. Application-only `WHERE handbook_id = …` filters
+also risk cross-handbook leaks if a query omits the predicate.
+
+### One Supabase project per handbook (status quo)
+
+Rejected as the only supported layout: it works but forces pause/delete/paid
+upgrades under free-plan project caps.
+
+### Oh My Docs–hosted multi-tenant database
+
+Rejected again (same as ADR-006): expands auth, billing, and operational
+ownership beyond BYO.
+
+### Separate Supabase databases per handbook inside one project
+
+Rejected: Supabase’s product unit is the project; teams cannot freely create
+extra Postgres databases on free plans the way they can create schemas.
