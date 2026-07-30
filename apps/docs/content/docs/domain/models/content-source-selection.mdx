@@ -10,6 +10,8 @@ related:
   - /docs/domain/glossary/provider-mapping
   - /docs/domain/policies/single-content-source
   - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+  - /docs/domain/glossary/supabase-handbook
 ---
 
 ## Model
@@ -21,6 +23,14 @@ Project contract
   └── produces Provider mappings in operational state
 ```
 
+When the source is `supabase`:
+
+```text
+Supabase project (projectRef)
+  └── Supabase handbook (handbookId)
+        └── Postgres schema (omd_h_…) + schemaVersion
+```
+
 The project contract stores non-secret source identity and configuration.
 Operational state stores generated object IDs, schema digests, and observation
 timestamps. Credentials remain with the host integration.
@@ -29,6 +39,9 @@ timestamps. Credentials remain with the host integration.
 
 - One project has exactly one authoritative source (`local`, `notion`, or
   `supabase`).
+- A `supabase` project selects exactly one `handbookId` inside its
+  `projectRef`.
 - Local, Notion, and Supabase adapters expose equivalent planning operations.
 - Provider mappings can be discarded and reconstructed.
 - Changing source is an explicit migration, never an implicit sync.
+- Co-hosted handbooks do not share content tables or forced schema upgrades.

@@ -7,8 +7,10 @@ id: TERM-content-source
 related:
   - /docs/planning/prds/prd-selectable-content-source
   - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/planning/prds/prd-multi-handbook-byo-supabase
   - /docs/spec/data-model/content-source-contract
   - /docs/spec/data-model/content-source-supabase
+  - /docs/domain/glossary/supabase-handbook
 ---
 
 ## Meaning
@@ -20,8 +22,9 @@ Supported values:
 
 - `local`: MDX under the configured docs content path
 - `notion`: pages and databases beneath one configured Notion root page
-- `supabase`: structured MDX rows in a user-owned Supabase project (Fumadocs
-  renders; no web editor)
+- `supabase`: structured MDX rows in one **Supabase handbook** inside a
+  user-owned Supabase project (Fumadocs renders; no web editor). One project
+  may host many handbooks; each repository still selects exactly one.
 
 Generated state, caches, previews, and provider mappings are not additional
 content sources.

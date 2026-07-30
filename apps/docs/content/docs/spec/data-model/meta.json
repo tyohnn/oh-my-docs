@@ -5,6 +5,7 @@
     "handbook-artifacts",
     "tasks",
     "content-source-contract",
-    "content-source-supabase"
+    "content-source-supabase",
+    "multi-handbook-supabase-tenancy"
   ]
 }

@@ -1,0 +1,70 @@
+---
+title: Multi-handbook BYO Supabase
+description: Host several Oh My Docs handbooks in one user-owned Supabase project without coupling their schema versions.
+type: conceptual
+summary: Free-plan and ops limits force one Supabase project for many repos; isolate each handbook so schema evolution stays independent.
+id: PRD-multi-handbook-byo-supabase
+ticker: PRD-007
+period: supabase-multi-handbook
+status: active
+changeType: product
+reviewStatus: moderated
+reviewMethod: pdca-discovery
+stories:
+  - US-share-one-supabase-across-handbooks
+---
+
+## Problem
+
+BYO Supabase today assumes **one Supabase project ↔ one handbook**. Supabase
+free plans cap how many active projects an org may run. Teams that adopt
+Oh My Docs on several repositories (for example `skills-docs` and
+`studio-docs`) must pause or delete one project to create another, or pay for
+more capacity.
+
+Sharing one Supabase project naively—by putting every handbook’s rows in the
+same `public.omd_*` tables—couples schema migrations. Upgrading one handbook’s
+`schemaVersion` would alter tables every other handbook still depends on.
+
+## Outcome
+
+A team may link **many Oh My Docs repositories** to **one user-owned Supabase
+project**. Each repository selects a stable `handbookId`. Content and catalog
+rows for that handbook live in an isolated Postgres schema whose
+`schemaVersion` can advance independently of siblings. Adopt, `omd new`,
+`check`, pull, and Fumadocs reads always scope to that handbook. Oh My Docs
+still does not host a shared multi-tenant cloud for all customers—this remains
+BYO.
+
+## Goals
+
+- Allow multiple handbooks per BYO Supabase `projectRef`.
+- Keep exactly one content SSOT per repository (ADR-005 unchanged).
+- Isolate handbook data so schema upgrades do not force every co-hosted
+  handbook to migrate together.
+- Preserve v1 single-handbook layouts (`public.omd_*`) as a compatible
+  default until an explicit migrate.
+- Keep secrets out of `.omd` contracts; continue host CLI/MCP execution.
+
+## Non-goals
+
+- Oh My Docs–operated multi-tenant Supabase for all customers.
+- Cross-handbook reads, joins, or shared catalog browsing in the product UI.
+- Automatic merge of two existing Supabase projects into one.
+- Web editor or changing Fumadocs as the renderer.
+- Per-end-user row tenancy inside a handbook (authz beyond today’s RLS model).
+
+## Included stories
+
+- `US-share-one-supabase-across-handbooks`
+
+## Success measures
+
+- Two repositories can adopt `ssot: supabase` against the same `projectRef`
+  with different `handbookId` values and never see each other’s documents.
+- Upgrading handbook A’s `schemaVersion` leaves handbook B’s live schema and
+  `check` result unchanged until B migrates.
+- An existing v1 project with only `public.omd_*` tables continues to work as
+  the default handbook without a forced rewrite.
+- Teams no longer need a second Supabase project solely to host a second
+  handbook under free-plan limits.

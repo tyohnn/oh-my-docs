@@ -8,17 +8,22 @@ ticker: SPEC-011
 stage: accepted
 related:
   - /docs/planning/prds/prd-byo-supabase-cloud-handbook-ssot
+  - /docs/planning/prds/prd-multi-handbook-byo-supabase
   - /docs/planning/stories/us-adopt-byo-supabase-as-handbook-ssot
+  - /docs/planning/stories/us-share-one-supabase-across-handbooks
   - /docs/spec/data-model/content-source-supabase
+  - /docs/spec/data-model/multi-handbook-supabase-tenancy
   - /docs/spec/system-model/notion-content-port
   - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
 ---
 
 ## Scope
 
 Defines the Supabase adapter for the provider-neutral content port, the
 provisioning manifest, document create/update behavior, validation, and how
-Fumadocs loads remote MDX. There is no web editor.
+Fumadocs loads remote MDX. There is no web editor. Multi-handbook tenancy
+(registry + schema-per-handbook) is specified in SPEC-012 and enforced here.
 
 ## Interface
 
@@ -42,14 +47,18 @@ credentials.
 
 1. Resolve host login / project access capability blockers.
 2. Link an existing project or create one when the host can.
-3. `planProvision` emits a deterministic, idempotent manifest: schema
-   migrations for `documents` / `catalog_meta` (+ RLS), then IA seed rows for
-   catalog keys from the shared IA graph.
-4. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
-   update `.omd/state.json` and write `contentSource.supabase` into the
-   project contract.
+3. Resolve `handbookId` (explicit, or `"default"` for legacy single-handbook).
+4. `planProvision` emits a deterministic, idempotent manifest:
+   - ensure `public.omd_handbooks` registry (schema `1.1+`)
+   - `CREATE SCHEMA` for the handbook when missing
+   - apply `documents` / `catalog_meta` (+ RLS) **inside that schema only**
+   - IA seed rows for catalog keys from the shared IA graph
+5. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
+   update `.omd/state.json` and write `contentSource.supabase` (including
+   `handbookId` + `schemaVersion`) into the project contract.
 
-Re-running provision must not duplicate stable document or catalog keys.
+Re-running provision must not duplicate stable document or catalog keys, and
+must not migrate sibling handbooks.
 
 ### Create document (`omd new`)
 
@@ -73,10 +82,14 @@ remain non-authoritative. Routes `/docs/*` and `/md/*` stay available.
 
 ## Data and invariants
 
-- One project ↔ one linked Supabase project for handbook content.
-- Stable handbook IDs (`PRD-…`, `US-…`, …) are primary keys in `documents`.
-- Catalog entries live in `catalog_meta`, never as ad-hoc unstructured blobs
-  outside the IA.
+- One repository ↔ one `(projectRef, handbookId)` for handbook content.
+- Many repositories may share one `projectRef` with distinct `handbookId`s.
+- Stable planning IDs (`PRD-…`, `US-…`, …) are primary keys in that
+  handbook’s `omd_documents`.
+- Catalog entries live in that handbook’s `omd_catalog_meta`, never as
+  ad-hoc unstructured blobs outside the IA.
+- Schema migrations and `schema_drift` are scoped to the selected handbook’s
+  Postgres schema (SPEC-012).
 - Idempotency keys and digests make retries safe.
 - Web UI editing of bodies is out of scope; only port writes mutate content.
 
@@ -87,7 +100,9 @@ remain non-authoritative. Routes `/docs/*` and `/md/*` stay available.
 | `supabase_login_required` | Host not logged in |
 | `capability_missing` | Neither CLI nor MCP can apply the manifest |
 | `project_inaccessible` | Cannot create/link/read the project |
-| `schema_drift` | Live schema does not match bundled `schemaVersion` |
+| `schema_drift` | Selected handbook schema does not match bundled `schemaVersion` |
+| `handbook_id_required` | Multi-handbook project missing `handbookId` |
+| `handbook_id_conflict` | Registry mapping disagrees with derived `pg_schema` |
 | `mapping_conflict` | Snapshot contradicts expected stable keys |
 | `partial_apply` | Manifest interrupted; retry from pending ops |
 
@@ -100,9 +115,10 @@ remain non-authoritative. Routes `/docs/*` and `/md/*` stay available.
 ## Acceptance criteria
 
 - Adopt with `--ssot supabase` after host login yields schema + IA seed and a
-  valid project contract.
-- Second provision is idempotent.
-- `omd new` and `check` succeed against Supabase for that project.
+  valid project contract including `handbookId`.
+- Second provision is idempotent and does not alter sibling handbooks.
+- `omd new` and `check` succeed against the selected handbook only.
 - Fumadocs renders a provisioned document over `/docs` and `/md` without
   treating a local MDX tree as authoritative.
+- Two handbooks on one `projectRef` stay isolated across schema upgrades.
 - No web editor surface is required or shipped for this port.

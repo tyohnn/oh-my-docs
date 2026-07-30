@@ -37,10 +37,13 @@ narrow, BYO persistence path for handbook content only.
 - **No web editor** in v1; mutations go through the content port
   (`omd` / agent + host Supabase CLI or MCP), mirroring Notion’s
   plan → host execute → validate split.
-- Store only non-secret identity (`projectRef`, `schemaVersion`) in
-  `.omd/project.json`. Credentials never enter the repository.
+- Store only non-secret identity (`projectRef`, `schemaVersion`, and later
+  `handbookId`) in `.omd/project.json`. Credentials never enter the
+  repository.
 - ADR-005’s exclusivity rule still holds: never co-authoritative with local or
   Notion.
+- ADR-007 extends this decision: one BYO `projectRef` may host many
+  handbooks via Postgres schema-per-handbook so `schemaVersion` can diverge.
 
 ## Consequences
 

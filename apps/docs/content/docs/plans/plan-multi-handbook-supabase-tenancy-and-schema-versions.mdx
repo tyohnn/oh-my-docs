@@ -1,0 +1,110 @@
+---
+title: Multi-handbook Supabase tenancy and schema versions
+description: Add handbookId, schema-per-handbook provisioning, and independent schemaVersion upgrades on one BYO project.
+type: guide
+summary: Extend the Supabase content port and contracts so one projectRef hosts many isolated handbooks.
+id: PLAN-multi-handbook-supabase-tenancy
+ticker: PLAN-015
+stage: ready
+changeType: product
+prd: PRD-multi-handbook-byo-supabase
+specs:
+  - SPEC-multi-handbook-supabase-tenancy
+  - SPEC-supabase-content-source-contract
+  - SPEC-supabase-content-port
+stories:
+  - US-share-one-supabase-across-handbooks
+codeAreas:
+  - skills/oh-my-doc/
+  - skills/oh-my-doc/schemas/
+  - skills/oh-my-doc/runtime/
+  - skills/oh-my-doc/runtime/content-sources/
+  - skills/oh-my-doc/scripts/
+  - skills/oh-my-doc/tests/
+  - skills/oh-my-doc/references/
+  - apps/docs/
+  - apps/docs/lib/
+  - apps/docs/scripts/
+  - AGENTS.md
+related:
+  - /docs/planning/prds/prd-multi-handbook-byo-supabase
+  - /docs/planning/stories/us-share-one-supabase-across-handbooks
+  - /docs/spec/data-model/multi-handbook-supabase-tenancy
+  - /docs/spec/data-model/content-source-supabase
+  - /docs/spec/system-model/supabase-content-port
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+---
+
+## Scope
+
+Deliver multi-handbook BYO Supabase tenancy:
+
+- Contract/state fields for `handbookId` (and legacy defaulting)
+- Registry + schema-per-handbook SQL (`schemaVersion` `1.1`)
+- Content-port provision/create/check scoped to one handbook
+- Fumadocs / pull scripts qualified to the handbook schema
+- Idempotent migrate path from legacy `public.omd_*` → registry + dedicated
+  schema
+- Tests for isolation, independent schema upgrades, and legacy default
+
+Out of scope: OMD-hosted multi-tenant cloud, cross-handbook UI, automatic
+merge of two Supabase projects, web editor.
+
+## Implementation sequence
+
+1. Extend `project` / `state` JSON schemas and
+   `normalizeContentSource` / adopt helpers with required-or-default
+   `handbookId`; document derivation of `pgSchema`.
+2. Bundle `supabase-schema-1.1.sql` (registry + parameterized handbook schema
+   DDL/RLS) and keep `1.0` readable for legacy detect.
+3. Update `planProvision` / `adoptSupabaseProject` to upsert registry,
+   `CREATE SCHEMA`, apply migrations into the target schema only, and seed
+   catalogs there.
+4. Scope `planCreateDocument`, snapshot validate/`check`, and pull/Fumadocs
+   loaders to `{pg_schema}.omd_*` (or `search_path`).
+5. Add explicit migrate op: legacy `public` → chosen `handbookId` schema;
+   update contracts.
+6. Surface new errors (`handbook_id_*`, `legacy_layout_ambiguous`); update
+   SKILL/AGENTS markers for multi-handbook BYO guidance.
+7. Tests: two handbooks same `projectRef` isolation; migrate A without
+   touching B; legacy default without `handbookId`; secret rejection
+   unchanged.
+
+## Verification
+
+- Unit: provision plan emits distinct schemas for two `handbookId`s; digest
+  independence; legacy detect.
+- Manual/throwaway project: adopt handbook A and B on one `projectRef` →
+  `omd new` in each → rows only in each schema → bump A’s schema → B
+  `check` still green.
+- `pnpm check:planning` and skill runtime tests pass.
+- Existing single-handbook `1.0` projects still inspect/check without forced
+  migrate.
+
+## Migration and compatibility
+
+- Default: no break for current `public.omd_*` adopters (`handbookId`
+  defaults to `default`).
+- Opt-in migrate moves data into `omd_h_<id>` and writes `handbookId` into
+  `.omd/project.json`.
+- `schemaVersion` `1.0` remains valid for unmigrated projects; new multi-
+  handbook adopts use `1.1+`.
+
+## Risks and rollback
+
+| Risk | Mitigation |
+|---|---|
+| Accidental cross-schema query | Qualify all SQL; tests for missing schema filter |
+| Reserved schema / id collisions | Strict slug + reserved-name reject list |
+| Half-finished migrate from `public` | Idempotent ops + pending operation IDs |
+| Operators confuse Supabase project with handbook | Docs and `inspect` show both `projectRef` and `handbookId` |
+
+Rollback: leave legacy `public` layout untouched until migrate succeeds;
+failed migrate retries from pending ops without deleting sibling handbooks.
+
+## Completion criteria
+
+- SPEC-012 acceptance criteria met in tests or documented manual smoke.
+- Plan stage → `done` only after verification on a throwaway multi-handbook
+  project.
+- No web editor or OMD-hosted tenancy introduced.
