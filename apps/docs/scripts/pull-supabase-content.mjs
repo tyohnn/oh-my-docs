@@ -13,31 +13,20 @@ import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readSupabaseContract, restCredentials, restProfileHeaders } from './supabase-handbook.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outRoot = join(__dirname, '../.supabase-content/docs');
 
-function restBase() {
-  const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(
-    /\/$/,
-    '',
-  );
-  const key =
-    process.env.SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) {
-    throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY are required');
-  }
-  return { url, key };
-}
-
 async function restGet(table, query = '') {
-  const { url, key } = restBase();
+  const { url, key } = restCredentials();
+  const { pgSchema } = readSupabaseContract();
   const response = await fetch(`${url}/rest/v1/${table}${query}`, {
     headers: {
       apikey: key,
       Authorization: `Bearer ${key}`,
       Accept: 'application/json',
+      ...restProfileHeaders(pgSchema),
     },
   });
   if (!response.ok) {
@@ -61,6 +50,7 @@ function documentToMdx(doc) {
 }
 
 async function main() {
+  const { handbookId, pgSchema } = readSupabaseContract();
   const docs = await restGet(
     'omd_documents',
     '?select=id,kind,ticker,path,frontmatter,body_mdx&order=path.asc',
@@ -87,14 +77,32 @@ async function main() {
     `${JSON.stringify({ title: 'Handbook', pages: rootPages.length ? rootPages : ['index'] }, null, 2)}\n`,
   );
 
+  const catalogDirs = {
+    'dbs.prds': 'planning/prds',
+    'dbs.stories': 'planning/stories',
+    'dbs.plans': 'plans',
+    'dbs.adrs': 'adr',
+    'dbs.glossary': 'domain/glossary',
+    'dbs.models': 'domain/models',
+    'dbs.policies': 'domain/policies',
+    'dbs.data-model': 'spec/data-model',
+    'dbs.system-model': 'spec/system-model',
+  };
   for (const catalog of catalogs) {
-    // catalog_key like dbs.prds — best-effort path from first matching doc prefix
-    const sample = docs.find((d) => Array.isArray(catalog.pages) && catalog.pages.length);
-    void sample;
+    const dir = catalogDirs[catalog.catalog_key];
+    if (!dir || !Array.isArray(catalog.pages)) continue;
+    const absolute = join(outRoot, dir, 'meta.json');
+    mkdirSync(dirname(absolute), { recursive: true });
+    const title = dir.split('/').at(-1) ?? catalog.catalog_key;
+    writeFileSync(
+      absolute,
+      `${JSON.stringify({ title, pages: catalog.pages }, null, 2)}\n`,
+    );
   }
 
+  const scope = handbookId ? `${handbookId} (${pgSchema})` : 'public';
   console.log(
-    `Pulled ${docs.length} document(s) and ${catalogs.length} catalog meta row(s) → ${outRoot}`,
+    `Pulled ${docs.length} document(s) and ${catalogs.length} catalog meta row(s) from ${scope} → ${outRoot}`,
   );
   console.log('Build with OMD_CONTENT_DIR=.supabase-content/docs');
 }

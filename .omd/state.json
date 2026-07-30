@@ -1,0 +1,65 @@
+{
+  "contractVersion": "1.0",
+  "skillVersion": "0.2.0",
+  "templateVersion": "0.2.0",
+  "uiSnapshot": {
+    "distribution": "skill-template",
+    "vocabularyDigest": "b1e9cd04c195828d578d42587e854c5b4da695dff98bd2d111bd68e321879556"
+  },
+  "projectDigest": "fa2a56684f975300ec7b9ed24d67f407f2e6f940dc2b03c3aa48f2f25f28b704",
+  "inventory": {
+    "sections": [
+      "home",
+      "vision",
+      "starting",
+      "domain",
+      "workflow",
+      "planning",
+      "plans",
+      "adr",
+      "spec"
+    ],
+    "catalogs": [
+      "glossary",
+      "models",
+      "policies",
+      "prds",
+      "stories",
+      "spec-data-model",
+      "spec-system-model",
+      "plans",
+      "adr"
+    ],
+    "vocabulary": [
+      "Card",
+      "Cards",
+      "File",
+      "Files",
+      "Folder",
+      "DocKind",
+      "DocStatus",
+      "AdrStatus",
+      "Decision",
+      "SpecVersion",
+      "Canvas",
+      "CanvasLegend",
+      "DocsInlineToc",
+      "DocsSidebarFolder",
+      "indexOnlyPageTree",
+      "createCatalogNavigation"
+    ],
+    "contentSource": "supabase"
+  },
+  "files": {},
+  "provider": {
+    "supabase": {
+      "schemaVersion": "1.0",
+      "projectRef": "vtuprmfqbwhryjoznjxg",
+      "lastObservedAt": "2026-07-30T01:08:21.816Z",
+      "pendingOperationIds": [],
+      "completedOperationIds": [
+        "seed.local_mdx_to_supabase"
+      ]
+    }
+  }
+}

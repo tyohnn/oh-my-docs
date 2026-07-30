@@ -1,8 +1,9 @@
 import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from 'fumadocs-mdx/config';
 import { z } from 'zod';
 
-// For `ssot: supabase`, materialize with `node scripts/pull-supabase-content.mjs`
-// then set OMD_CONTENT_DIR=.supabase-content/docs. Local MDX remains default.
+// When `.omd` has ssot: supabase, `pnpm build` pulls via Connect env into
+// `.supabase-content/docs` and sets OMD_CONTENT_DIR. Local MDX is the fallback
+// cache when Connect env is absent.
 export const docs = defineDocs({
   dir: process.env.OMD_CONTENT_DIR || 'content/docs',
   docs: {
