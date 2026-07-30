@@ -5,7 +5,7 @@ export type ContentSsot = 'local' | 'notion' | 'supabase';
 
 export type ContentSourceContract = {
   ssot: ContentSsot;
-  supabase?: { projectRef: string; schemaVersion: string };
+  supabase?: { projectRef: string; schemaVersion: string; handbookId?: string };
   notion?: { rootPageId: string; rootPageUrl: string; schemaVersion: string };
 };
 

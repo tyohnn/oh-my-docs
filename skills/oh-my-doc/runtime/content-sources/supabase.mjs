@@ -16,8 +16,22 @@ export const SUPABASE_SCHEMA_VERSION = '1.0';
  * @param {string} skillRoot
  * @param {string} [cwd]
  */
-export function loadSupabaseSchemaSql(skillRoot, cwd = process.cwd()) {
+/**
+ * @param {string} skillRoot
+ * @param {string} [cwd]
+ * @param {string} [schemaVersion]
+ */
+export function loadSupabaseSchemaSql(skillRoot, cwd = process.cwd(), schemaVersion = SUPABASE_SCHEMA_VERSION) {
+  const version = String(schemaVersion || SUPABASE_SCHEMA_VERSION);
+  const file = `schema-${version}.sql`;
   const candidates = [
+    join(cwd, 'apps/docs/supabase', file),
+    join(cwd, 'docs/supabase', file),
+    join(skillRoot, 'templates/default/docs/supabase', file),
+    // Prefer newest bundled schema when requested version is missing locally.
+    join(cwd, 'apps/docs/supabase/schema-1.1.sql'),
+    join(cwd, 'docs/supabase/schema-1.1.sql'),
+    join(skillRoot, 'templates/default/docs/supabase/schema-1.1.sql'),
     join(cwd, 'apps/docs/supabase/schema-1.0.sql'),
     join(cwd, 'docs/supabase/schema-1.0.sql'),
     join(skillRoot, 'templates/default/docs/supabase/schema-1.0.sql'),
@@ -76,16 +90,17 @@ export function capabilityBlockers(flags = {}) {
  */
 export function planProvision(options) {
   const schemaVersion = options.schemaVersion ?? SUPABASE_SCHEMA_VERSION;
-  const sql = loadSupabaseSchemaSql(options.skillRoot, options.cwd);
+  const sql = loadSupabaseSchemaSql(options.skillRoot, options.cwd, schemaVersion);
   const graph = loadHandbookIaGraph();
   const catalogKeys = (graph.objects ?? [])
     .filter((o) => o.metaRole === 'catalog-index' && o.databaseKey)
     .map((o) => String(o.databaseKey));
+  const schemaFile = `schema-${schemaVersion}.sql`;
 
   /** @type {Array<Record<string, unknown>>} */
   const operations = [];
   operations.push({
-    id: 'supabase.apply_schema_1_0',
+    id: `supabase.apply_schema_${String(schemaVersion).replace(/\./g, '_')}`,
     op: 'apply_sql',
     schemaVersion,
     sql,
@@ -108,7 +123,7 @@ export function planProvision(options) {
   operations.push({
     id: 'supabase.scaffold_docs_schema_sql',
     op: 'scaffold_docs_supabase_sql',
-    relativePath: 'docs/supabase/schema-1.0.sql',
+    relativePath: `docs/supabase/${schemaFile}`,
   });
 
   for (const key of catalogKeys) {

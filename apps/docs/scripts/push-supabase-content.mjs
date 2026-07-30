@@ -12,6 +12,8 @@ import { mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, statSync }
 import { dirname, join, relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readSupabaseContract } from './supabase-handbook.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const docsRoot = join(__dirname, '..');
 const contentRoot = join(docsRoot, 'content/docs');
@@ -92,7 +94,15 @@ function dollarQuote(tag, value) {
   return `$${t}$${value}$${t}$`;
 }
 
+function qualify(pgSchema, table) {
+  if (!pgSchema || pgSchema === 'public') return `public.${table}`;
+  return `${pgSchema}.${table}`;
+}
+
 function main() {
+  const { pgSchema, handbookId } = readSupabaseContract();
+  const docsTable = qualify(pgSchema, 'omd_documents');
+  const catalogsTable = qualify(pgSchema, 'omd_catalog_meta');
   const files = walk(contentRoot);
   /** @type {Array<Record<string, unknown>>} */
   const documents = [];
@@ -163,7 +173,7 @@ function main() {
         return `(${sqlString(doc.id)}, ${sqlString(doc.kind)}, ${ticker}, ${sqlString(doc.path)}, ${fm}::jsonb, ${body}, now(), now())`;
       })
       .join(',\n');
-    const sql = `insert into public.omd_documents (id, kind, ticker, path, frontmatter, body_mdx, created_at, updated_at)
+    const sql = `insert into ${docsTable} (id, kind, ticker, path, frontmatter, body_mdx, created_at, updated_at)
 values
 ${values}
 on conflict (id) do update set
@@ -181,15 +191,16 @@ on conflict (id) do update set
   const catalogSql = catalogs
     .map((c) => {
       const pages = sqlString(JSON.stringify(c.pages));
-      return `insert into public.omd_catalog_meta (catalog_key, pages, updated_at)
+      return `insert into ${catalogsTable} (catalog_key, pages, updated_at)
 values (${sqlString(c.catalog_key)}, ${pages}::jsonb, now())
 on conflict (catalog_key) do update set pages = excluded.pages, updated_at = now();`;
     })
     .join('\n\n');
   writeFileSync(join(outRoot, 'catalogs.sql'), `${catalogSql}\n`);
 
+  const scope = handbookId ? `${handbookId} (${pgSchema})` : 'public';
   console.log(
-    `Prepared ${documents.length} document(s), ${catalogs.length} catalog(s), ${batch} SQL batch(es) → ${outRoot}`,
+    `Prepared ${documents.length} document(s), ${catalogs.length} catalog(s), ${batch} SQL batch(es) for ${scope} → ${outRoot}`,
   );
 }
 

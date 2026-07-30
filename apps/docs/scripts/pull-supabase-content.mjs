@@ -13,32 +13,20 @@ import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readSupabaseContract, restCredentials, restProfileHeaders } from './supabase-handbook.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outRoot = join(__dirname, '../.supabase-content/docs');
 
-function restBase() {
-  const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(
-    /\/$/,
-    '',
-  );
-  const key =
-    process.env.SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) {
-    throw new Error('SUPABASE_URL and a publishable/anon key are required');
-  }
-  return { url, key };
-}
-
 async function restGet(table, query = '') {
-  const { url, key } = restBase();
+  const { url, key } = restCredentials();
+  const { pgSchema } = readSupabaseContract();
   const response = await fetch(`${url}/rest/v1/${table}${query}`, {
     headers: {
       apikey: key,
       Authorization: `Bearer ${key}`,
       Accept: 'application/json',
+      ...restProfileHeaders(pgSchema),
     },
   });
   if (!response.ok) {
@@ -62,6 +50,7 @@ function documentToMdx(doc) {
 }
 
 async function main() {
+  const { handbookId, pgSchema } = readSupabaseContract();
   const docs = await restGet(
     'omd_documents',
     '?select=id,kind,ticker,path,frontmatter,body_mdx&order=path.asc',
@@ -111,8 +100,9 @@ async function main() {
     );
   }
 
+  const scope = handbookId ? `${handbookId} (${pgSchema})` : 'public';
   console.log(
-    `Pulled ${docs.length} document(s) and ${catalogs.length} catalog meta row(s) → ${outRoot}`,
+    `Pulled ${docs.length} document(s) and ${catalogs.length} catalog meta row(s) from ${scope} → ${outRoot}`,
   );
   console.log('Build with OMD_CONTENT_DIR=.supabase-content/docs');
 }

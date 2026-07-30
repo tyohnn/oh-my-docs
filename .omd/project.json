@@ -5,7 +5,8 @@
     "ssot": "supabase",
     "supabase": {
       "projectRef": "vtuprmfqbwhryjoznjxg",
-      "schemaVersion": "1.0"
+      "schemaVersion": "1.1",
+      "handbookId": "oh-my-docs"
     }
   },
   "paths": {
