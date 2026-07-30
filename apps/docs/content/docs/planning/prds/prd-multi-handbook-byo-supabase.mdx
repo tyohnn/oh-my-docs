@@ -13,6 +13,7 @@ reviewMethod: pdca-discovery
 stories:
   - US-share-one-supabase-across-handbooks
   - US-adopt-links-shared-oh-my-docs-supabase
+  - US-upgrade-core-supabase-schema-via-skill-migrations
 ---
 
 ## Problem
@@ -36,26 +37,29 @@ org already has one shared Oh My Docs database.
 
 After a team selects **`ssot: supabase`** for a handbook repository, that
 repo links to **one shared user-owned Supabase project named `oh-my-docs`**
-(database container for many handbooks) while keeping **its own Vercel
-deployment**. The skill scaffolds the handbook schema SQL **into that
-repo’s docs app as static code**, provisions the matching Postgres schema
-for this `handbookId`, and syncs Connect publishable env onto **that
-repo’s** Vercel project. SSOT is recorded in the repo contract from the
-adopt choice—operators do not set `OMD_CONTENT_SSOT`. `local` / `notion`
-adopts are unchanged. There is no central “oh-my-docs” Vercel app. Oh My
-Docs still does not host a shared multi-tenant cloud for all
-customers—this remains BYO.
+(database container for many handbooks) while deploying to **its own
+Vercel project `{projectSlug}-omd`**. The skill scaffolds the handbook
+schema SQL **into that repo’s docs app as static code**, provisions the
+matching Postgres schema for this `handbookId`, and syncs Connect
+publishable env onto `{projectSlug}-omd`. SSOT is recorded in the repo
+contract from the adopt choice—operators do not set `OMD_CONTENT_SSOT`.
+`local` / `notion` adopts are unchanged. There is no central “oh-my-docs”
+Vercel app. Oh My Docs still does not host a shared multi-tenant cloud for
+all customers—this remains BYO.
 
 ## Goals
 
 - Allow multiple handbooks per BYO Supabase `projectRef` named `oh-my-docs`.
-- Deploy **per handbook repo** on its own Vercel project (not one Vercel
-  for all handbooks).
+- Deploy **per handbook repo** on its own Vercel project named
+  `{projectSlug}-omd` (not one Vercel for all handbooks).
 - On `--ssot supabase`, the skill **embeds schema SQL into that repo**
   (`docs/supabase/` from the skill template) as part of adopt/scaffold.
 - Keep exactly one content SSOT per repository (ADR-005 unchanged).
 - Isolate handbook data so schema upgrades do not force every co-hosted
   handbook to migrate together.
+- Treat the skill as the authority for **core** Oh My Docs schema: skill
+  updates ship forward migrations that apply safely, without rewriting
+  operator-owned DDL inside individual handbook schemas.
 - When the user chose `supabase`, persist that choice in `.omd`; that
   handbook’s Vercel only needs Connect URL/publishable keys.
 - Preserve v1 single-handbook layouts (`public.omd_*`) as a compatible
@@ -73,11 +77,14 @@ customers—this remains BYO.
 - Web editor or changing Fumadocs as the renderer.
 - Per-end-user row tenancy inside a handbook (authz beyond today’s RLS model).
 - Requiring a separate Vercel `OMD_CONTENT_SSOT` env after a supabase adopt.
+- Skill-managed migration of tables an operator created outside the OMD
+  baseline (`omd_*`).
 
 ## Included stories
 
 - `US-share-one-supabase-across-handbooks`
 - `US-adopt-links-shared-oh-my-docs-supabase`
+- `US-upgrade-core-supabase-schema-via-skill-migrations`
 
 ## Success measures
 
@@ -85,6 +92,8 @@ customers—this remains BYO.
   with different `handbookId` values and never see each other’s documents.
 - Upgrading handbook A’s `schemaVersion` leaves handbook B’s live schema and
   `check` result unchanged until B migrates.
+- A skill update that advances core schema applies pending migrations once
+  without altering sibling handbook schemas or operator-owned tables.
 - An existing v1 project with only `public.omd_*` tables continues to work as
   the default handbook without a forced rewrite.
 - Teams no longer need a second Supabase project solely to host a second

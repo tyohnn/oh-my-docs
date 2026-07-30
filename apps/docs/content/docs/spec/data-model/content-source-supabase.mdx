@@ -46,8 +46,9 @@ Multi-handbook isolation rules live in
 - `handbookId` selects one Supabase handbook inside that project (see
   SPEC-012). Legacy single-handbook layouts may omit it and default to
   `"default"`.
-- `schemaVersion` names the bundled declarative migration set the runtime
-  expects **for this handbook**.
+- `schemaVersion` names the bundled **handbook-baseline** migration set the
+  runtime expects **for this handbook** (SPEC-012). Core (shared registry)
+  migrations are tracked in the project ledger separately from this field.
 - Tokens, OAuth secrets, cookies, `service_role` keys, and database passwords
   are forbidden in project or state JSON.
 
@@ -68,7 +69,8 @@ Multi-handbook isolation rules live in
 
 Rebuildable observations may include:
 
-- last applied `schemaVersion` / migration digest
+- last applied handbook-baseline `schemaVersion` / migration digest
+- last applied core migration id (shared project)
 - last successful provision manifest digest
 - incomplete operation IDs for safe retry
 - optional row/key digests used by `check`
@@ -85,7 +87,9 @@ State is never authoritative content.
 
 **Multi-handbook (v1.1+):** `public.omd_handbooks` registry plus the same
 content tables inside each handbook’s Postgres schema (`omd_h_…`). See
-SPEC-012. `schemaVersion` and drift checks are per handbook.
+SPEC-012. Handbook-baseline `schemaVersion` and drift checks are per
+handbook; core migrations apply once per project. Operator-owned DDL is
+outside the skill’s migration allowlist.
 
 Lifecycle enums and planning IDs remain those of the handbook templates.
 RLS protects writes; publishable read may use `anon` only with explicit
@@ -99,6 +103,7 @@ read-only policies when the docs app needs it.
 | `supabase_login_required` | Host is not authenticated to Supabase |
 | `project_inaccessible` | `projectRef` missing or host cannot access project |
 | `schema_drift` | Selected handbook’s live schema digest ≠ expected `schemaVersion` |
+| `migration_pending` | Skill package has core or handbook-baseline steps not yet applied |
 | `handbook_id_required` | Multi-handbook project missing `handbookId` |
 | `secret_in_contract` | Forbidden credential material detected in JSON |
 

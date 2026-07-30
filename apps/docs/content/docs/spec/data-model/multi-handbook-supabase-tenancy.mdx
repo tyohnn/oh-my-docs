@@ -9,6 +9,7 @@ stage: accepted
 related:
   - /docs/planning/prds/prd-multi-handbook-byo-supabase
   - /docs/planning/stories/us-share-one-supabase-across-handbooks
+  - /docs/planning/stories/us-upgrade-core-supabase-schema-via-skill-migrations
   - /docs/spec/data-model/content-source-supabase
   - /docs/spec/system-model/supabase-content-port
   - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
@@ -18,7 +19,8 @@ related:
 ## Scope
 
 Defines how multiple Oh My Docs handbooks share one user-owned Supabase
-project without sharing physical table DDL. Extends
+project without sharing physical table DDL, and how the **skill** owns a
+forward migration chain for Oh My Docs platform objects. Extends
 `SPEC-supabase-content-source-contract` and is enforced by
 `SPEC-supabase-content-port`.
 
@@ -54,22 +56,57 @@ mapping.
 | Layer | Unit |
 |---|---|
 | Supabase project `oh-my-docs` | Shared BYO database (many handbooks) |
-| Git repo + Vercel project | One handbook / one deployable docs app |
+| Git repo + Vercel project `{projectSlug}-omd` | One handbook / one deployable docs app |
 
 `oh-my-docs` is a **Supabase** display name only. Vercel deploys are
 **per handbook repository**, not one Vercel named oh-my-docs.
+
+**Vercel project name** is `{projectSlug}-omd`, where `projectSlug` is the
+handbook repository name (lowercase slug, usually matching `handbookId` /
+git repo basename). Examples: repo `oh-my-docs` → Vercel `oh-my-docs-omd`;
+repo `skills` → `skills-omd`. Adopt finds or creates that Vercel project
+for env sync and deploy wiring—never a shared `oh-my-docs` Vercel app.
 
 `projectRef` in the contract is the shared Supabase project’s ref after
 resolution by name.
 
 ### Schema location (skill-scaffolded into each handbook repo)
 
-On `--ssot supabase`, the skill embeds declarative SQL into **that
-repository’s** docs app as static files (`docs/supabase/` from the skill
-template; dogfood `apps/docs/supabase/`). The port applies that SQL to the
-handbook’s Postgres schema. A skill-only `references/` copy is insufficient
+On `--ssot supabase`, the skill embeds a **versioned migration tree** into
+**that repository’s** docs app as static files (`docs/supabase/` from the
+skill template; dogfood `apps/docs/supabase/`). The port applies pending
+steps from that tree. A skill-only `references/` copy is insufficient
 unless the same files are written into the consumer repo—the Vercel build
 for that handbook must contain them.
+
+Layout (contract):
+
+```text
+docs/supabase/
+  migrations/
+    core/                 # shared public registry + helpers
+      001_….sql
+    handbook/             # OMD baseline inside one pg_schema
+      001_….sql
+  migrate-public-to-handbook.sql   # legacy one-shot (optional)
+```
+
+Convenience snapshots such as `schema-1.1.sql` may exist for humans, but the
+**runtime authority** is the ordered migration chain plus an applied-ledger.
+
+### Ownership: core vs handbook-baseline vs operator DDL
+
+The Oh My Docs skill is the authority for **Oh My Docs–owned** objects only.
+
+| Class | Where | Owned by | Skill may |
+|---|---|---|---|
+| **Core** | `public.omd_handbooks`, `public.omd_ensure_handbook`, core ledger | Skill | Apply forward migrations on skill update / provision |
+| **Handbook-baseline** | `{pg_schema}.omd_documents`, `{pg_schema}.omd_catalog_meta`, OMD-named RLS/policies | Skill (per `handbookId`) | Apply pending baseline migrations for the **selected** handbook only |
+| **Operator / project DDL** | Any other tables, columns, functions, policies in the BYO project or inside `omd_h_*` | Handbook operators | **Never** `DROP` / `ALTER` / rename; ignore |
+
+Operator-owned DDL is invisible to the skill migration planner. Product
+fields that vary without DDL should prefer `frontmatter` jsonb so most
+handbooks stay on a small set of baseline versions.
 
 ### Registry
 
@@ -79,38 +116,47 @@ for that handbook must contain them.
 |---|---|
 | `handbook_id` | Primary key; matches contract `handbookId` |
 | `pg_schema` | Postgres schema name (`omd_h_…`) |
-| `schema_version` | Last successfully applied schema version |
+| `schema_version` | Last successfully applied **handbook-baseline** version |
 | `created_at` / `updated_at` | Timestamps |
 
-Provision is idempotent on `handbook_id`. Creating a handbook creates the
-Postgres schema and applies the migration set for the requested
-`schemaVersion` into that schema only.
+A separate **core** applied ledger (table or equivalent under `public`,
+OMD-owned) records which core migration steps have run for the shared
+project. Provision is idempotent on `handbook_id`. Creating a handbook
+creates the Postgres schema and applies pending handbook-baseline steps for
+the requested `schemaVersion` into that schema only.
 
 ### Content tables
 
-Inside each handbook schema:
+Inside each handbook schema, OMD-owned baseline tables are:
 
-- `omd_documents` — same columns as schema `1.0` unless a later handbook
-  `schemaVersion` adds columns for that schema alone
-- `omd_catalog_meta` — same catalog registration shape as today
+- `omd_documents` — columns defined by the handbook-baseline migration set
+- `omd_catalog_meta` — catalog registration shape defined by that set
 
 Queries always qualify `{pg_schema}.omd_documents` (or set a transaction
 `search_path` to that schema). Cross-schema joins for product features are
 out of scope.
 
-### Schema evolution
+### Schema evolution (skill updates)
 
-1. New DDL ships as a new bundled `schemaVersion` (for example `1.1`, `1.2`).
-2. Apply runs against **one** `handbookId`’s `pg_schema`.
-3. Sibling handbooks keep their previous `schema_version` until migrated.
-4. Runtime `schema_drift` compares live digest of the selected handbook’s
-   schema to the contract’s `schemaVersion`.
-5. Breaking changes require an explicit per-handbook migrate; there is no
+1. Skill releases ship **new forward migration files** under
+   `migrations/core/` and/or `migrations/handbook/` and bump the packaged
+   baseline `schemaVersion` when handbook-baseline changes.
+2. After a skill update (or `adopt` / `sync` / explicit migrate), the port
+   plans only **pending** steps from the ledger—never a full rewrite of
+   live DDL.
+3. **Core** pending steps apply once per Supabase project.
+4. **Handbook-baseline** pending steps apply against **one** `handbookId`’s
+   `pg_schema` when that handbook’s contract requests the new
+   `schemaVersion` (or an explicit migrate for that id).
+5. Sibling handbooks keep their previous `schema_version` until migrated.
+6. Runtime `schema_drift` compares the selected handbook’s applied baseline
+   (and pending core, if any) to the contract / skill package—not a
    project-wide forced upgrade.
+7. Migration SQL for handbook-baseline must name only OMD-owned objects
+   (tables `omd_*`, policies/functions with an `omd_` prefix or documented
+   OMD names). Unknown objects in the same schema are left untouched.
 
-Optional product columns that vary without DDL should prefer `frontmatter`
-jsonb over additive tables when possible, so most handbooks stay on a small
-set of schema versions.
+There is no project-wide atomic upgrade of every `handbookId`.
 
 ### Legacy `1.0` layout
 
@@ -146,6 +192,8 @@ error. On a legacy single-handbook project, omitted `handbookId` defaults to
 | `handbook_id_invalid` | Slug fails format or is reserved |
 | `handbook_id_conflict` | Registry row exists with a different `pg_schema` mapping |
 | `schema_drift` | Selected handbook’s live schema ≠ contract `schemaVersion` |
+| `migration_pending` | Skill package has core or handbook-baseline steps not yet applied |
+| `migration_unsafe_object` | Planned SQL would touch a non-OMD-owned object name |
 | `legacy_layout_ambiguous` | Both `public.omd_*` content and a conflicting registry entry |
 | `project_inaccessible` | Host cannot access `projectRef` |
 
@@ -154,11 +202,17 @@ error. On a legacy single-handbook project, omitted `handbookId` defaults to
 - Single-handbook `schemaVersion` `1.0` projects keep working.
 - `local` and `notion` contracts are unchanged.
 - Does not introduce Oh My Docs–hosted tenancy.
+- Operator-authored DDL coexists; skill migrations must not require removing
+  it.
 
 ## Acceptance criteria
 
 - Two `handbookId`s on one `projectRef` store disjoint document sets.
 - Migrating handbook A’s schema leaves handbook B’s `schema_version` and
   `check` result unchanged.
+- A skill update that adds a core migration applies it once without altering
+  sibling handbook schemas.
+- A handbook-baseline migration does not drop or alter a non-`omd_*` table
+  that an operator added inside the same `pg_schema`.
 - Legacy `public.omd_*` projects resolve as `handbookId: "default"`.
 - Contract round-trip includes `handbookId` without secrets.

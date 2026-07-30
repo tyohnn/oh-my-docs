@@ -32,10 +32,11 @@ Two different “oh-my-docs” ideas must stay separate:
 | Thing | Role |
 |---|---|
 | Supabase project name `oh-my-docs` | Shared BYO database for many handbooks |
-| Handbook git repo + its Vercel project | One deployable docs app per handbook |
+| Vercel project `{projectSlug}-omd` | One deployable docs app for that handbook repo |
 
 There is **no** single Vercel project named oh-my-docs that serves every
-handbook. Each handbook repo has its own Vercel deployment. The skill must
+handbook. Each handbook repo deploys to its own Vercel project named
+`{projectSlug}-omd` (repo basename / handbook slug + `-omd`). The skill must
 therefore **scaffold/copy schema SQL into that repo** so the deployed docs
 app and the provisioned Postgres shape stay aligned.
 
@@ -56,11 +57,11 @@ app and the provisioned Postgres shape stay aligned.
 - Adopt writes `.omd/project.json` with `ssot: supabase`, the resolved
   `projectRef`, `handbookId` (this repo), and `schemaVersion`. No tokens.
   Operators do not set `OMD_CONTENT_SSOT` on Vercel.
-- Host skill syncs publishable env onto **this handbook repo’s linked
-  Vercel project** (`NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …)—not onto a shared oh-my-docs
-  Vercel app.
-- Ongoing deploys are that repo’s GitHub → its Vercel project; adopt may
+- Host skill finds or creates the Vercel project named
+  `{projectSlug}-omd` for this repo and syncs publishable env onto it
+  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+  …)—not onto a shared oh-my-docs Vercel app.
+- Ongoing deploys are that repo’s GitHub → `{projectSlug}-omd`; adopt may
   smoke one initial deployment of **this** handbook.
 - Re-running adopt is idempotent for the same repo/`handbookId`.
 

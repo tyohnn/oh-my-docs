@@ -11,6 +11,7 @@ related:
   - /docs/planning/prds/prd-multi-handbook-byo-supabase
   - /docs/planning/stories/us-adopt-byo-supabase-as-handbook-ssot
   - /docs/planning/stories/us-share-one-supabase-across-handbooks
+  - /docs/planning/stories/us-upgrade-core-supabase-schema-via-skill-migrations
   - /docs/spec/data-model/content-source-supabase
   - /docs/spec/data-model/multi-handbook-supabase-tenancy
   - /docs/spec/system-model/notion-content-port
@@ -47,9 +48,11 @@ credentials.
 
 1. Resolve host login / project access capability blockers (Supabase MCP/CLI;
    Vercel MCP when env sync is needed).
-2. **Scaffold schema into this handbook repo:** skill writes static SQL under
-   the docs app (`docs/supabase/*.sql` from the skill template). This is
-   required so **this repo’s** Vercel deploy carries the schema contract.
+2. **Scaffold migrations into this handbook repo:** skill writes the
+   versioned SQL tree under the docs app
+   (`docs/supabase/migrations/{core,handbook}/` from the skill template).
+   This is required so **this repo’s** Vercel deploy carries the schema
+   contract the port will apply.
 3. **Resolve shared Supabase project by name:** host lists Supabase projects
    and selects `name === "oh-my-docs"` (database name—not a Vercel project).
    If absent, create with that name when allowed; otherwise fail with an
@@ -57,16 +60,18 @@ credentials.
 4. Resolve `handbookId` for **this repo** (explicit, repo-derived slug, or
    `"default"` for legacy single-handbook).
 5. `planProvision` emits a deterministic, idempotent manifest:
-   - ensure `public.omd_handbooks` registry (schema `1.1+`)
+   - ensure core migration ledger + `public.omd_handbooks` registry
+   - `apply_pending_migrations` for **core** (once per project)
    - `CREATE SCHEMA` for this handbook when missing
-   - apply SQL from **this repo’s** docs-app schema tree for
-     `documents` / `catalog_meta` (+ RLS) **inside that schema only**
+   - `apply_pending_migrations` for **handbook-baseline** inside that
+     schema only (OMD-owned `omd_*` objects; never operator DDL)
    - IA seed rows for catalog keys from the shared IA graph
-   - `vercel.sync_supabase_env`: ensure **this handbook repo’s** linked
-     Vercel project has Connect publishable vars
-     (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
-     …). Do **not** require `OMD_CONTENT_SSOT`. Do **not** target a shared
-     oh-my-docs Vercel app.
+   - `vercel.ensure_project`: find or create Vercel project named
+     `{projectSlug}-omd` for this handbook repo
+   - `vercel.sync_supabase_env`: ensure that `{projectSlug}-omd` project
+     has Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
+     `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …). Do **not** require
+     `OMD_CONTENT_SSOT`. Do **not** target a shared oh-my-docs Vercel app.
 6. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
    update `.omd/state.json` and write `contentSource.supabase` (including
    `projectRef`, `handbookId`, `schemaVersion`) into the project contract.
@@ -75,8 +80,10 @@ credentials.
 This provision path is entered only for `--ssot supabase`. Other SSOT values
 use their own adapters.
 
-Re-running provision must not duplicate stable document or catalog keys, and
-must not migrate sibling handbooks.
+Re-running provision must not duplicate stable document or catalog keys, must
+not migrate sibling handbooks, and must skip already-applied migration
+steps. After a skill update that adds core or handbook-baseline files,
+provision/sync plans only the new pending steps (SPEC-012 ownership rules).
 
 ### Create document (`omd new`)
 
@@ -110,8 +117,10 @@ example `.supabase-content`, `.source`) remain non-authoritative. Routes
   handbook’s `omd_documents`.
 - Catalog entries live in that handbook’s `omd_catalog_meta`, never as
   ad-hoc unstructured blobs outside the IA.
-- Schema migrations and `schema_drift` are scoped to the selected handbook’s
-  Postgres schema (SPEC-012).
+- Schema migrations follow SPEC-012 ownership: core once per project;
+  handbook-baseline per selected `handbookId`; operator DDL untouched.
+- `schema_drift` / `migration_pending` reflect that ledger, not a full dump
+  rewrite.
 - Idempotency keys and digests make retries safe.
 - Web UI editing of bodies is out of scope; only port writes mutate content.
 
