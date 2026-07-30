@@ -6,8 +6,6 @@
     "adr-git-snapshots-approve-task-execution-state",
     "adr-promote-adr-and-plans-to-top-level-catalogs",
     "adr-select-one-content-source-per-project",
-    "adr-byo-supabase-as-mdx-cloud-ssot",
-    "adr-schema-per-handbook-in-one-byo-supabase",
     "adr-slim-local-and-notion-drop-supabase"
   ]
 }

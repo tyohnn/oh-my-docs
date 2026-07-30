@@ -6,7 +6,6 @@
     "task-orchestration",
     "task-board",
     "notion-content-port",
-    "cli",
-    "supabase-content-port"
+    "cli"
   ]
 }
