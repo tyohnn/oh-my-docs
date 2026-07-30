@@ -55,17 +55,17 @@ host plugin wrappers under `plugins/{cursor,codex,claude-code}` mirror it.
 | `inspect --json` | Report docs/UI/`.omd` presence, SSOT, and UI snapshot health hints |
 | `check --json` | Fail when `.omd` is missing, vocabulary/chrome is incomplete, or UI snapshot is missing/stale |
 | `adopt --ssot local --yes` | Scaffold docs + `packages/docs-ui`; create missing UI files from the skill template |
-| `adopt --ssot notion --notion-root <url-or-id> --yes` | Map root to Home; emit Notion MCP provision manifest (no local UI) |
-| `adopt --ssot supabase --yes` | Link/create BYO Supabase project; emit SQL/seed provision manifest (see SPEC-011) |
+| `adopt --ssot notion --notion-root <url-or-id> --yes` | Map root to Home; emit slim Notion catalog provision manifest (no local UI) |
 | `adopt --yes --force` | Also overwrite UI files that differ from the skill template (local) |
 | `sync --yes` | Refresh managed IA/`AGENTS.md`/`CLAUDE.md` markers only (not UI files) |
-| `new <kind> --title "…" --yes` | Create prd\|story\|spec\|plan\|adr |
+| `new <kind> --title "…" --yes` | Create prd\|story\|spec\|plan\|adr (optional catalogs) |
 
 Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
+`--ssot supabase` is rejected (`ADR-008`).
 
 ## Behavior
 
-1. **Greenfield SSOT** — first adopt requires `--ssot local|notion|supabase`.
+1. **Greenfield SSOT** — first adopt requires `--ssot local|notion`.
    Without it the runtime returns `needsSsot` and does not write.
 2. **Missing UI package or files (local only)** — `doctor`/`inspect` note a
    missing UI path; `check` includes a problem; `adopt --ssot local` creates
@@ -76,10 +76,12 @@ Runtime entrypoint: `node <skill>/scripts/omd.mjs <action>`.
    `check` reports staleness so agents can ask before forcing.
 5. **Forced refresh** — `adopt --force` updates divergent skill-template UI
    files and refreshes `.omd` state digests related to the snapshot.
-6. **Notion chrome** — provisioned page bodies must pass `validateSidebarChrome`
-   (left nav, yellow details groups, all content in the right column).
+6. **Notion catalogs** — provision Home + inline catalog DBs only (no Vision /
+   Workflow pages). Optional light nav between catalog indexes.
 7. **Skill vs project** — installing/updating the skill alone does not mutate
    the project; agents must run `adopt`/`check` against the project.
+8. **No docs-first gate** — `check` does not require a ready implementation
+   plan before code; catalogs are voluntary.
 
 ## Data and invariants
 

@@ -2,7 +2,7 @@
 title: Docs foundation
 description: Establish one trustworthy place for product intent and delivery plans.
 type: conceptual
-summary: A browsable and agent-readable handbook anchors docs-first product work.
+summary: A browsable and agent-readable handbook anchors optional durable product memory.
 id: PRD-docs-foundation
 ticker: PRD-001
 period: phase-1
@@ -43,7 +43,8 @@ content as Markdown.
 
 ## Success measures
 
-- Every catalog artifact is reachable through navigation.
-- The initial PRD, story, specification, ADR, and plan form a valid graph.
+- Catalog artifacts that exist are reachable through navigation.
+- Linked PRD / story / SPEC / ADR / plan graphs validate when present
+  (`check:planning` is optional hygiene, not a merge gate).
 - Every rendered docs page has a processed Markdown twin.
-- Pull requests run build, type, test, and planning validation.
+- Pull requests can run build, type, and test without a docs-first plan gate.

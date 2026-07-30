@@ -1,25 +1,25 @@
 ---
 title: Single content source
-description: A repository must not treat local MDX, Notion, and Supabase as co-authoritative.
+description: A repository must not treat local MDX and Notion as co-authoritative.
 type: reference
 summary: Provider selection is exclusive; source changes require an explicit migration.
 id: POLICY-single-content-source
 related:
   - /docs/domain/models/content-source-selection
   - /docs/adr/adr-select-one-content-source-per-project
-  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
 ## Rule
 
 A repository selects exactly one handbook content source in
-`.omd/project.json`: `local`, `notion`, or `supabase`.
+`.omd/project.json`: `local` or `notion`.
 
 ## Consequences
 
 - Skills reject operations that would write to an unselected provider.
-- Notion projects do not create an editable MDX mirror in v1.
-- Supabase projects do not treat a Git MDX tree as authoritative.
-- Local projects do not treat a provisioned Notion or Supabase store as
-  current truth unless selected.
-- Switching providers requires a separately confirmed migration plan.
+- Notion projects do not create an editable MDX mirror.
+- Local projects do not treat a provisioned Notion workspace as current truth
+  unless selected.
+- Switching providers requires a separately confirmed migration.
+- `supabase` is not a valid selection (`ADR-008`).

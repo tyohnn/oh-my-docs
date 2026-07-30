@@ -2,12 +2,12 @@
 title: Content port
 description: The provider-neutral operations used by Oh My Docs skills.
 type: reference
-summary: Content ports separate planning operations from local, Notion, and Supabase adapters.
+summary: Content ports separate planning operations from local and Notion adapters.
 id: TERM-content-port
 related:
   - /docs/domain/glossary/content-source
   - /docs/spec/system-model/notion-content-port
-  - /docs/spec/system-model/supabase-content-port
+  - /docs/spec/data-model/content-source-contract
 ---
 
 ## Meaning
@@ -15,7 +15,6 @@ related:
 A **content port** is the provider-neutral interface through which the skill
 inspects, provisions, creates, validates, and records handbook content.
 
-The local adapter implements the port with filesystem operations. The Notion
-adapter plans deterministic MCP operations which the invoking agent executes.
-The Supabase adapter plans deterministic SQL/seed and document manifests which
-the host Supabase CLI or MCP applies; Fumadocs reads the remote store.
+The local adapter uses the filesystem. The Notion adapter plans deterministic
+MCP operations which the invoking agent executes. A former Supabase adapter is
+retired (`ADR-008`).

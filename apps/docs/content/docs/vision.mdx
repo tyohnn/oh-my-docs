@@ -1,50 +1,43 @@
 ---
 title: Product vision
-description: A shared product memory that stays useful to people and agents.
+description: Shared product memory that stays useful to agents — and to people when they ask.
 type: conceptual
-summary: Make planning artifacts the reliable starting point for every product change.
+summary: Optional durable catalogs beat chat-only memory; ceremony is not the product.
 related:
   - /docs/planning/prds
   - /docs/workflow/planning
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
 ## Vision
 
-Teams should be able to understand why a product exists, what a change promises,
-and how it will be delivered without reconstructing intent from tickets, chats,
-and code history.
+Builders should not lose product intent in tickets and chats, but they also
+should not be forced through a heavy docs ritual before every change.
 
-Oh My Docs makes documentation the working surface for product development. A
-small, linked set of durable artifacts becomes readable in a browser, available
-as Markdown to agents, and verifiable as a graph.
+Oh My Docs gives coding agents a **local Fumadocs handbook** or a **simple
+Notion page of catalog databases** as optional durable memory. Humans can keep
+day-to-day work on a light task board; when someone is curious, the agent
+explains from the repo and catalogs.
 
 ## Principles
 
-1. Intent precedes implementation.
-2. Stable IDs connect artifacts without coupling them to filenames.
-3. Human review decides product quality; automation checks structural integrity.
-4. Documentation and agent-readable Markdown are two views of the same source.
-5. The foundation stays product-neutral so teams can add their own domain.
-6. Coding agents install one skill (`oh-my-doc`) and drive a bundled runtime;
-   people do not need a public CLI.
-7. Product contributors, developers, and agents share living terms, models,
-   policies, stories, and specifications; change records never replace them.
+1. Cold-start agents need durable indexes more than humans need a second handbook.
+2. Stable IDs beat filename coupling when you do write catalogs.
+3. Automation may check structural hygiene; it must not block shipping.
+4. Browser pages and `.md` twins are the same source (local SSOT).
+5. One skill (`oh-my-doc`) drives the runtime; people do not need a public CLI.
+6. Exactly one content SSOT per repo: `local` or `notion`.
 
 ## How it ships
 
-- Handbook content lives in the consumer project (`docs/` or `apps/docs`).
-- Fumadocs shell packages come from npm.
-- Planning UI vocabulary is copied from the skill template into `packages/docs-ui`
-  on adopt, and refreshed the same way when the skill advances.
+- **Local:** handbook MDX in `docs/` or `apps/docs`, Fumadocs from npm, UI
+  vocabulary from the skill template into `packages/docs-ui` on adopt.
+- **Notion:** Home + inline catalog DBs (ADR, specs, plans, …) — no Vision /
+  Workflow chrome in Notion.
 
-## Not yet in scope
+## Not in scope
 
-Phase 1 does not provide a public component registry, a visual planning canvas,
-or project-management integrations.
-
-**Exception (content ports):** a project may select `supabase` as a BYO
-handbook content SSOT (user-owned Supabase project, Fumadocs renderer, no web
-editor). That path is specified under PRD-006 / ADR-006 and is not a
-general-purpose Oh My Docs–hosted persistence or auth platform. Other
-hosted persistence (for example a live task control-plane database) remains
-out of scope unless separately decided.
+- BYO Supabase handbook SSOT (retired — see superseded PRD-006 / ADR-006)
+- Mandatory docs-first merge gates
+- Hosted multi-tenant persistence, auth platform, or web handbook editor
+- Bidirectional local ↔ Notion sync

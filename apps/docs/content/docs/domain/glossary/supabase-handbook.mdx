@@ -1,27 +1,22 @@
 ---
 title: Supabase handbook
-description: One Oh My Docs repository's content namespace inside a BYO Supabase project.
+description: Historical term — BYO Supabase handbook SSOT is retired.
 type: reference
-summary: A handbookId selects an isolated Postgres schema within a shared projectRef.
+summary: Superseded. Handbooks are local MDX or Notion catalogs only (ADR-008).
 id: TERM-supabase-handbook
 related:
   - /docs/domain/glossary/content-source
-  - /docs/planning/prds/prd-multi-handbook-byo-supabase
-  - /docs/spec/data-model/multi-handbook-supabase-tenancy
-  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
 ---
 
-## Meaning
+## Status
 
-A **Supabase handbook** is the content namespace for one adopted repository
-when `contentSource.ssot` is `supabase`. It is identified by `handbookId`
-inside a user-owned Supabase `projectRef`.
+**Superseded.** `contentSource.ssot: supabase` is no longer a product option.
+Kept as a glossary stub so older ADRs/PRDs remain readable.
 
-Many handbooks share one Supabase project whose display name is `oh-my-docs`.
-Each handbook is its own git repo, deploys to Vercel project
-`{projectSlug}-omd`, owns a Postgres schema, and has an independent
-handbook-baseline `schemaVersion`. The Supabase project is only the shared
-database container. On supabase adopt, the skill embeds a forward migration
-tree into that handbook repo’s docs app. The skill owns **core** and
-**handbook-baseline** (`omd_*`) objects; operator-authored DDL in the same
-project is not migrated by the skill.
+## Historical meaning
+
+A **Supabase handbook** was a `handbookId` namespace inside a user-owned
+Supabase `projectRef` when that SSOT was offered (PRD-006 / ADR-006). Shipping
+SSOT choices are now only `local` and `notion`.

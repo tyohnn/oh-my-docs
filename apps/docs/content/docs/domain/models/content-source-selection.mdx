@@ -2,46 +2,34 @@
 title: Content source selection
 description: Relationship between a project contract, one content source, its adapter, and provider mappings.
 type: reference
-summary: One project selects one authoritative source while operational mappings stay rebuildable.
+summary: One project selects local or Notion; operational mappings stay rebuildable.
 id: MODEL-content-source-selection
 related:
   - /docs/domain/glossary/content-source
   - /docs/domain/glossary/content-port
   - /docs/domain/glossary/provider-mapping
   - /docs/domain/policies/single-content-source
-  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
-  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
-  - /docs/domain/glossary/supabase-handbook
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
 ## Model
 
 ```text
 Project contract
-  ├── selects exactly one Content source
+  ├── selects exactly one Content source (local | notion)
   ├── configures one Content port adapter
-  └── produces Provider mappings in operational state
+  └── produces Provider mappings in operational state (notion)
 ```
 
-When the source is `supabase`:
-
-```text
-Supabase project (projectRef)
-  └── Supabase handbook (handbookId)
-        └── Postgres schema (omd_h_…) + schemaVersion
-```
-
-The project contract stores non-secret source identity and configuration.
-Operational state stores generated object IDs, schema digests, and observation
-timestamps. Credentials remain with the host integration.
+The project contract stores non-secret source identity. Operational state
+stores generated object IDs and observation timestamps. Credentials remain
+with the host integration (e.g. Notion MCP).
 
 ## Invariants
 
-- One project has exactly one authoritative source (`local`, `notion`, or
-  `supabase`).
-- A `supabase` project selects exactly one `handbookId` inside its
-  `projectRef`.
-- Local, Notion, and Supabase adapters expose equivalent planning operations.
+- One project has exactly one authoritative source (`local` or `notion`).
+- Local and Notion adapters expose equivalent planning operations where
+  applicable.
 - Provider mappings can be discarded and reconstructed.
 - Changing source is an explicit migration, never an implicit sync.
-- Co-hosted handbooks do not share content tables or forced schema upgrades.
+- `supabase` is invalid on new contracts (`ADR-008`).
