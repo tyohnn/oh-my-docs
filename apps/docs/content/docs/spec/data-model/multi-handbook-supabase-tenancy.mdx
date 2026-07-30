@@ -56,10 +56,16 @@ mapping.
 | Layer | Unit |
 |---|---|
 | Supabase project `oh-my-docs` | Shared BYO database (many handbooks) |
-| Git repo + Vercel project | One handbook / one deployable docs app |
+| Git repo + Vercel project `{projectSlug}-omd` | One handbook / one deployable docs app |
 
 `oh-my-docs` is a **Supabase** display name only. Vercel deploys are
 **per handbook repository**, not one Vercel named oh-my-docs.
+
+**Vercel project name** is `{projectSlug}-omd`, where `projectSlug` is the
+handbook repository name (lowercase slug, usually matching `handbookId` /
+git repo basename). Examples: repo `oh-my-docs` → Vercel `oh-my-docs-omd`;
+repo `skills` → `skills-omd`. Adopt finds or creates that Vercel project
+for env sync and deploy wiring—never a shared `oh-my-docs` Vercel app.
 
 `projectRef` in the contract is the shared Supabase project’s ref after
 resolution by name.

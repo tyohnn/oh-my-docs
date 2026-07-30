@@ -38,8 +38,9 @@ handbooks that project may hold safely.
   (match on `name`); if missing, create with that name when the host can.
   This name is **not** a Vercel project.
 - Each handbook is its own git repository with its **own Vercel
-  project/deployment**. There is no shared “oh-my-docs” Vercel app for all
-  handbooks.
+  project/deployment**. The Vercel project name is **`{projectSlug}-omd`**
+  (repository / handbook slug + `-omd`). There is no shared “oh-my-docs”
+  Vercel app for all handbooks.
 - Isolate each handbook with **Postgres schema-per-handbook**:
   - Registry row in `public.omd_handbooks`
     (`handbook_id`, `pg_schema`, `schema_version`, timestamps).
@@ -110,10 +111,10 @@ handbooks that project may hold safely.
   pending steps.
 - Adopt manifests gain host ops: `resolve_project_by_name` (Supabase),
   `scaffold_docs_supabase_sql`, `apply_pending_migrations`,
-  `vercel.sync_supabase_env` targeting the **current repo’s** Vercel project
-  (plan → host execute).
-- Orgs keep one Supabase project `oh-my-docs` and many Vercel projects (one
-  per handbook repo) when free-plan Supabase limits matter.
+  `vercel.ensure_project` / `vercel.sync_supabase_env` targeting Vercel
+  project **`{projectSlug}-omd`** for the current repo (plan → host execute).
+- Orgs keep one Supabase project `oh-my-docs` and many Vercel projects named
+  `{slug}-omd` (one per handbook repo) when free-plan Supabase limits matter.
 - Vercel CLI/REST auth is a host capability blocker when env sync is required
   and Connect is not already linked on that handbook’s Vercel project.
 

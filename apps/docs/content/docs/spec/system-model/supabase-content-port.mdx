@@ -66,11 +66,12 @@ credentials.
    - `apply_pending_migrations` for **handbook-baseline** inside that
      schema only (OMD-owned `omd_*` objects; never operator DDL)
    - IA seed rows for catalog keys from the shared IA graph
-   - `vercel.sync_supabase_env`: ensure **this handbook repo’s** linked
-     Vercel project has Connect publishable vars
-     (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
-     …). Do **not** require `OMD_CONTENT_SSOT`. Do **not** target a shared
-     oh-my-docs Vercel app.
+   - `vercel.ensure_project`: find or create Vercel project named
+     `{projectSlug}-omd` for this handbook repo
+   - `vercel.sync_supabase_env`: ensure that `{projectSlug}-omd` project
+     has Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
+     `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …). Do **not** require
+     `OMD_CONTENT_SSOT`. Do **not** target a shared oh-my-docs Vercel app.
 6. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
    update `.omd/state.json` and write `contentSource.supabase` (including
    `projectRef`, `handbookId`, `schemaVersion`) into the project contract.

@@ -47,8 +47,8 @@ Deliver multi-handbook BYO Supabase tenancy plus per-handbook deploy wiring:
 
 - Shared **Supabase** project discovery by name `oh-my-docs` (not a Vercel
   project)
-- **Per handbook repo** Vercel deployment; skill does not assume one
-  oh-my-docs Vercel app
+- **Per handbook repo** Vercel deployment named `{projectSlug}-omd`; skill
+  does not assume one oh-my-docs Vercel app
 - On `--ssot supabase`, skill **scaffolds a migration tree into that repo**
   (`docs/supabase/migrations/{core,handbook}/`; dogfood
   `apps/docs/supabase/`)
@@ -62,8 +62,8 @@ Deliver multi-handbook BYO Supabase tenancy plus per-handbook deploy wiring:
 - After `--ssot supabase`, contract records SSOT in `.omd` (no Vercel
   `OMD_CONTENT_SSOT`); `local` / `notion` unchanged
 - Build/prepare pulls when contract is supabase **and** Connect env exist
-- Adopt host op `vercel.sync_supabase_env` for **this repo’s** Vercel
-  project (CLI/REST or Connect)
+- Adopt host ops `vercel.ensure_project` + `vercel.sync_supabase_env` for
+  Vercel project **`{projectSlug}-omd`** (CLI/REST or Connect)
 - Per-repo GitHub → Vercel CD; optional smoke of that handbook only
 - Idempotent migrate path from legacy `public.omd_*`
 - Tests for isolation, scaffold-in-repo SQL, discovery, legacy default,
@@ -91,8 +91,8 @@ CD, web editor, migrating operator-authored tables.
 5. `planProvision`: `scaffold_docs_supabase_sql` →
    `resolve_project_by_name` (`oh-my-docs` Supabase) →
    `apply_pending_migrations` (core, then this handbook’s baseline) →
-   upsert registry → seed catalogs → `vercel.sync_supabase_env`
-   (**current repo’s** Vercel project).
+   upsert registry → seed catalogs → `vercel.ensure_project`
+   (`{projectSlug}-omd`) → `vercel.sync_supabase_env` on that project.
 6. Scope create/check/pull/Fumadocs to `{pg_schema}.omd_*`.
 7. SKILL/AGENTS: host uses Supabase MCP for `oh-my-docs` DB; Vercel
    CLI/REST for **this** handbook’s project env; document blockers and
@@ -109,11 +109,11 @@ CD, web editor, migrating operator-authored tables.
   pending-migration ops + per-repo vercel env op; distinct schemas for two
   `handbookId`s; unknown-object safety.
 - Manual: adopt throwaway handbook repo → `docs/supabase/migrations/`
-  present in git → shared Supabase `oh-my-docs` → **that repo’s** Vercel
-  has Connect env → deploy serves `/docs`.
-- Second handbook repo: own Vercel, same Supabase, isolated schema; skill
-  bump that adds a core migration does not change B’s
-  `schema_version`.
+  present in git → shared Supabase `oh-my-docs` → Vercel
+  `{projectSlug}-omd` has Connect env → deploy serves `/docs`.
+- Second handbook repo: own Vercel `{otherSlug}-omd`, same Supabase,
+  isolated schema; skill bump that adds a core migration does not change
+  B’s `schema_version`.
 - `pnpm check:planning` and skill runtime tests pass.
 
 ## Migration and compatibility
