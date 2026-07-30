@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && pnpm run check:planning",
+    "build": "node scripts/build-with-content.mjs",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
+    "prepare:content": "node scripts/prepare-content.mjs",
+    "pull:supabase": "node scripts/pull-supabase-content.mjs",
+    "push:supabase": "node scripts/push-supabase-content.mjs",
     "test": "node --test scripts/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "check:planning": "node scripts/check-planning.mjs"

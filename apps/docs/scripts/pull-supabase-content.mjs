@@ -24,9 +24,10 @@ function restBase() {
   const key =
     process.env.SUPABASE_ANON_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
-    throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY are required');
+    throw new Error('SUPABASE_URL and a publishable/anon key are required');
   }
   return { url, key };
 }
@@ -87,10 +88,27 @@ async function main() {
     `${JSON.stringify({ title: 'Handbook', pages: rootPages.length ? rootPages : ['index'] }, null, 2)}\n`,
   );
 
+  const catalogDirs = {
+    'dbs.prds': 'planning/prds',
+    'dbs.stories': 'planning/stories',
+    'dbs.plans': 'plans',
+    'dbs.adrs': 'adr',
+    'dbs.glossary': 'domain/glossary',
+    'dbs.models': 'domain/models',
+    'dbs.policies': 'domain/policies',
+    'dbs.data-model': 'spec/data-model',
+    'dbs.system-model': 'spec/system-model',
+  };
   for (const catalog of catalogs) {
-    // catalog_key like dbs.prds — best-effort path from first matching doc prefix
-    const sample = docs.find((d) => Array.isArray(catalog.pages) && catalog.pages.length);
-    void sample;
+    const dir = catalogDirs[catalog.catalog_key];
+    if (!dir || !Array.isArray(catalog.pages)) continue;
+    const absolute = join(outRoot, dir, 'meta.json');
+    mkdirSync(dirname(absolute), { recursive: true });
+    const title = dir.split('/').at(-1) ?? catalog.catalog_key;
+    writeFileSync(
+      absolute,
+      `${JSON.stringify({ title, pages: catalog.pages }, null, 2)}\n`,
+    );
   }
 
   console.log(

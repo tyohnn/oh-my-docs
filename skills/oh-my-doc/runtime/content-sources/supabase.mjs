@@ -9,12 +9,28 @@ export const SUPABASE_SCHEMA_VERSION = '1.0';
 /**
  * @param {string} skillRoot
  */
-export function loadSupabaseSchemaSql(skillRoot) {
-  const path = join(skillRoot, 'references/supabase-schema-1.0.sql');
-  if (!existsSync(path)) {
-    throw new Error(`missing supabase schema at ${path}`);
+/**
+ * Prefer docs-app embedded SQL (`docs/supabase/` or `apps/docs/supabase/`),
+ * then fall back to the skill reference copy.
+ *
+ * @param {string} skillRoot
+ * @param {string} [cwd]
+ */
+export function loadSupabaseSchemaSql(skillRoot, cwd = process.cwd()) {
+  const candidates = [
+    join(cwd, 'apps/docs/supabase/schema-1.0.sql'),
+    join(cwd, 'docs/supabase/schema-1.0.sql'),
+    join(skillRoot, 'templates/default/docs/supabase/schema-1.0.sql'),
+    join(skillRoot, 'references/supabase-schema-1.0.sql'),
+  ];
+  for (const path of candidates) {
+    if (existsSync(path)) {
+      return readFileSync(path, 'utf8');
+    }
   }
-  return readFileSync(path, 'utf8');
+  throw new Error(
+    `missing supabase schema SQL (looked under docs/supabase and ${join(skillRoot, 'references')})`,
+  );
 }
 
 /**
@@ -52,6 +68,7 @@ export function capabilityBlockers(flags = {}) {
 /**
  * @param {{
  *   skillRoot: string,
+ *   cwd?: string,
  *   projectRef?: string,
  *   schemaVersion?: string,
  *   pendingOperationIds?: string[],
@@ -59,7 +76,7 @@ export function capabilityBlockers(flags = {}) {
  */
 export function planProvision(options) {
   const schemaVersion = options.schemaVersion ?? SUPABASE_SCHEMA_VERSION;
-  const sql = loadSupabaseSchemaSql(options.skillRoot);
+  const sql = loadSupabaseSchemaSql(options.skillRoot, options.cwd);
   const graph = loadHandbookIaGraph();
   const catalogKeys = (graph.objects ?? [])
     .filter((o) => o.metaRole === 'catalog-index' && o.databaseKey)
@@ -84,9 +101,15 @@ export function planProvision(options) {
     operations.push({
       id: 'supabase.ensure_project',
       op: 'ensure_project',
-      nameHint: 'oh-my-docs-handbook',
+      nameHint: 'oh-my-docs',
     });
   }
+
+  operations.push({
+    id: 'supabase.scaffold_docs_schema_sql',
+    op: 'scaffold_docs_supabase_sql',
+    relativePath: 'docs/supabase/schema-1.0.sql',
+  });
 
   for (const key of catalogKeys) {
     operations.push({
