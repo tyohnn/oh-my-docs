@@ -62,12 +62,16 @@ credentials.
    - `vercel.sync_supabase_env`: ensure the linked Vercel project has
      Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
      `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and Connect-provided server
-     twins). Do **not** require `OMD_CONTENT_SSOT`.
+     twins). Do **not** require a separate `OMD_CONTENT_SSOT` env—SSOT was
+     already chosen at adopt and lives in `.omd`.
 5. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
    update `.omd/state.json` and write `contentSource.supabase` (including
    `projectRef`, `handbookId`, `schemaVersion`) into the project contract.
 6. Optional: observe or trigger one GitHub→Vercel deployment and confirm
    `/docs` renders; ongoing CD stays on GitHub.
+
+This provision path is entered only for `--ssot supabase`. Other SSOT values
+use their own adapters.
 
 Re-running provision must not duplicate stable document or catalog keys, and
 must not migrate sibling handbooks.
@@ -87,12 +91,14 @@ MDX template and updates `catalog_meta.pages[]`.
 
 ### Fumadocs remote loader
 
-The docs app **hardcodes** handbook SSOT to `supabase` in code (not via
-`OMD_CONTENT_SSOT`). At build/runtime it materializes or reads documents and
-catalog nav from the linked `oh-my-docs` project using Connect publishable
-URL/key env vars only—never from git-tracked secrets in `.omd`. Generated
-local caches (for example `.supabase-content`, `.source`) remain
-non-authoritative. Routes `/docs/*` and `/md/*` stay available.
+When the project contract has `ssot: supabase` (set because the user chose
+Supabase at adopt), the docs app materializes or reads documents and catalog
+nav from the linked `oh-my-docs` project using Connect publishable URL/key
+env vars only—never from git-tracked secrets in `.omd`, and never by
+requiring a Vercel `OMD_CONTENT_SSOT` override. Generated local caches (for
+example `.supabase-content`, `.source`) remain non-authoritative. Routes
+`/docs/*` and `/md/*` stay available. If the contract is `local` or
+`notion`, this loader path is not used.
 
 ## Data and invariants
 

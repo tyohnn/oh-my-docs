@@ -27,22 +27,24 @@ Sharing one Supabase project naively—by putting every handbook’s rows in the
 same `public.omd_*` tables—couples schema migrations. Upgrading one handbook’s
 `schemaVersion` would alter tables every other handbook still depends on.
 
-Adopt also asks humans to pick a `projectRef` and set docs-app env vars
-(`OMD_CONTENT_SSOT`, URL, keys) on Vercel. That friction blocks “new repo →
-working handbook deploy” for the common case where the org already has one
-shared Oh My Docs database.
+When a team **does** choose `supabase`, adopt still asks humans to pick a
+`projectRef` and often to set a redundant SSOT env on Vercel. That friction
+blocks “new repo → working handbook deploy” for the common case where the
+org already has one shared Oh My Docs database.
 
 ## Outcome
 
-A team may link **many Oh My Docs repositories** to **one user-owned Supabase
-project named `oh-my-docs`**. Each repository selects a stable `handbookId`.
-Content and catalog rows for that handbook live in an isolated Postgres schema
-whose `schemaVersion` can advance independently of siblings. Adopt discovers
-that shared project via Supabase MCP, applies schema SQL that lives in the
-docs app tree, and uses the Vercel tool/MCP to sync Connect publishable env
-vars. The docs app hardcodes Supabase as SSOT in code—users never set
-`OMD_CONTENT_SSOT`. GitHub → Vercel remains the deploy path. Oh My Docs still
-does not host a shared multi-tenant cloud for all customers—this remains BYO.
+After a team selects **`ssot: supabase`**, they may link **many Oh My Docs
+repositories** to **one user-owned Supabase project named `oh-my-docs`**.
+Each repository selects a stable `handbookId`. Content and catalog rows for
+that handbook live in an isolated Postgres schema whose `schemaVersion` can
+advance independently of siblings. Adopt discovers that shared project via
+Supabase MCP, applies schema SQL that lives in the docs app tree, and syncs
+Vercel Connect publishable env vars. SSOT remains recorded in the repo
+contract from that adopt choice—operators do not also set
+`OMD_CONTENT_SSOT` on Vercel. `local` / `notion` adopts are unchanged.
+GitHub → Vercel remains the deploy path. Oh My Docs still does not host a
+shared multi-tenant cloud for all customers—this remains BYO.
 
 ## Goals
 
@@ -53,8 +55,8 @@ does not host a shared multi-tenant cloud for all customers—this remains BYO.
   handbook to migrate together.
 - Ship handbook SQL under the docs app (`docs/supabase/` or
   `apps/docs/supabase/`); skill/port applies that SQL.
-- Hardcode apps/docs SSOT to `supabase` in code; Vercel only needs Connect
-  URL/publishable keys (set via Vercel MCP/tool during adopt).
+- When the user chose `supabase`, persist that choice in `.omd` / docs-app
+  wiring; Vercel only needs Connect URL/publishable keys (synced at adopt).
 - Preserve v1 single-handbook layouts (`public.omd_*`) as a compatible
   default until an explicit migrate.
 - Keep secrets out of `.omd` contracts; continue host CLI/MCP execution.
@@ -62,12 +64,13 @@ does not host a shared multi-tenant cloud for all customers—this remains BYO.
 ## Non-goals
 
 - Oh My Docs–operated multi-tenant Supabase for all customers.
+- Forcing every docs app (including `local` / `notion`) onto Supabase.
 - Cross-handbook reads, joins, or shared catalog browsing in the product UI.
 - Automatic merge of two existing Supabase projects into one.
 - Replacing GitHub-triggered Vercel deploys with skill-owned CD.
 - Web editor or changing Fumadocs as the renderer.
 - Per-end-user row tenancy inside a handbook (authz beyond today’s RLS model).
-- Requiring users to set `OMD_CONTENT_SSOT` (or equivalent) in Vercel.
+- Requiring a separate Vercel `OMD_CONTENT_SSOT` env after a supabase adopt.
 
 ## Included stories
 
@@ -84,6 +87,7 @@ does not host a shared multi-tenant cloud for all customers—this remains BYO.
   the default handbook without a forced rewrite.
 - Teams no longer need a second Supabase project solely to host a second
   handbook under free-plan limits.
-- Greenfield adopt finds or creates Supabase project `oh-my-docs`, wires
-  Vercel Connect env, and a GitHub-triggered (or one-shot) deploy serves
-  `/docs` without manual SSOT env configuration.
+- Greenfield `--ssot supabase` adopt finds or creates Supabase project
+  `oh-my-docs`, wires Vercel Connect env, and a GitHub-triggered (or
+  one-shot) deploy serves `/docs` without a separate Vercel
+  `OMD_CONTENT_SSOT` env.

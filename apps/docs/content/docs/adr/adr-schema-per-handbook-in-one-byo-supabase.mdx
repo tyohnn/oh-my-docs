@@ -47,11 +47,14 @@ handbooks that project may hold safely.
   (`apps/docs/supabase/` in this monorepo; scaffolded `docs/supabase/` in
   consumer templates). The skill/content port applies that SQL; it is not
   only a skill-private reference copy.
-- The docs app **hardcodes** handbook SSOT to `supabase` in code. Users do
-  not set `OMD_CONTENT_SSOT`. Deploy-time credentials are only Vercel
-  Supabase Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …), synced during adopt via the
-  Vercel MCP/tool when available.
+- SSOT remains an adopt-time choice. **Only when** the user selects
+  `supabase`, the repo contract (`.omd/project.json`) and docs-app wiring
+  record `ssot: supabase`. Operators do not also set `OMD_CONTENT_SSOT` on
+  Vercel. `local` / `notion` projects are unchanged.
+- Deploy-time credentials for supabase projects are only Vercel Supabase
+  Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …), synced during adopt via
+  Vercel CLI/REST or Connect when available.
 - Store non-secret identity in `.omd/project.json`:
 
   ```json

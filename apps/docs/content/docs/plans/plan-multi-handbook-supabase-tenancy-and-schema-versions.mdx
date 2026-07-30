@@ -48,9 +48,11 @@ Deliver multi-handbook BYO Supabase tenancy plus zero-friction adopt wiring:
 - Registry + schema-per-handbook SQL (`schemaVersion` `1.1`) living under
   **`apps/docs/supabase/`** (and template `docs/supabase/`)
 - Content-port provision/create/check scoped to one handbook
-- Docs app hardcodes SSOT `supabase` (no `OMD_CONTENT_SSOT` env)
-- Build/prepare pulls content when Connect URL/key env exist
-- Adopt host op `vercel.sync_supabase_env` via Vercel MCP/tool
+- After `--ssot supabase`, contract records SSOT in `.omd` (no Vercel
+  `OMD_CONTENT_SSOT` env required); `local` / `notion` unchanged
+- Build/prepare pulls content when contract is supabase **and** Connect
+  URL/key env exist
+- Adopt host op `vercel.sync_supabase_env` via Vercel CLI/REST or Connect
 - GitHub → Vercel remains CD; optional one-shot deploy smoke
 - Idempotent migrate path from legacy `public.omd_*` → registry + dedicated
   schema
@@ -65,10 +67,10 @@ merge of two Supabase projects, skill-owned CD replacing GitHub, web editor.
 1. Move canonical SQL into `apps/docs/supabase/` (and template mirror); teach
    the skill port to load SQL from the docs app / template path; keep
    `references/` in sync or as a thin re-export.
-2. Hardcode apps/docs `APPS_DOCS_CONTENT_SSOT = 'supabase'`; build
-   `prepare-content` / `build-with-content` pulls when Connect env present
-   (`NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` publishable)—never
-   `OMD_CONTENT_SSOT`.
+2. Docs app reads SSOT from `.omd` (adopt choice). When `ssot: supabase`,
+   `prepare-content` / `build-with-content` pulls if Connect env present
+   (`NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` publishable). Do not require
+   `OMD_CONTENT_SSOT`. Leave `local` / `notion` on filesystem/Notion paths.
 3. Extend contract with `handbookId`; derive `pgSchema`; update normalize /
    adopt helpers.
 4. Bundle schema `1.1` (registry + parameterized handbook DDL/RLS).
@@ -80,7 +82,8 @@ merge of two Supabase projects, skill-owned CD replacing GitHub, web editor.
    MCP to sync env; document auth blockers (`vercel_login_required`,
    `shared_project_missing`).
 8. Tests: discovery name match; two handbooks isolation; migrate A without
-   touching B; build without `OMD_CONTENT_SSOT`; secret rejection unchanged.
+   touching B; supabase adopt builds without `OMD_CONTENT_SSOT`; local
+   adopt still uses local content; secret rejection unchanged.
 
 ## Verification
 
@@ -120,4 +123,5 @@ failed adopt retries from pending ops without deleting sibling handbooks.
   manual smoke.
 - Plan stage → `done` only after verification on a throwaway multi-handbook
   project with Vercel env sync (or Connect pre-linked).
-- No web editor, OMD-hosted tenancy, or `OMD_CONTENT_SSOT` requirement.
+- No web editor, OMD-hosted tenancy, or Vercel `OMD_CONTENT_SSOT`
+  requirement after a supabase adopt.
