@@ -19,6 +19,9 @@ inside a user-owned Supabase `projectRef`.
 
 Many handbooks share one Supabase project whose display name is `oh-my-docs`.
 Each handbook is its own git repo (and usually its own Vercel deploy), owns a
-Postgres schema, and has an independent `schemaVersion`. The Supabase project
-is only the shared database container. On supabase adopt, the skill embeds
-declarative SQL into that handbook repo’s docs app as static code.
+Postgres schema, and has an independent handbook-baseline `schemaVersion`.
+The Supabase project is only the shared database container. On supabase
+adopt, the skill embeds a forward migration tree into that handbook repo’s
+docs app. The skill owns **core** and **handbook-baseline** (`omd_*`)
+objects; operator-authored DDL in the same project is not migrated by the
+skill.

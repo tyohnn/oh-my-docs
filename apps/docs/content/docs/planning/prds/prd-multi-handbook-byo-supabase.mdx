@@ -13,6 +13,7 @@ reviewMethod: pdca-discovery
 stories:
   - US-share-one-supabase-across-handbooks
   - US-adopt-links-shared-oh-my-docs-supabase
+  - US-upgrade-core-supabase-schema-via-skill-migrations
 ---
 
 ## Problem
@@ -56,6 +57,9 @@ customers—this remains BYO.
 - Keep exactly one content SSOT per repository (ADR-005 unchanged).
 - Isolate handbook data so schema upgrades do not force every co-hosted
   handbook to migrate together.
+- Treat the skill as the authority for **core** Oh My Docs schema: skill
+  updates ship forward migrations that apply safely, without rewriting
+  operator-owned DDL inside individual handbook schemas.
 - When the user chose `supabase`, persist that choice in `.omd`; that
   handbook’s Vercel only needs Connect URL/publishable keys.
 - Preserve v1 single-handbook layouts (`public.omd_*`) as a compatible
@@ -73,11 +77,14 @@ customers—this remains BYO.
 - Web editor or changing Fumadocs as the renderer.
 - Per-end-user row tenancy inside a handbook (authz beyond today’s RLS model).
 - Requiring a separate Vercel `OMD_CONTENT_SSOT` env after a supabase adopt.
+- Skill-managed migration of tables an operator created outside the OMD
+  baseline (`omd_*`).
 
 ## Included stories
 
 - `US-share-one-supabase-across-handbooks`
 - `US-adopt-links-shared-oh-my-docs-supabase`
+- `US-upgrade-core-supabase-schema-via-skill-migrations`
 
 ## Success measures
 
@@ -85,6 +92,8 @@ customers—this remains BYO.
   with different `handbookId` values and never see each other’s documents.
 - Upgrading handbook A’s `schemaVersion` leaves handbook B’s live schema and
   `check` result unchanged until B migrates.
+- A skill update that advances core schema applies pending migrations once
+  without altering sibling handbook schemas or operator-owned tables.
 - An existing v1 project with only `public.omd_*` tables continues to work as
   the default handbook without a forced rewrite.
 - Teams no longer need a second Supabase project solely to host a second
