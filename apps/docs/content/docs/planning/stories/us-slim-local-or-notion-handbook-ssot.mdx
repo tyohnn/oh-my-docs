@@ -1,8 +1,8 @@
 ---
 title: Slim local or Notion handbook SSOT
-description: Adopt with local MDX or a one-page Notion catalog workspace; Supabase and docs-first gates are not offered.
+description: Adopt local MDX or Notion catalogs; Supabase and docs-first gates are deleted.
 type: conceptual
-summary: Pick local Fumadocs or Notion catalogs; no Supabase, revalidate setup, or mandatory planning/development gate.
+summary: local|notion only; no Supabase, no revalidate product surface, no docs-first gate — hard cut.
 id: US-slim-local-or-notion-handbook-ssot
 ticker: US-013
 stage: accepted
@@ -13,37 +13,22 @@ related:
   - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
-As a builder, I want Oh My Docs to support either a local Fumadocs handbook or
-a simple Notion page of catalog databases, without forcing planning ceremony
-before code, so that agents have optional durable indexes and I can ship.
-
-## Context
-
-Replaces the three-way SSOT choice and the docs-first merge gate. Supabase-era
-stories (`US-009`–`US-012`) no longer describe the shipping product.
+As a builder, I want local Fumadocs or a Notion catalog page without Supabase
+or docs-first ceremony so agents can ship and keep indexes only when useful.
 
 ## Acceptance criteria
 
-- Greenfield `adopt` accepts `--ssot local|notion` only; `--ssot supabase`
-  fails with an actionable error.
-- Agents ask for `local` vs `notion` before first adopt (`needsSsot` options
-  exclude supabase).
-- `local` keeps the full Fumadocs MDX handbook IA (unchanged section set).
-- `notion` maps `--notion-root` to Home and provisions **inline catalog DBs**
-  under that page only—no Vision, Start here, or Workflow pages.
-- Notion catalog documents are database rows (ADR, Data model, API/system
-  specs, Plans, PRDs, Stories, and other catalogs in the slim graph).
-- `.omd/project.json` never records `contentSource.ssot: supabase` on new
-  adopts; dogfood migrates off supabase as part of the implementation plan.
-- Managed `AGENTS.md` / skill hard rules do **not** require a ready plan,
-  `Plan:` trailer, or sequential planning-then-code PRs before implementation.
-- `check:docs-first` is removed or always succeeds; CI does not fail PRs for
-  missing plans.
-- No skill guidance requires `OMD_REVALIDATE_SECRET`, `OMD_DOCS_URL`, or
-  Vercel content-port setup for handbook freshness.
-- Local and Notion projects remain mutually exclusive SSOTs.
+- `adopt` accepts `--ssot local|notion` only; `supabase` errors (not a migrate
+  hint flow).
+- `needsSsot` options are only `local` and `notion`.
+- Local keeps the full Fumadocs IA; Notion is Home + inline catalog DBs only.
+- `check:docs-first` is **deleted** from the repo and package scripts.
+- Skill / `AGENTS.md` do not require plans or `Plan:` trailers before code.
+- Supabase content-port modules, revalidate API, and Supabase-only handbook
+  catalog pages are **gone** from the tree after implementation.
+- Dogfood `.omd` is `ssot: local` in that same cut (no soft dual SSOT).
 
 ## Out of scope
 
-- Migrating existing Supabase handbook row data automatically into Notion.
-- In-browser handbook editors.
+- Soft migration tooling
+- In-browser handbook editor

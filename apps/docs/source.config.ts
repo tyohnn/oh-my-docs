@@ -1,11 +1,9 @@
 import { defineConfig, defineDocs, frontmatterSchema, metaSchema } from 'fumadocs-mdx/config';
 import { z } from 'zod';
 
-// When `.omd` has ssot: supabase, `pnpm build` pulls via Connect env into
-// `.supabase-content/docs` and sets OMD_CONTENT_DIR. Local MDX is the fallback
-// cache when Connect env is absent.
+// Local handbook MDX under content/docs.
 export const docs = defineDocs({
-  dir: process.env.OMD_CONTENT_DIR || 'content/docs',
+  dir: 'content/docs',
   docs: {
     postprocess: { includeProcessedMarkdown: true },
     schema: frontmatterSchema.extend({

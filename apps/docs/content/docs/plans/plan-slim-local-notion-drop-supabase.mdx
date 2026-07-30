@@ -1,8 +1,8 @@
 ---
-title: Slim local/Notion SSOT; drop Supabase and docs gates
-description: Implement dual SSOT local|notion with slim Notion catalogs; delete Supabase path, revalidate surface, and docs-first planning/development gates.
+title: Slim local/Notion SSOT; hard-delete Supabase and docs gates
+description: Delete Supabase path, revalidate surface, and docs-first gates; slim Notion to catalog DBs; no shims.
 type: guide
-summary: Cut supabase + revalidate; slim Notion catalogs; remove check:docs-first and mandatory planning ceremony from agents/CI.
+summary: Hard cut to local|notion + catalog Notion; delete gates and Supabase — no soft migration.
 id: PLAN-slim-local-notion-drop-supabase
 ticker: PLAN-018
 stage: ready
@@ -24,7 +24,7 @@ codeAreas:
   - apps/docs/package.json
   - apps/docs/.env.example
   - apps/docs/source.config.ts
-  - apps/docs/content/docs/workflow/
+  - apps/docs/content/docs/
   - package.json
   - AGENTS.md
   - CLAUDE.md
@@ -41,55 +41,54 @@ related:
 
 ## Scope
 
-1. Runtime/contract: `contentSource.ssot` ∈ {`local`,`notion`} only; reject
-   `supabase` on adopt/check/new.
-2. Notion: slim IA graph (Home + inline catalog DBs). Remove Vision / Start
-   here / Workflow from Notion provision.
-3. Local: keep full Fumadocs MDX handbook IA.
-4. Delete Supabase content-port adapters, remote loaders, ISR/revalidate API,
-   notify helpers, and Vercel content-port ops from skills/docs app.
-5. **Remove planning/development gates:** delete or no-op
-   `scripts/check-docs-first.mjs` / `pnpm check:docs-first`; strip CI steps;
-   rewrite `SKILL.md`, markers, root `AGENTS.md` / `CLAUDE.md` so agents do not
-   block on PRD/story/SPEC/PLAN or `Plan:` trailers. Keep optional
-   `check:planning` and `omd new` for voluntary catalog hygiene.
-6. Dogfood: `.omd` → `ssot: local`.
+Hard delete / hard cut — **no** no-op shims, dual-read, or soft migration.
+
+1. Contract/runtime: only `local` | `notion`. Reject `supabase` everywhere.
+2. Notion: slim IA (Home + inline catalog DBs). No Vision / Workflow pages.
+3. Local: keep full Fumadocs MDX IA.
+4. **Delete** Supabase adapters, SQL templates, remote loaders, pull/push
+   authority path, revalidate API, notify/revalidate-env, Vercel content-port
+   ops, and Supabase-only handbook catalog pages (PRD/ADR/SPEC/PLAN/US/glossary
+   stubs that exist only for that path).
+5. **Delete** `scripts/check-docs-first.mjs`, `pnpm check:docs-first`, CI wiring,
+   and all agent/AGENTS language that blocks on plans. Not a no-op.
+6. Dogfood: set `.omd` to `ssot: local` in the same change. No export pipeline
+   from Supabase.
 7. `pnpm sync:skills`.
 
-Out of scope: auto-export Supabase rows to Notion; redesigning local Vision
-pages; building a replacement human task product.
+Out of scope: rebuilding a human task product; Notion↔local sync.
 
 ## Implementation sequence
 
-1. Land this ready plan (docs-only) on `main`.
-2. Remove docs-first gate script + package script + CI + skill/AGENTS language.
-3. Slim Notion IA + wire adopt/check; keep full graph for local.
-4. Remove supabase branches and apps/docs remote/revalidate path.
-5. Migrate dogfood `.omd` to local; refresh markers.
-6. Tests + `pnpm check:skills` (+ optional `check:planning`).
+1. Land this plan on `main` (docs-only).
+2. Delete docs-first gate + skill/AGENTS gate language.
+3. Slim Notion IA; remove supabase from runtime/schemas/tests.
+4. Delete apps/docs Supabase serve + revalidate + dead scripts/env keys.
+5. Delete retired Supabase catalog docs from `content/docs` + meta.json.
+6. Point dogfood `.omd` at local; sync markers.
+7. `pnpm check:skills` + unit tests.
 
 ## Verification
 
-- `adopt --ssot supabase` fails; `needsSsot` is `local` | `notion`.
-- Notion dry-run: catalog DBs only (no Vision/Workflow).
-- Local docs build without Supabase env; no `/api/revalidate`.
-- `pnpm check:docs-first` absent or exits 0 with a retired message; skill text
-  does not instruct agents to refuse code without a ready plan.
-- `pnpm check:skills`; relevant unit tests pass; dogfood `ssot: local`.
+- No `check:docs-first` script/script entry.
+- `adopt --ssot supabase` errors; `needsSsot` ∈ {local, notion}.
+- No Supabase content-source modules or `/api/revalidate` in tree.
+- Notion dry-run: catalog DBs only.
+- Dogfood `ssot: local`; local docs build without Supabase env.
+- Skill text does not mention docs-first gates or Supabase SSOT as supported.
 
-## Migration and compatibility
+## Compatibility
 
-- Superseded: ADR-006/007, SPEC-010–012, PLAN-014–017, PRD-006/007 (done).
-- Docs-first merge policy retired via amended `SPEC-docs-first-development`.
-- Adopters on supabase re-adopt or edit `.omd` to `local`|`notion`.
+None. Hard cut. Prior Supabase / gate behavior is gone after the
+implementation PR merges.
 
 ## Risks and rollback
 
-- Teams that relied on the gate lose CI enforcement — intentional.
-- Pull Supabase → local MDX once before cutting remote serve if needed.
-- Rollback: revert implementation PR.
+- Rollback = revert the implementation PR.
+- Supabase-hosted handbook rows are abandoned unless someone already copied
+  them into local MDX before the cut (not a product migration feature).
 
 ## Completion criteria
 
-- US-013 acceptance criteria hold (including gate removal).
-- Plan stage → `done` after verification.
+- US-013 holds.
+- Plan → `done` after verification.
