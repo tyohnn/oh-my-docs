@@ -12,7 +12,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { OMD_HANDBOOK_REVALIDATE_SECONDS } from '@/lib/handbook-cache';
 import {
   catalogFooterItems as localCatalogFooterItems,
   catalogIndexLink as localCatalogIndexLink,
@@ -21,7 +20,8 @@ import {
 } from '@/lib/source';
 import { compileSupabasePage, getSupabaseSource, listSupabaseStaticParams } from '@/lib/supabase-remote-source';
 
-export const revalidate = OMD_HANDBOOK_REVALIDATE_SECONDS;
+// Next.js requires a literal segment config (keep in sync with OMD_HANDBOOK_REVALIDATE_SECONDS).
+export const revalidate = 3600;
 export const dynamicParams = true;
 
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {

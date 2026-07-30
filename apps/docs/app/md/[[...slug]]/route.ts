@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 
-import { OMD_HANDBOOK_REVALIDATE_SECONDS } from '@/lib/handbook-cache';
 import { shouldUseSupabaseRemote, source as localSource } from '@/lib/source';
 import { compileSupabasePage, listSupabaseStaticParams } from '@/lib/supabase-remote-source';
 
-export const revalidate = OMD_HANDBOOK_REVALIDATE_SECONDS;
+// Next.js requires a literal segment config (keep in sync with OMD_HANDBOOK_REVALIDATE_SECONDS).
+export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug?: string[] }> }) {
