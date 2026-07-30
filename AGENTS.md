@@ -5,19 +5,19 @@ only points here.
 
 ## Project
 
-Oh My Docs is a docs-first product workspace. `apps/docs/content/docs` is the
-local handbook SSOT for product intent, observable contracts, decisions, and
-implementation notes.
+Oh My Docs is a docs-first product workspace. Dogfood handbook SSOT is
+**Notion**: one Home page with stacked inline catalog DBs (no child pages,
+no sidebar). See `.omd/project.json` `contentSource.notion.rootPageUrl`.
+The `apps/docs` Fumadocs app remains the local product shell / template
+mirror — it is **not** the content SSOT while `ssot: notion`.
 
 - Node.js >= 24
 - pnpm 11.5.2 and Turborepo
 - TypeScript strict mode and ESM
-- SSOT is `local` (see `.omd/project.json`); Notion is the other supported
-  option for adopters, not this dogfood repo
+- SSOT is `notion` (see `.omd/project.json`)
 
-Prefer updating a stable ID over duplicating an idea. Register every catalog
-document in its sibling `meta.json`. Create artifacts with
-`node skills/oh-my-doc/scripts/omd.mjs new prd|story|spec|plan|adr --title "…"`.
+Create catalog rows via Notion MCP (or `omd.mjs new` which emits a Notion
+create-row manifest). Prefer updating a stable OMD ID over duplicating.
 
 ## Commands
 
@@ -52,14 +52,14 @@ npmjs.com before the first tag publish. Do not publish from a developer machine.
 - No lint tooling exists (no ESLint/Biome). The "lint" gate is the check scripts:
   `pnpm check:ui-snapshot`, `pnpm check:skills`, and `pnpm check:planning`.
   Release publishing uses `.github/workflows/release.yml`.
-- The only long-running service is the docs handbook (`apps/docs`, Next.js). Run it
-  with `pnpm --filter @oh-my-docs/docs dev` (or `pnpm dev`); it serves on
-  `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
-- SSOT is `local` (`.omd/project.json`). Edit `apps/docs/content/docs` directly;
-  no Supabase sync or revalidate setup is required.
+- The docs app (`apps/docs`, Next.js) is still useful for local shell/UI dogfood:
+  `pnpm --filter @oh-my-docs/docs dev` on `http://localhost:3000`. Handbook
+  content authority is the Notion root in `.omd/project.json`, not local MDX.
+- After Notion writes, no revalidate/deploy secret flow is required.
 - Agent-runtime smoke test (no server needed):
   `node skills/oh-my-doc/scripts/omd.mjs inspect --json` and `... check --json`.
   Test `adopt` against a throwaway temp dir, never the repo root — it scaffolds files.
+- Manual Notion step: open the handbook root → `⋯` → enable **Full width**.
 
 <!-- oh-my-docs:start -->
 # Oh My Docs
@@ -75,9 +75,10 @@ This repository uses a docs-first workflow. Canonical product intent lives in
 2. Missing `contentSource` means `local`.
 3. If `.omd/project.json` is missing, run `inspect` / ask the user to choose
    SSOT and `adopt` before inventing handbook files.
-4. For `local`, edit the Fumadocs MDX tree. For `notion`, edit Home +
-   inline catalog DBs via the host Notion MCP. Do not treat an unselected
-   provider as truth.
+4. For `local`, edit the Fumadocs MDX tree. For `notion`, edit the single
+   Home page where catalog DBs are stacked inline (no child pages, no
+   sidebar) via the host Notion MCP. Do not treat an unselected provider as
+   truth.
 
 ## Documentation is always first
 
@@ -88,9 +89,9 @@ discussion that should outlive this chat must be written into the selected SSOT
 1. Before and during the talk, check whether the topic already exists in the SSOT.
 2. Create or update the matching handbook artifacts as the discussion progresses.
 3. Catalog entries (PRD, story, plan, ADR, …) go in the **catalog store** — a
-   Notion inline database row or a local catalog folder + `meta.json` — never
-   as ad-hoc section children. **Planning ≠ Plans**: implementation plans
-   belong in Plans (`dbs.plans`), not under Planning.
+   Notion inline database row on Home, or a local catalog folder +
+   `meta.json` — never as ad-hoc child pages. **Planning ≠ Plans**:
+   implementation plans belong in Plans (`dbs.plans`).
 4. Prefer `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes` (local)
    or the Notion catalog workflow (notion) over ad-hoc files or chat-only notes.
 5. Run `node <skill>/scripts/omd.mjs check` after meaningful documentation edits.

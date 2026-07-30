@@ -1,7 +1,32 @@
 /**
+ * Agent-only Notion home: vertical stack of catalog headings + inline DBs.
+ * No columns, no sidebar callout, no child pages.
+ *
+ * @param {{
+ *   bodyMarkdown?: string,
+ *   databases: Array<{ key: string, title: string, url?: string }>,
+ * }} options
+ */
+export function renderStackedHomeContent(options) {
+  const lines = [];
+  const intro = String(options.bodyMarkdown ?? '').trim();
+  if (intro) {
+    for (const line of intro.split('\n')) lines.push(line);
+    lines.push('');
+  }
+  for (const db of options.databases) {
+    const url = db.url ?? `{{${db.key}}}`;
+    lines.push(`# ${db.title}`);
+    lines.push(`<database url="${url}" inline="true">${db.title}</database>`);
+    lines.push('');
+  }
+  return `${lines.join('\n').replace(/\n+$/, '')}\n`;
+}
+
+/**
  * Build and validate Notion-flavored Markdown sidebar chrome for a managed page.
  *
- * Layout contract (enforced by `validateSidebarChrome`):
+ * Legacy human-nav layout (enforced by `validateSidebarChrome` when used):
  * - Two columns (20 / 80) with a gray callout nav on the left
  * - All page body copy and child `<page>` / `<database>` / sources blocks live
  *   in the right column (never below `</columns>`)
@@ -9,6 +34,8 @@
  * - Parents with children wrap those children in a `<details>` toggle whose
  *   `<summary>` is the parent mention (collapsible sidebar group)
  * - Active section summary gets yellow_bg; active leaf also gets yellow_bg
+ *
+ * Current Notion SSOT (`stacked-on-home`) does **not** use this chrome.
  *
  * Highlight form Notion round-trips (suffix):
  *   <mention-page url="..."/> {color="yellow_bg"}
@@ -191,6 +218,34 @@ export function validateSidebarChrome(markdown, options) {
  */
 export function validateManifestSidebarChrome(options) {
   const problems = [];
+  const strategy = options.sourcesStrategy ?? 'catalogs-on-home';
+  // Agent stack: no sidebar chrome to validate.
+  if (strategy === 'stacked-on-home') {
+    for (const op of options.operations) {
+      if (op.op !== 'write_page_body' || op.key !== 'pages.home') continue;
+      const content = String(op.payload?.content ?? '');
+      if (!content) {
+        problems.push({
+          code: 'stack_missing_body',
+          message: 'pages.home: stacked home body missing content',
+        });
+        continue;
+      }
+      if (content.includes('<columns>') || content.includes('<callout')) {
+        problems.push({
+          code: 'stack_has_sidebar_chrome',
+          message: 'pages.home: stacked-on-home must not include sidebar columns/callout',
+        });
+      }
+      if (!/<database\b[^>]*inline="true"/.test(content)) {
+        problems.push({
+          code: 'stack_missing_databases',
+          message: 'pages.home: stacked home must embed inline databases',
+        });
+      }
+    }
+    return { ok: problems.length === 0, problems };
+  }
   for (const op of options.operations) {
     if (op.op !== 'write_page_body' || !op.key.startsWith('pages.')) continue;
     const content = op.payload?.content;
@@ -339,7 +394,7 @@ export function extractChildBlocks(pageMarkdown) {
 export function defaultPageBody(key, title) {
   const bodies = {
     'pages.home':
-      '# Home\nOh My Docs handbook entry point. Use the left nav to reach catalog indexes (PRDs, Stories, Specs, Plans, ADRs, and domain catalogs).',
+      'Oh My Docs handbook (agent SSOT). Catalogs are stacked inline databases on this page — no child pages, no sidebar.',
     'pages.vision': '# Vision\nProduct intent and long-term direction for this handbook.',
     'pages.starting': '# Start here\nShortest path into the docs-first workflow.',
     'pages.workflow': '# Workflow\nPlanning and development contracts for agents and humans.',

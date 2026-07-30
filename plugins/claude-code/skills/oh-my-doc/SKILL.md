@@ -40,14 +40,15 @@ chat must be written into that SSOT.
 
 1. `inspect` — classify greenfield vs brownfield; never mutate.
 2. **Ask SSOT** — before the first adopt, ask the user to choose `local`
-   (Fumadocs MDX tree) or `notion` (Home + inline catalog DBs). Greenfield
+   (Fumadocs MDX tree) or `notion` (one Home page with stacked inline catalog
+   DBs — no child pages/sidebar). Greenfield
    `adopt` without `--ssot` fails with `needsSsot`.
 3. `adopt --ssot local --dry-run` / `--yes` — scaffold docs + `packages/docs-ui`,
    write `.omd/`.
 4. `adopt --ssot notion --notion-root …` — map root to `pages.home`, emit a
    Notion MCP provisioning manifest from `references/notion-*` (never a `ref/`
    path); execute via host MCP; record mappings. Does **not** install local UI.
-   Notion IA is Home + inline catalog DBs only.
+   Notion IA is one Home page with stacked inline catalog DBs only.
 5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
    or Notion root/mappings/pending ops (notion).
 6. `new` / `sync` as needed for later work.
@@ -74,7 +75,7 @@ chat must be written into that SSOT.
 | `references/agent-compatibility.md` | Host discovery paths |
 | `references/notion-information-architecture.md` | Notion page + details-toggle IA |
 | `references/notion-catalog-writes.md` | Where PRD/story/plan/ADR rows go (Planning ≠ Plans) |
-| `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |
+| `references/notion-sidebar.md` | Notion chrome notes (stacked-on-home = no sidebar) |
 | `references/notion-page-templates.md` | Notion-flavored body templates |
 | `references/notion-manual-checklist.md` | Host-only steps (page Full width) |
 | `references/handbook-ia-graph.json` | Shared structure metadata IA graph (local + Notion) |
