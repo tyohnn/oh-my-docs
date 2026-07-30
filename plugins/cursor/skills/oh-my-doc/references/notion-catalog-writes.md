@@ -16,8 +16,12 @@ section.
 - **Do** create catalog rows in the inline DBs stacked on Notion Home.
 - **Don’t** create catalog child pages or sidebar nav for Notion SSOT.
 - **Don’t** create a Plan as a free-form page outside `dbs.plans`.
+- **Don’t** set `OMD ID` when creating a Notion row. It is a Notion
+  `UNIQUE_ID` column (auto-generated; prefixes like `PRD`, `US`, `PLAN`).
+  Title + optional Summary/Status only.
 
 Machine map: `references/notion-ia-graph.json` → `kindToDatabase` (Notion);
 `handbook-ia-graph.json` for local.
 
 Runtime: `planCreateDocument` / local `omd new` target those destinations.
+Local MDX still uses slug-style frontmatter `id`; Notion SSOT does not.

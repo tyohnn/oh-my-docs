@@ -96,6 +96,8 @@ chat must be written into that SSOT.
   inline DB or local catalog folder + `meta.json`), never as ad-hoc section
   children. **Planning ≠ Plans**: implementation plans belong in Plans
   (`dbs.plans`), not under Planning.
+- **Notion `OMD ID`:** catalog property type is Notion `UNIQUE_ID` (auto).
+  Never invent slug IDs or write the property on create/update.
 - **Notion Home body (mandatory when `ssot: notion`):**
   - Exactly three `#` headings, in order: `도메인`, `기획`, `개발`.
   - Never emit per-catalog headings (`# Glossary`, `# Models`, `# PRDs`, …);

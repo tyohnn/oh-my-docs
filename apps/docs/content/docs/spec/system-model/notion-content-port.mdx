@@ -73,14 +73,18 @@ order, or sidebar chrome.
 
 ## Database properties and relations
 
-Every catalog database has `Title`, stable `OMD ID`, description/summary, and
-its lifecycle property when applicable.
+Every catalog database has `Title`, auto-generated `OMD ID`
+(Notion `UNIQUE_ID` / `auto_increment_id` with a kind prefix),
+description/summary, and its lifecycle property when applicable.
 
+Prefixes (workspace-unique): `TERM`, `MODEL`, `POLICY`, `PRD`, `US`,
+`DM` (data model), `SYSM` (system model), `PLAN`, `ADR`.
+
+- **Do not** write `OMD ID` on create/update — Notion assigns it.
 - PRDs relate to Stories.
 - Plans relate to one PRD and many Specs/Stories and include `changeType` and
   `codeAreas`.
 - Data/System specs and ADRs use accepted lifecycle values.
-- Domain databases preserve TERM/MODEL/POLICY IDs and references.
 
 Relations are applied after their databases and referenced rows exist.
 

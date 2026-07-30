@@ -263,18 +263,32 @@ test('planCreateDocument targets dbs.plans for plan kind', () => {
     skillRoot,
     kind: 'plan',
     title: 'Example plan',
-    id: 'PLAN-example',
   });
   assert.equal(planned.ok, true);
   assert.equal(planned.operation.key, 'dbs.plans');
   assert.equal(planned.operation.payload.databaseKey, 'dbs.plans');
   assert.equal(planned.operation.expectedParentKey, 'dbs.plans');
+  assert.equal(planned.operation.payload.autoIdProperty, 'OMD ID');
+  assert.equal(planned.operation.payload.properties.Title, 'Example plan');
+  assert.equal(planned.operation.payload.omdId, undefined);
 
   const prd = planCreateDocument({
     skillRoot,
     kind: 'prd',
     title: 'Example PRD',
-    id: 'PRD-example',
   });
   assert.equal(prd.operation.key, 'dbs.prds');
+});
+
+test('catalog OMD ID is unique_id with kind prefixes', () => {
+  const refs = loadNotionReferences(skillRoot);
+  assert.equal(refs.catalogSchemas.schemaVersion, '1.1');
+  for (const schema of Object.values(refs.catalogSchemas.schemas)) {
+    const omd = schema.properties.find((p) => p.name === 'OMD ID');
+    assert.ok(omd, 'OMD ID property required');
+    assert.equal(omd.type, 'unique_id');
+    assert.ok(omd.prefix, 'unique_id prefix required');
+  }
+  assert.equal(refs.catalogSchemas.schemas.prds.properties.find((p) => p.name === 'OMD ID').prefix, 'PRD');
+  assert.equal(refs.catalogSchemas.schemas.plans.properties.find((p) => p.name === 'OMD ID').prefix, 'PLAN');
 });

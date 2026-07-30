@@ -111,7 +111,8 @@ export function planProvision(options) {
         mcp: {
           tool: 'notion-create-database',
           parentFrom: object.parent,
-          notes: 'Creates full-page DB; always follow with set_inline when inline=true.',
+          notes:
+            'Creates full-page DB; always follow with set_inline when inline=true. Map property types to DDL: title→TITLE, rich_text→RICH_TEXT, select→SELECT(...), multi_select→MULTI_SELECT, relation→RELATION(ds), unique_id→UNIQUE_ID PREFIX \'<prefix>\'. Never write OMD ID on row create — it is auto-generated.',
         },
       });
       if (object.inline === true) {
@@ -634,11 +635,45 @@ export function capabilityBlockers(flags = {}) {
 }
 
 /**
+ * Map a catalog schema property to Notion MCP CREATE TABLE / ALTER COLUMN DDL.
+ * @param {{ name: string, type: string, prefix?: string, options?: string[] }} property
+ */
+export function propertyToNotionDdl(property) {
+  const name = `"${String(property.name).replaceAll('"', '')}"`;
+  switch (property.type) {
+    case 'title':
+      return `${name} TITLE`;
+    case 'rich_text':
+      return `${name} RICH_TEXT`;
+    case 'unique_id':
+      return property.prefix
+        ? `${name} UNIQUE_ID PREFIX '${String(property.prefix).replaceAll("'", '')}'`
+        : `${name} UNIQUE_ID`;
+    case 'select': {
+      const opts = (property.options ?? [])
+        .map((o) => `'${String(o).replaceAll("'", '')}'`)
+        .join(', ');
+      return opts ? `${name} SELECT(${opts})` : `${name} SELECT()`;
+    }
+    case 'multi_select': {
+      const opts = (property.options ?? [])
+        .map((o) => `'${String(o).replaceAll("'", '')}'`)
+        .join(', ');
+      return opts ? `${name} MULTI_SELECT(${opts})` : `${name} MULTI_SELECT()`;
+    }
+    case 'relation':
+      return `${name} RELATION('{{${property.relationSchema ?? 'related'}}}')`;
+    default:
+      throw new Error(`unsupported Notion property type: ${property.type}`);
+  }
+}
+
+/**
  * @param {{
  *   skillRoot: string,
  *   kind: string,
  *   title: string,
- *   id: string,
+ *   id?: string,
  *   mappings?: Record<string, { id: string, type: string }>,
  * }} options
  */
@@ -651,17 +686,25 @@ export function planCreateDocument(options) {
     throw new Error(`unsupported Notion document kind: ${options.kind}`);
   }
   const mapped = options.mappings?.[dbKey];
+  // OMD ID is Notion UNIQUE_ID — auto-assigned; do not send it on create.
+  const rowKey =
+    typeof options.id === 'string' && options.id.trim()
+      ? options.id.trim()
+      : slugifyTitle(options.title);
   const payload = {
     databaseKey: dbKey,
     title: options.title,
-    omdId: options.id,
+    properties: {
+      Title: options.title,
+    },
+    autoIdProperty: 'OMD ID',
   };
   return {
     ok: true,
     provider: 'notion',
     requiresMappedDatabase: !mapped,
     operation: {
-      id: `row:${dbKey}:${options.id}`,
+      id: `row:${dbKey}:${rowKey}`,
       key: dbKey,
       op: 'ensure_row',
       dependsOn: mapped ? [] : [`ensure:${dbKey}`],
@@ -669,9 +712,23 @@ export function planCreateDocument(options) {
       desiredDigest: digest(stableStringify(payload)),
       payload,
       mappedDatabaseId: mapped?.id ?? null,
-      mcp: { tool: 'notion-create-pages', parentFrom: 'data_source' },
+      mcp: {
+        tool: 'notion-create-pages',
+        parentFrom: 'data_source',
+        notes:
+          'Create the row with Title (and optional Summary/Status). Do not set OMD ID — UNIQUE_ID is read-only and auto-generated.',
+      },
     },
   };
+}
+
+function slugifyTitle(title) {
+  return String(title)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'row';
 }
 
 export {

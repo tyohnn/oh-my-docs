@@ -14,3 +14,13 @@ After `adopt --ssot notion` succeeds:
 
 Only Home needs this for the stacked-on-home layout. Do not treat Full width
 as a failure of the content port when missing.
+
+## Migrating `OMD ID` to UNIQUE_ID
+
+Notion cannot convert `rich_text` → `UNIQUE_ID` in place. Always:
+
+1. `DROP COLUMN "OMD ID"`
+2. Then `ADD COLUMN "OMD ID" UNIQUE_ID PREFIX '…'`
+
+Do not combine DROP+ADD in one statements batch (Notion may try an
+in-place conversion). Prefixes must be workspace-unique.

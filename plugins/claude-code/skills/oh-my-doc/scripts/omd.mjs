@@ -259,20 +259,18 @@ export async function main(argv = process.argv.slice(2)) {
         if (source.ssot === 'notion') {
           const state = readState(cwd);
           const mappings = state?.provider?.notion?.mappings ?? {};
-          const id =
-            typeof flags.id === 'string'
-              ? flags.id
-              : `${kind}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+          // Notion OMD ID is UNIQUE_ID (auto). --id is only a local op key hint.
           const planned = planNotionCreateDocument({
             skillRoot: SKILL_ROOT,
             kind,
             title,
-            id,
+            ...(typeof flags.id === 'string' ? { id: flags.id } : {}),
             mappings,
           });
           if (json) printJson(planned);
           else {
             console.log(`Notion new ${kind} → manifest ${planned.operation.id}`);
+            console.log('OMD ID is Notion UNIQUE_ID — do not set it when creating the row.');
             if (planned.requiresMappedDatabase) {
               console.log('Database not mapped yet — run adopt/sync provision first.');
             }
