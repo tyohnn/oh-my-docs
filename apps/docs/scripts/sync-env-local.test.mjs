@@ -116,7 +116,27 @@ test('syncEnvLocal dry-run does not write and never logs secret values', () => {
   assert.ok(lines.every((line) => !line.includes(secret)));
 });
 
-test('parseArgs recognizes dry-run and force', () => {
-  assert.deepEqual(parseArgs(['--dry-run', '--force']), { dryRun: true, force: true });
-  assert.deepEqual(parseArgs([]), { dryRun: false, force: false });
+test('parseArgs recognizes dry-run, force, and best-effort', () => {
+  assert.deepEqual(parseArgs(['--dry-run', '--force', '--best-effort']), {
+    dryRun: true,
+    force: true,
+    bestEffort: true,
+  });
+  assert.deepEqual(parseArgs([]), { dryRun: false, force: false, bestEffort: false });
+});
+
+test('syncEnvLocal best-effort skips missing .env.example without throwing', () => {
+  const lines = [];
+  const result = syncEnvLocal({
+    examplePath: '/tmp/omd-does-not-exist.env.example',
+    localPath: '/tmp/omd-sync-env-local-missing.env',
+    env: {},
+    argv: ['--best-effort'],
+    log: (line) => lines.push(line),
+    writeFile: () => {
+      throw new Error('should not write');
+    },
+  });
+  assert.equal(result.skippedMissingExample, true);
+  assert.ok(lines.some((line) => line.includes('skipping')));
 });

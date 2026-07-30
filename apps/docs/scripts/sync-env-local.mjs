@@ -8,6 +8,7 @@
  *   node scripts/sync-env-local.mjs
  *   node scripts/sync-env-local.mjs --dry-run
  *   node scripts/sync-env-local.mjs --force
+ *   node scripts/sync-env-local.mjs --best-effort   # warn on missing keys; exit 0
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -128,6 +129,7 @@ export function parseArgs(argv) {
   return {
     dryRun: flags.includes('--dry-run'),
     force: flags.includes('--force'),
+    bestEffort: flags.includes('--best-effort'),
   };
 }
 
@@ -145,11 +147,24 @@ export function syncEnvLocal(options = {}) {
   const examplePath = options.examplePath ?? defaultExamplePath;
   const localPath = options.localPath ?? defaultLocalPath;
   const env = options.env ?? process.env;
-  const { dryRun, force } = parseArgs(options.argv ?? process.argv.slice(2));
+  const { dryRun, force, bestEffort } = parseArgs(options.argv ?? process.argv.slice(2));
   const log = options.log ?? ((line) => console.error(line));
   const writeFile = options.writeFile ?? writeFileSync;
 
   if (!existsSync(examplePath)) {
+    if (bestEffort) {
+      log(`[sync-env-local] .env.example missing at ${examplePath}; skipping`);
+      return {
+        localPath,
+        written: [],
+        skipped: [],
+        missing: [],
+        content: '',
+        dryRun,
+        bestEffort: true,
+        skippedMissingExample: true,
+      };
+    }
     throw new Error(`.env.example not found at ${examplePath}`);
   }
 
@@ -170,18 +185,21 @@ export function syncEnvLocal(options = {}) {
   const content = serializeEnvFile(next);
   if (dryRun) {
     log(`[sync-env-local] dry-run; would write ${localPath}`);
-    return { localPath, written, skipped, missing, content, dryRun: true };
+    return { localPath, written, skipped, missing, content, dryRun: true, bestEffort };
   }
 
   writeFile(localPath, content);
   log(`[sync-env-local] wrote ${localPath}`);
-  return { localPath, written, skipped, missing, content, dryRun: false };
+  return { localPath, written, skipped, missing, content, dryRun: false, bestEffort };
 }
 
 function main() {
   try {
-    const result = syncEnvLocal();
+    const argv = process.argv.slice(2);
+    const { bestEffort } = parseArgs(argv);
+    const result = syncEnvLocal({ argv });
     if (
+      !bestEffort &&
       !result.dryRun &&
       result.written.length === 0 &&
       result.missing.length > 0 &&
@@ -190,8 +208,9 @@ function main() {
       process.exitCode = 1;
     }
   } catch (error) {
+    const { bestEffort } = parseArgs(process.argv.slice(2));
     console.error(`[sync-env-local] ${error instanceof Error ? error.message : error}`);
-    process.exit(1);
+    if (!bestEffort) process.exit(1);
   }
 }
 

@@ -101,10 +101,9 @@ publish from a developer machine.
   `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
 - For `contentSource.ssot: supabase`, add the key names from
   `apps/docs/.env.example` as Cursor Cloud **runtime secrets** (publishable URL/key
-  only). During environment setup (or before `dev`/`build`), run `pnpm sync:env` to
-  copy those process-env values into `apps/docs/.env.local` (gitignored). Use
-  `pnpm sync:env -- --dry-run` to preview, or `--force` to overwrite existing local
-  keys.
+  only). Environment install (`pnpm install`) runs root `postinstall`, which tries
+  `sync-env-local --best-effort --force` into `apps/docs/.env.local` (gitignored)
+  so agents do not need a manual `pnpm sync:env`. Preview: `pnpm sync:env -- --dry-run`.
 - With those keys present, the docs app reads PostgREST at render time with
   ISR/tag cache. After handbook writes, POST `/api/revalidate` with
   `OMD_REVALIDATE_SECRET` (and set `OMD_DOCS_URL` for skill notify helpers) so
