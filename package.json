@@ -12,12 +12,10 @@
     "test": "turbo run test && node --test skills/oh-my-doc/tests/*.test.mjs && node --test --experimental-strip-types scripts/*.test.ts",
     "typecheck": "turbo run typecheck",
     "check:planning": "node apps/docs/scripts/check-planning.mjs",
-    "check:docs-first": "node scripts/check-docs-first.mjs",
     "check:release-version": "node scripts/check-release-version.mjs",
     "check:skills": "pnpm --filter @oh-my-docs/plugins sync:check",
     "sync:skills": "pnpm --filter @oh-my-docs/plugins sync",
     "omd": "node skills/oh-my-doc/scripts/omd.mjs",
-    "sync:env": "pnpm --filter @oh-my-docs/docs sync:env",
     "check:ui-snapshot": "node scripts/check-ui-snapshot.mjs"
   },
   "devDependencies": {

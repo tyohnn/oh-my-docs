@@ -2,12 +2,7 @@
   "contractVersion": "1.0",
   "mode": "brownfield",
   "contentSource": {
-    "ssot": "supabase",
-    "supabase": {
-      "projectRef": "vtuprmfqbwhryjoznjxg",
-      "schemaVersion": "1.1",
-      "handbookId": "oh-my-docs"
-    }
+    "ssot": "local"
   },
   "paths": {
     "docs": "apps/docs",
