@@ -1,8 +1,8 @@
 ---
 title: Adopt links shared oh-my-docs Supabase
-description: On adopt, find or create the shared Supabase project named oh-my-docs, provision the handbook schema, and wire Vercel env via host tools.
+description: On supabase adopt, skill embeds schema in this handbook repo, links shared Supabase oh-my-docs, and wires this repo’s Vercel project.
 type: conceptual
-summary: After choosing ssot supabase, adopt links oh-my-docs and wires Vercel without OMD_CONTENT_SSOT.
+summary: Each handbook repo deploys on its own Vercel; skill ships schema SQL into that repo on supabase adopt.
 id: US-adopt-links-shared-oh-my-docs-supabase
 ticker: US-011
 stage: accepted
@@ -14,52 +14,59 @@ related:
   - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
 ---
 
-As a developer who chose Supabase as the handbook SSOT, I want `omd adopt
---ssot supabase` (via the skill) to attach my handbook to the shared
-Supabase project named `oh-my-docs` and wire the docs app’s Vercel env so
-that GitHub-triggered deploys serve handbook content without me setting an
-extra SSOT env var by hand.
+As a developer who chose Supabase as the handbook SSOT for **this
+repository**, I want the skill’s `omd adopt --ssot supabase` to (1) put the
+handbook schema SQL into this repo’s docs app as static code, (2) attach
+content to the shared Supabase project named `oh-my-docs`, and (3) wire
+**this repo’s** Vercel project with Connect publishable env so GitHub
+deploys of this handbook work—without a central “oh-my-docs” Vercel app or
+an `OMD_CONTENT_SSOT` env.
 
 ## Context
 
 SSOT selection remains an adopt-time choice (`local` | `notion` | `supabase`).
-This story applies **only after** the user selects `supabase`. Teams share
-one BYO Supabase project across handbooks (US-010). The shared project’s
-**display name** is the stable discovery key `oh-my-docs`. For a supabase
-adopt, the contract (and docs-app wiring generated from it) records
-`ssot: supabase` in the repo—not via a Vercel `OMD_CONTENT_SSOT` env.
-Publishable URL/key still come from Vercel Supabase Connect (or equivalent
-host sync).
+This story applies **only after** the user selects `supabase`.
+
+Two different “oh-my-docs” ideas must stay separate:
+
+| Thing | Role |
+|---|---|
+| Supabase project name `oh-my-docs` | Shared BYO database for many handbooks |
+| Handbook git repo + its Vercel project | One deployable docs app per handbook |
+
+There is **no** single Vercel project named oh-my-docs that serves every
+handbook. Each handbook repo has its own Vercel deployment. The skill must
+therefore **scaffold/copy schema SQL into that repo** so the deployed docs
+app and the provisioned Postgres shape stay aligned.
 
 ## Acceptance criteria
 
 - This flow runs only when adopt is invoked with `--ssot supabase` (or an
   equivalent moderated choice). `local` / `notion` adopts are unchanged.
+- The skill writes declarative schema SQL **into this repository’s docs app
+  tree** as static files (for example `docs/supabase/*.sql` from the skill
+  template). Provision applies that SQL; the files remain in the repo for
+  the handbook’s Vercel build/runtime contract.
 - Host skill uses Supabase MCP (or CLI) to **list projects** and select the
-  one whose name is exactly `oh-my-docs` (case-sensitive match on the
-  Supabase project name).
+  one whose name is exactly `oh-my-docs` (Supabase display name—not a
+  Vercel project name).
 - If none exists and the host can create projects, provision creates a
-  project named `oh-my-docs`; if creation is blocked (for example free-plan
-  limits), adopt fails with an actionable blocker naming that constraint.
+  Supabase project named `oh-my-docs`; if creation is blocked, adopt fails
+  with an actionable blocker.
 - Adopt writes `.omd/project.json` with `ssot: supabase`, the resolved
-  `projectRef`, `handbookId` (repo-derived or explicit), and `schemaVersion`.
-  No tokens or keys are stored. The docs app reads that contract; operators
-  do not set `OMD_CONTENT_SSOT` on Vercel.
-- Declarative SQL for the handbook schema lives **in the docs app tree**
-  (for example `apps/docs/supabase/` or the scaffolded `docs/supabase/`);
-  the content port applies that SQL into the handbook’s Postgres schema.
-- Host skill uses Vercel CLI/REST (or Connect) to ensure the linked Vercel
-  project has publishable env:
-  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (and
-  server-side twins when Connect provides them).
-- Ongoing deploys remain GitHub → Vercel; adopt may optionally trigger or
-  observe one initial deployment to confirm `/docs` renders, but must not
-  require a custom deploy pipeline beyond that.
-- Re-running adopt is idempotent: same `oh-my-docs` project, same
-  `handbookId`, no duplicate schemas or env churn.
+  `projectRef`, `handbookId` (this repo), and `schemaVersion`. No tokens.
+  Operators do not set `OMD_CONTENT_SSOT` on Vercel.
+- Host skill syncs publishable env onto **this handbook repo’s linked
+  Vercel project** (`NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …)—not onto a shared oh-my-docs
+  Vercel app.
+- Ongoing deploys are that repo’s GitHub → its Vercel project; adopt may
+  smoke one initial deployment of **this** handbook.
+- Re-running adopt is idempotent for the same repo/`handbookId`.
 
 ## Out of scope
 
+- A single Vercel deployment that hosts every handbook.
 - Storing `service_role` / secret keys in the repo or `.omd`.
-- Replacing GitHub-based Vercel deploys with a skill-owned CD system.
-- Oh My Docs hosting the shared database for all customers.
+- Replacing per-repo GitHub→Vercel CD with a skill-owned CD system.
+- Oh My Docs hosting the shared database for every customer.

@@ -49,19 +49,27 @@ mapping.
 
 ## Behavior
 
-### Shared Supabase project
+### Shared Supabase project vs per-handbook Vercel
 
-The BYO container project is discovered by **display name** `oh-my-docs`
-(exact match). `projectRef` in the contract is that project’s ref after
-resolution. Orgs should not create per-repo Supabase projects for handbooks
-when sharing is intended.
+| Layer | Unit |
+|---|---|
+| Supabase project `oh-my-docs` | Shared BYO database (many handbooks) |
+| Git repo + Vercel project | One handbook / one deployable docs app |
 
-### Schema location
+`oh-my-docs` is a **Supabase** display name only. Vercel deploys are
+**per handbook repository**, not one Vercel named oh-my-docs.
 
-Declarative SQL for registry + handbook tables ships in the **docs app**
-tree (`apps/docs/supabase/` here; `docs/supabase/` in scaffolds). The
-runtime/port loads and applies that SQL; a skill `references/` copy, if any,
-must stay identical or be generated from the docs app path.
+`projectRef` in the contract is the shared Supabase project’s ref after
+resolution by name.
+
+### Schema location (skill-scaffolded into each handbook repo)
+
+On `--ssot supabase`, the skill embeds declarative SQL into **that
+repository’s** docs app as static files (`docs/supabase/` from the skill
+template; dogfood `apps/docs/supabase/`). The port applies that SQL to the
+handbook’s Postgres schema. A skill-only `references/` copy is insufficient
+unless the same files are written into the consumer repo—the Vercel build
+for that handbook must contain them.
 
 ### Registry
 

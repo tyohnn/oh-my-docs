@@ -1,8 +1,8 @@
 ---
 title: Multi-handbook Supabase tenancy and schema versions
-description: Shared oh-my-docs project, schema-per-handbook, docs-app SQL, and Vercel Connect env via adopt.
+description: Shared Supabase oh-my-docs, per-handbook Vercel deploys, skill-embedded schema SQL, Connect env sync.
 type: guide
-summary: One named Supabase project hosts many handbooks; adopt discovers it, applies docs-app SQL, syncs Vercel env.
+summary: Skill scaffolds schema into each handbook repo; shared Supabase holds data; each repo has its own Vercel.
 id: PLAN-multi-handbook-supabase-tenancy
 ticker: PLAN-015
 stage: ready
@@ -41,57 +41,60 @@ related:
 
 ## Scope
 
-Deliver multi-handbook BYO Supabase tenancy plus zero-friction adopt wiring:
+Deliver multi-handbook BYO Supabase tenancy plus per-handbook deploy wiring:
 
-- Shared Supabase project discovery by name `oh-my-docs` (MCP list / create)
+- Shared **Supabase** project discovery by name `oh-my-docs` (not a Vercel
+  project)
+- **Per handbook repo** Vercel deployment; skill does not assume one
+  oh-my-docs Vercel app
+- On `--ssot supabase`, skill **scaffolds schema SQL into that repo**
+  (`docs/supabase/` in template; dogfood `apps/docs/supabase/`)
 - Contract/state fields for `handbookId` (and legacy defaulting)
-- Registry + schema-per-handbook SQL (`schemaVersion` `1.1`) living under
-  **`apps/docs/supabase/`** (and template `docs/supabase/`)
+- Registry + schema-per-handbook SQL (`schemaVersion` `1.1`)
 - Content-port provision/create/check scoped to one handbook
 - After `--ssot supabase`, contract records SSOT in `.omd` (no Vercel
-  `OMD_CONTENT_SSOT` env required); `local` / `notion` unchanged
-- Build/prepare pulls content when contract is supabase **and** Connect
-  URL/key env exist
-- Adopt host op `vercel.sync_supabase_env` via Vercel CLI/REST or Connect
-- GitHub → Vercel remains CD; optional one-shot deploy smoke
-- Idempotent migrate path from legacy `public.omd_*` → registry + dedicated
-  schema
-- Tests for isolation, independent schema upgrades, discovery, and legacy
-  default
+  `OMD_CONTENT_SSOT`); `local` / `notion` unchanged
+- Build/prepare pulls when contract is supabase **and** Connect env exist
+- Adopt host op `vercel.sync_supabase_env` for **this repo’s** Vercel
+  project (CLI/REST or Connect)
+- Per-repo GitHub → Vercel CD; optional smoke of that handbook only
+- Idempotent migrate path from legacy `public.omd_*`
+- Tests for isolation, scaffold-in-repo SQL, discovery, legacy default
 
-Out of scope: OMD-hosted multi-tenant cloud, cross-handbook UI, automatic
-merge of two Supabase projects, skill-owned CD replacing GitHub, web editor.
+Out of scope: OMD-hosted multi-tenant cloud, single Vercel for all
+handbooks, cross-handbook UI, merge of two Supabase projects, skill-owned
+CD, web editor.
 
 ## Implementation sequence
 
-1. Move canonical SQL into `apps/docs/supabase/` (and template mirror); teach
-   the skill port to load SQL from the docs app / template path; keep
-   `references/` in sync or as a thin re-export.
-2. Docs app reads SSOT from `.omd` (adopt choice). When `ssot: supabase`,
-   `prepare-content` / `build-with-content` pulls if Connect env present
-   (`NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` publishable). Do not require
-   `OMD_CONTENT_SSOT`. Leave `local` / `notion` on filesystem/Notion paths.
+1. Add skill template files `docs/supabase/*.sql` (schema `1.1`); dogfood
+   `apps/docs/supabase/`; adopt copies/scaffolds them into the target repo
+   on `--ssot supabase`. Port loads SQL from the **repo docs path**, not
+   only skill `references/`.
+2. Docs app reads SSOT from `.omd`. When `ssot: supabase`,
+   `prepare-content` / `build-with-content` pulls if Connect env present.
+   No `OMD_CONTENT_SSOT`. Leave `local` / `notion` unchanged.
 3. Extend contract with `handbookId`; derive `pgSchema`; update normalize /
    adopt helpers.
-4. Bundle schema `1.1` (registry + parameterized handbook DDL/RLS).
-5. `planProvision`: op `resolve_project_by_name` (`oh-my-docs`) → upsert
-   registry → `CREATE SCHEMA` → apply docs-app SQL → seed catalogs →
-   `vercel.sync_supabase_env`.
-6. Scope create/check/pull/Fumadocs to `{pg_schema}.omd_*`.
-7. SKILL/AGENTS: host must use Supabase MCP to resolve `oh-my-docs`, Vercel
-   MCP to sync env; document auth blockers (`vercel_login_required`,
-   `shared_project_missing`).
-8. Tests: discovery name match; two handbooks isolation; migrate A without
-   touching B; supabase adopt builds without `OMD_CONTENT_SSOT`; local
-   adopt still uses local content; secret rejection unchanged.
+4. `planProvision`: `scaffold_docs_supabase_sql` →
+   `resolve_project_by_name` (`oh-my-docs` Supabase) → upsert registry →
+   `CREATE SCHEMA` → apply **repo** SQL → seed catalogs →
+   `vercel.sync_supabase_env` (**current repo’s** Vercel project).
+5. Scope create/check/pull/Fumadocs to `{pg_schema}.omd_*`.
+6. SKILL/AGENTS: host uses Supabase MCP for `oh-my-docs` DB; Vercel
+   CLI/REST for **this** handbook’s project env; document blockers.
+7. Tests: adopt writes `docs/supabase/` into throwaway repo; two handbooks
+   isolation; migrate A without touching B; no `OMD_CONTENT_SSOT`; local
+   adopt unchanged; secret rejection unchanged.
 
 ## Verification
 
-- Unit: provision plan includes resolve-by-name + vercel env op; distinct
-  schemas for two `handbookId`s; SQL path resolves under docs app.
-- Manual: adopt on a throwaway repo → finds/creates `oh-my-docs` → Vercel
-  env present → GitHub deploy or one-shot deploy serves `/docs`.
-- Second handbook on same project stays isolated across schema bump.
+- Unit: provision plan includes scaffold SQL + resolve-by-name + per-repo
+  vercel env op; distinct schemas for two `handbookId`s.
+- Manual: adopt throwaway handbook repo → `docs/supabase/` present in git →
+  shared Supabase `oh-my-docs` → **that repo’s** Vercel has Connect env →
+  deploy serves `/docs`.
+- Second handbook repo: own Vercel, same Supabase, isolated schema.
 - `pnpm check:planning` and skill runtime tests pass.
 
 ## Migration and compatibility

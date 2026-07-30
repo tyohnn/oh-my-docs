@@ -32,9 +32,13 @@ handbooks that project may hold safely.
 ## Decision
 
 - Allow **many handbooks per BYO Supabase `projectRef`**.
-- The shared BYO project’s **display name** is exactly `oh-my-docs`. Adopt
-  discovers it with Supabase MCP `list_projects` (match on `name`); if missing,
-  create with that name when the host can.
+- The shared BYO **Supabase** project’s display name is exactly
+  `oh-my-docs`. Adopt discovers it with Supabase MCP `list_projects`
+  (match on `name`); if missing, create with that name when the host can.
+  This name is **not** a Vercel project.
+- Each handbook is its own git repository with its **own Vercel
+  project/deployment**. There is no shared “oh-my-docs” Vercel app for all
+  handbooks.
 - Isolate each handbook with **Postgres schema-per-handbook**:
   - Registry row in `public.omd_handbooks`
     (`handbook_id`, `pg_schema`, `schema_version`, timestamps).
@@ -43,18 +47,18 @@ handbooks that project may hold safely.
 - Derive `pg_schema` as `omd_h_<sanitized_handbook_id>` (stable, lowercase,
   `[a-z0-9_]`); reject collisions and reserved names (`public`, `auth`,
   `storage`, `extensions`, …).
-- **Canonical SQL lives in the docs app tree**
-  (`apps/docs/supabase/` in this monorepo; scaffolded `docs/supabase/` in
-  consumer templates). The skill/content port applies that SQL; it is not
-  only a skill-private reference copy.
+- On `--ssot supabase`, the **skill scaffolds schema SQL into that
+  handbook repo** as static docs-app files (`docs/supabase/*.sql` from the
+  skill template; dogfood: `apps/docs/supabase/`). The content port applies
+  the same SQL to Postgres. Schema must not live only as a skill-private
+  reference the deployed repo never contains.
 - SSOT remains an adopt-time choice. **Only when** the user selects
-  `supabase`, the repo contract (`.omd/project.json`) and docs-app wiring
-  record `ssot: supabase`. Operators do not also set `OMD_CONTENT_SSOT` on
-  Vercel. `local` / `notion` projects are unchanged.
-- Deploy-time credentials for supabase projects are only Vercel Supabase
-  Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, …), synced during adopt via
-  Vercel CLI/REST or Connect when available.
+  `supabase`, the repo contract (`.omd/project.json`) records
+  `ssot: supabase`. Operators do not also set `OMD_CONTENT_SSOT` on that
+  repo’s Vercel. `local` / `notion` projects are unchanged.
+- Deploy-time credentials are Connect publishable vars on **that handbook
+  repo’s** Vercel project, synced during adopt via Vercel CLI/REST or
+  Connect when available.
 - Store non-secret identity in `.omd/project.json`:
 
   ```json
@@ -76,8 +80,8 @@ handbooks that project may hold safely.
 - Treat a legacy v1 layout (`public.omd_*` present, no registry) as
   `handbookId: "default"` with `pg_schema: public` until an explicit migrate
   moves it into a dedicated schema.
-- Ongoing delivery stays **GitHub → Vercel**; adopt may smoke one initial
-  deploy but does not own CD.
+- Ongoing delivery stays **per-repo GitHub → that repo’s Vercel**; adopt may
+  smoke one initial deploy of that handbook but does not own CD.
 - ADR-005 exclusivity still holds per repository: one SSOT, one
   `handbookId`.
 
@@ -86,14 +90,15 @@ handbooks that project may hold safely.
 - Provision / adopt / new / check / Fumadocs loaders must set `search_path` or
   qualify table names with the handbook schema.
 - `schema_drift` is evaluated per handbook, not per Supabase project.
-- SQL under the docs app is the contract the deployed app expects; skill
-  templates must keep that tree in sync.
-- Adopt manifests gain host ops: `resolve_project_by_name`,
-  `vercel.sync_supabase_env` (plan → host execute).
-- Orgs should keep a single active Supabase project named `oh-my-docs` rather
-  than one project per repo when free-plan limits matter.
-- Vercel MCP authentication is a host capability blocker when env sync is
-  required and Connect is not already linked.
+- Skill templates **must include** `docs/supabase/` so every supabase-adopted
+  handbook repo carries the SQL its Vercel deploy expects.
+- Adopt manifests gain host ops: `resolve_project_by_name` (Supabase),
+  `scaffold_docs_supabase_sql`, `vercel.sync_supabase_env` targeting the
+  **current repo’s** Vercel project (plan → host execute).
+- Orgs keep one Supabase project `oh-my-docs` and many Vercel projects (one
+  per handbook repo) when free-plan Supabase limits matter.
+- Vercel CLI/REST auth is a host capability blocker when env sync is required
+  and Connect is not already linked on that handbook’s Vercel project.
 
 ## Rejected alternatives
 

@@ -47,28 +47,30 @@ credentials.
 
 1. Resolve host login / project access capability blockers (Supabase MCP/CLI;
    Vercel MCP when env sync is needed).
-2. **Resolve shared project by name:** host lists Supabase projects and
-   selects `name === "oh-my-docs"`. If absent, create with that name when
-   allowed; otherwise fail with an actionable free-plan / permission blocker.
-3. Resolve `handbookId` (explicit, repo-derived slug, or `"default"` for
-   legacy single-handbook).
-4. `planProvision` emits a deterministic, idempotent manifest:
+2. **Scaffold schema into this handbook repo:** skill writes static SQL under
+   the docs app (`docs/supabase/*.sql` from the skill template). This is
+   required so **this repo’s** Vercel deploy carries the schema contract.
+3. **Resolve shared Supabase project by name:** host lists Supabase projects
+   and selects `name === "oh-my-docs"` (database name—not a Vercel project).
+   If absent, create with that name when allowed; otherwise fail with an
+   actionable free-plan / permission blocker.
+4. Resolve `handbookId` for **this repo** (explicit, repo-derived slug, or
+   `"default"` for legacy single-handbook).
+5. `planProvision` emits a deterministic, idempotent manifest:
    - ensure `public.omd_handbooks` registry (schema `1.1+`)
-   - `CREATE SCHEMA` for the handbook when missing
-   - apply SQL from the **docs app schema tree**
-     (`apps/docs/supabase/` or scaffolded `docs/supabase/`) for
+   - `CREATE SCHEMA` for this handbook when missing
+   - apply SQL from **this repo’s** docs-app schema tree for
      `documents` / `catalog_meta` (+ RLS) **inside that schema only**
    - IA seed rows for catalog keys from the shared IA graph
-   - `vercel.sync_supabase_env`: ensure the linked Vercel project has
-     Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
-     `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and Connect-provided server
-     twins). Do **not** require a separate `OMD_CONTENT_SSOT` env—SSOT was
-     already chosen at adopt and lives in `.omd`.
-5. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
+   - `vercel.sync_supabase_env`: ensure **this handbook repo’s** linked
+     Vercel project has Connect publishable vars
+     (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+     …). Do **not** require `OMD_CONTENT_SSOT`. Do **not** target a shared
+     oh-my-docs Vercel app.
+6. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
    update `.omd/state.json` and write `contentSource.supabase` (including
    `projectRef`, `handbookId`, `schemaVersion`) into the project contract.
-6. Optional: observe or trigger one GitHub→Vercel deployment and confirm
-   `/docs` renders; ongoing CD stays on GitHub.
+7. Optional: smoke one deploy of **this** handbook’s GitHub→Vercel project.
 
 This provision path is entered only for `--ssot supabase`. Other SSOT values
 use their own adapters.
