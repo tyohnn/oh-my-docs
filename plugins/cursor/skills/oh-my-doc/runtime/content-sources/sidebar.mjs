@@ -339,7 +339,7 @@ export function extractChildBlocks(pageMarkdown) {
 export function defaultPageBody(key, title) {
   const bodies = {
     'pages.home':
-      '# Home\nOh My Docs handbook entry point. Use the left nav to reach Vision, Workflow, Domain, Planning, Spec, Plans, and ADRs.',
+      '# Home\nOh My Docs handbook entry point. Use the left nav to reach catalog indexes (PRDs, Stories, Specs, Plans, ADRs, and domain catalogs).',
     'pages.vision': '# Vision\nProduct intent and long-term direction for this handbook.',
     'pages.starting': '# Start here\nShortest path into the docs-first workflow.',
     'pages.workflow': '# Workflow\nPlanning and development contracts for agents and humans.',
