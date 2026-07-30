@@ -17,6 +17,8 @@ A **Supabase handbook** is the content namespace for one adopted repository
 when `contentSource.ssot` is `supabase`. It is identified by `handbookId`
 inside a user-owned Supabase `projectRef`.
 
-Many handbooks may share one Supabase project. Each handbook owns a Postgres
-schema and an independent `schemaVersion`. A Supabase project is therefore an
-ops container; the handbook is the SSOT boundary for documents and catalogs.
+Many handbooks share one Supabase project whose display name is `oh-my-docs`.
+Each handbook owns a Postgres schema and an independent `schemaVersion`. The
+Supabase project is an ops container; the handbook is the SSOT boundary for
+documents and catalogs. Declarative SQL for that boundary lives in the docs
+app tree.

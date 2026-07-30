@@ -1,8 +1,8 @@
 ---
 title: Multi-handbook Supabase tenancy and schema versions
-description: Add handbookId, schema-per-handbook provisioning, and independent schemaVersion upgrades on one BYO project.
+description: Shared oh-my-docs project, schema-per-handbook, docs-app SQL, and Vercel Connect env via adopt.
 type: guide
-summary: Extend the Supabase content port and contracts so one projectRef hosts many isolated handbooks.
+summary: One named Supabase project hosts many handbooks; adopt discovers it, applies docs-app SQL, syncs Vercel env.
 id: PLAN-multi-handbook-supabase-tenancy
 ticker: PLAN-015
 stage: ready
@@ -14,6 +14,7 @@ specs:
   - SPEC-supabase-content-port
 stories:
   - US-share-one-supabase-across-handbooks
+  - US-adopt-links-shared-oh-my-docs-supabase
 codeAreas:
   - skills/oh-my-doc/
   - skills/oh-my-doc/schemas/
@@ -22,13 +23,16 @@ codeAreas:
   - skills/oh-my-doc/scripts/
   - skills/oh-my-doc/tests/
   - skills/oh-my-doc/references/
+  - skills/oh-my-doc/templates/
   - apps/docs/
   - apps/docs/lib/
   - apps/docs/scripts/
+  - apps/docs/supabase/
   - AGENTS.md
 related:
   - /docs/planning/prds/prd-multi-handbook-byo-supabase
   - /docs/planning/stories/us-share-one-supabase-across-handbooks
+  - /docs/planning/stories/us-adopt-links-shared-oh-my-docs-supabase
   - /docs/spec/data-model/multi-handbook-supabase-tenancy
   - /docs/spec/data-model/content-source-supabase
   - /docs/spec/system-model/supabase-content-port
@@ -37,56 +41,63 @@ related:
 
 ## Scope
 
-Deliver multi-handbook BYO Supabase tenancy:
+Deliver multi-handbook BYO Supabase tenancy plus zero-friction adopt wiring:
 
+- Shared Supabase project discovery by name `oh-my-docs` (MCP list / create)
 - Contract/state fields for `handbookId` (and legacy defaulting)
-- Registry + schema-per-handbook SQL (`schemaVersion` `1.1`)
+- Registry + schema-per-handbook SQL (`schemaVersion` `1.1`) living under
+  **`apps/docs/supabase/`** (and template `docs/supabase/`)
 - Content-port provision/create/check scoped to one handbook
-- Fumadocs / pull scripts qualified to the handbook schema
+- Docs app hardcodes SSOT `supabase` (no `OMD_CONTENT_SSOT` env)
+- Build/prepare pulls content when Connect URL/key env exist
+- Adopt host op `vercel.sync_supabase_env` via Vercel MCP/tool
+- GitHub → Vercel remains CD; optional one-shot deploy smoke
 - Idempotent migrate path from legacy `public.omd_*` → registry + dedicated
   schema
-- Tests for isolation, independent schema upgrades, and legacy default
+- Tests for isolation, independent schema upgrades, discovery, and legacy
+  default
 
 Out of scope: OMD-hosted multi-tenant cloud, cross-handbook UI, automatic
-merge of two Supabase projects, web editor.
+merge of two Supabase projects, skill-owned CD replacing GitHub, web editor.
 
 ## Implementation sequence
 
-1. Extend `project` / `state` JSON schemas and
-   `normalizeContentSource` / adopt helpers with required-or-default
-   `handbookId`; document derivation of `pgSchema`.
-2. Bundle `supabase-schema-1.1.sql` (registry + parameterized handbook schema
-   DDL/RLS) and keep `1.0` readable for legacy detect.
-3. Update `planProvision` / `adoptSupabaseProject` to upsert registry,
-   `CREATE SCHEMA`, apply migrations into the target schema only, and seed
-   catalogs there.
-4. Scope `planCreateDocument`, snapshot validate/`check`, and pull/Fumadocs
-   loaders to `{pg_schema}.omd_*` (or `search_path`).
-5. Add explicit migrate op: legacy `public` → chosen `handbookId` schema;
-   update contracts.
-6. Surface new errors (`handbook_id_*`, `legacy_layout_ambiguous`); update
-   SKILL/AGENTS markers for multi-handbook BYO guidance.
-7. Tests: two handbooks same `projectRef` isolation; migrate A without
-   touching B; legacy default without `handbookId`; secret rejection
-   unchanged.
+1. Move canonical SQL into `apps/docs/supabase/` (and template mirror); teach
+   the skill port to load SQL from the docs app / template path; keep
+   `references/` in sync or as a thin re-export.
+2. Hardcode apps/docs `APPS_DOCS_CONTENT_SSOT = 'supabase'`; build
+   `prepare-content` / `build-with-content` pulls when Connect env present
+   (`NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` publishable)—never
+   `OMD_CONTENT_SSOT`.
+3. Extend contract with `handbookId`; derive `pgSchema`; update normalize /
+   adopt helpers.
+4. Bundle schema `1.1` (registry + parameterized handbook DDL/RLS).
+5. `planProvision`: op `resolve_project_by_name` (`oh-my-docs`) → upsert
+   registry → `CREATE SCHEMA` → apply docs-app SQL → seed catalogs →
+   `vercel.sync_supabase_env`.
+6. Scope create/check/pull/Fumadocs to `{pg_schema}.omd_*`.
+7. SKILL/AGENTS: host must use Supabase MCP to resolve `oh-my-docs`, Vercel
+   MCP to sync env; document auth blockers (`vercel_login_required`,
+   `shared_project_missing`).
+8. Tests: discovery name match; two handbooks isolation; migrate A without
+   touching B; build without `OMD_CONTENT_SSOT`; secret rejection unchanged.
 
 ## Verification
 
-- Unit: provision plan emits distinct schemas for two `handbookId`s; digest
-  independence; legacy detect.
-- Manual/throwaway project: adopt handbook A and B on one `projectRef` →
-  `omd new` in each → rows only in each schema → bump A’s schema → B
-  `check` still green.
+- Unit: provision plan includes resolve-by-name + vercel env op; distinct
+  schemas for two `handbookId`s; SQL path resolves under docs app.
+- Manual: adopt on a throwaway repo → finds/creates `oh-my-docs` → Vercel
+  env present → GitHub deploy or one-shot deploy serves `/docs`.
+- Second handbook on same project stays isolated across schema bump.
 - `pnpm check:planning` and skill runtime tests pass.
-- Existing single-handbook `1.0` projects still inspect/check without forced
-  migrate.
 
 ## Migration and compatibility
 
 - Default: no break for current `public.omd_*` adopters (`handbookId`
   defaults to `default`).
-- Opt-in migrate moves data into `omd_h_<id>` and writes `handbookId` into
-  `.omd/project.json`.
+- Opt-in migrate moves data into `omd_h_<id>` and writes `handbookId`.
+- Orgs with differently named projects rename or create `oh-my-docs` once;
+  adopt does not guess other names.
 - `schemaVersion` `1.0` remains valid for unmigrated projects; new multi-
   handbook adopts use `1.1+`.
 
@@ -95,16 +106,18 @@ merge of two Supabase projects, web editor.
 | Risk | Mitigation |
 |---|---|
 | Accidental cross-schema query | Qualify all SQL; tests for missing schema filter |
-| Reserved schema / id collisions | Strict slug + reserved-name reject list |
-| Half-finished migrate from `public` | Idempotent ops + pending operation IDs |
-| Operators confuse Supabase project with handbook | Docs and `inspect` show both `projectRef` and `handbookId` |
+| Free-plan cannot create `oh-my-docs` | Clear `shared_project_missing` + pause/restore guidance |
+| Vercel MCP unauthenticated in agent host | `vercel_login_required` blocker; Connect already-linked is OK |
+| SQL drift skill vs docs app | Single canonical path under docs app; CI path check |
+| Operators confuse Supabase project with handbook | `inspect` shows name, `projectRef`, and `handbookId` |
 
 Rollback: leave legacy `public` layout untouched until migrate succeeds;
-failed migrate retries from pending ops without deleting sibling handbooks.
+failed adopt retries from pending ops without deleting sibling handbooks.
 
 ## Completion criteria
 
-- SPEC-012 acceptance criteria met in tests or documented manual smoke.
+- SPEC-012 and US-010 / US-011 acceptance criteria met in tests or documented
+  manual smoke.
 - Plan stage → `done` only after verification on a throwaway multi-handbook
-  project.
-- No web editor or OMD-hosted tenancy introduced.
+  project with Vercel env sync (or Connect pre-linked).
+- No web editor, OMD-hosted tenancy, or `OMD_CONTENT_SSOT` requirement.

@@ -45,17 +45,29 @@ credentials.
 
 ### Provision (`adopt --ssot supabase`)
 
-1. Resolve host login / project access capability blockers.
-2. Link an existing project or create one when the host can.
-3. Resolve `handbookId` (explicit, or `"default"` for legacy single-handbook).
+1. Resolve host login / project access capability blockers (Supabase MCP/CLI;
+   Vercel MCP when env sync is needed).
+2. **Resolve shared project by name:** host lists Supabase projects and
+   selects `name === "oh-my-docs"`. If absent, create with that name when
+   allowed; otherwise fail with an actionable free-plan / permission blocker.
+3. Resolve `handbookId` (explicit, repo-derived slug, or `"default"` for
+   legacy single-handbook).
 4. `planProvision` emits a deterministic, idempotent manifest:
    - ensure `public.omd_handbooks` registry (schema `1.1+`)
    - `CREATE SCHEMA` for the handbook when missing
-   - apply `documents` / `catalog_meta` (+ RLS) **inside that schema only**
+   - apply SQL from the **docs app schema tree**
+     (`apps/docs/supabase/` or scaffolded `docs/supabase/`) for
+     `documents` / `catalog_meta` (+ RLS) **inside that schema only**
    - IA seed rows for catalog keys from the shared IA graph
+   - `vercel.sync_supabase_env`: ensure the linked Vercel project has
+     Connect publishable vars (`NEXT_PUBLIC_SUPABASE_URL`,
+     `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and Connect-provided server
+     twins). Do **not** require `OMD_CONTENT_SSOT`.
 5. Host applies the manifest; runtime `validateSnapshot` / `recordResult`
    update `.omd/state.json` and write `contentSource.supabase` (including
-   `handbookId` + `schemaVersion`) into the project contract.
+   `projectRef`, `handbookId`, `schemaVersion`) into the project contract.
+6. Optional: observe or trigger one GitHub→Vercel deployment and confirm
+   `/docs` renders; ongoing CD stays on GitHub.
 
 Re-running provision must not duplicate stable document or catalog keys, and
 must not migrate sibling handbooks.
@@ -75,10 +87,12 @@ MDX template and updates `catalog_meta.pages[]`.
 
 ### Fumadocs remote loader
 
-For `ssot: supabase`, the docs app fetches documents and catalog nav from the
-linked project (publishable URL + appropriate key via environment—not from
-git-tracked secrets in `.omd`). Generated local caches (for example `.source`)
-remain non-authoritative. Routes `/docs/*` and `/md/*` stay available.
+The docs app **hardcodes** handbook SSOT to `supabase` in code (not via
+`OMD_CONTENT_SSOT`). At build/runtime it materializes or reads documents and
+catalog nav from the linked `oh-my-docs` project using Connect publishable
+URL/key env vars only—never from git-tracked secrets in `.omd`. Generated
+local caches (for example `.supabase-content`, `.source`) remain
+non-authoritative. Routes `/docs/*` and `/md/*` stay available.
 
 ## Data and invariants
 
@@ -97,9 +111,11 @@ remain non-authoritative. Routes `/docs/*` and `/md/*` stay available.
 
 | Code | Meaning |
 |---|---|
-| `supabase_login_required` | Host not logged in |
+| `supabase_login_required` | Host not logged in to Supabase |
+| `vercel_login_required` | Vercel MCP/tool required for env sync but not authenticated |
 | `capability_missing` | Neither CLI nor MCP can apply the manifest |
 | `project_inaccessible` | Cannot create/link/read the project |
+| `shared_project_missing` | No Supabase project named `oh-my-docs` and create blocked |
 | `schema_drift` | Selected handbook schema does not match bundled `schemaVersion` |
 | `handbook_id_required` | Multi-handbook project missing `handbookId` |
 | `handbook_id_conflict` | Registry mapping disagrees with derived `pg_schema` |

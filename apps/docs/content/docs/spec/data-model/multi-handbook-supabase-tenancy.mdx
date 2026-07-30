@@ -49,6 +49,20 @@ mapping.
 
 ## Behavior
 
+### Shared Supabase project
+
+The BYO container project is discovered by **display name** `oh-my-docs`
+(exact match). `projectRef` in the contract is that project’s ref after
+resolution. Orgs should not create per-repo Supabase projects for handbooks
+when sharing is intended.
+
+### Schema location
+
+Declarative SQL for registry + handbook tables ships in the **docs app**
+tree (`apps/docs/supabase/` here; `docs/supabase/` in scaffolds). The
+runtime/port loads and applies that SQL; a skill `references/` copy, if any,
+must stay identical or be generated from the docs app path.
+
 ### Registry
 
 `public.omd_handbooks` holds one row per handbook:
