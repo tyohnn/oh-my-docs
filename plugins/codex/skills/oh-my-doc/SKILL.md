@@ -31,10 +31,10 @@ node <skill>/scripts/omd.mjs check --json
 node <skill>/scripts/omd.mjs sync --yes --json
 ```
 
-Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before choosing a
-workflow. Missing `contentSource` means `local`. Documentation is always first:
-any decision, agreement, or new discussion that should outlive chat must be
-written into that SSOT.
+Read `.omd/project.json` `contentSource.ssot` (`local` | `notion` | `supabase`)
+before choosing a workflow. Missing `contentSource` means `local`. Documentation
+is always first: any decision, agreement, or new discussion that should outlive
+chat must be written into that SSOT.
 
 ### State machine
 

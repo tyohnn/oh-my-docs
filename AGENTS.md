@@ -99,6 +99,11 @@ publish from a developer machine.
 - The only long-running service is the docs handbook (`apps/docs`, Next.js). Run it
   with `pnpm --filter @oh-my-docs/docs dev` (or `pnpm dev`); it serves on
   `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
+- For `contentSource.ssot: supabase`, put publishable Connect keys in the
+  environment (see `apps/docs/.env.example`). The docs app reads PostgREST at
+  render time with ISR/tag cache. After handbook writes, POST
+  `/api/revalidate` with `OMD_REVALIDATE_SECRET` (and set `OMD_DOCS_URL` for
+  skill notify helpers) so `/docs` and `/md` refresh without Redeploy.
 - Agent-runtime smoke test (no server needed):
   `node skills/oh-my-doc/scripts/omd.mjs inspect --json` and `... check --json`.
   Test `adopt` against a throwaway temp dir, never the repo root — it scaffolds files.

@@ -2,10 +2,18 @@ import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { createCatalogNavigation, indexOnlyPageTree } from '@oh-my-docs/ui/navigation';
 import handbookIa from '../../../skills/oh-my-doc/references/handbook-ia-graph.json';
-import { isSupabaseSsot } from './content-ssot';
+import { hasSupabaseConnectEnv, isSupabaseSsot } from './content-ssot';
 
-/** True when contract selects Supabase; content must be pulled or env-pointed. */
+/** True when contract selects Supabase. */
 export const usingSupabaseContent = isSupabaseSsot();
+
+/**
+ * Serve via cached remote PostgREST + MDX compile when supabase SSOT and
+ * Connect env are both present. Otherwise keep the filesystem collection.
+ */
+export function shouldUseSupabaseRemote(): boolean {
+  return isSupabaseSsot() && hasSupabaseConnectEnv();
+}
 
 const CATALOGS = (
   handbookIa.objects as Array<{

@@ -11,11 +11,12 @@
     "prepare:content": "node scripts/prepare-content.mjs",
     "pull:supabase": "node scripts/pull-supabase-content.mjs",
     "push:supabase": "node scripts/push-supabase-content.mjs",
-    "test": "node --test scripts/*.test.mjs",
+    "test": "node --test scripts/*.test.mjs && node --test --experimental-strip-types lib/*.test.ts",
     "typecheck": "tsc --noEmit",
     "check:planning": "node scripts/check-planning.mjs"
   },
   "dependencies": {
+    "@fumadocs/mdx-remote": "^1.5.1",
     "@oh-my-docs/ui": "workspace:*",
     "fumadocs-core": "^16.11.5",
     "fumadocs-mdx": "^15.2.0",

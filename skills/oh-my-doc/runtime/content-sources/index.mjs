@@ -22,6 +22,7 @@ import {
   containsForbiddenSecrets,
   SUPABASE_SCHEMA_VERSION,
 } from './supabase.mjs';
+import { notifyDocsRevalidate } from './notify-revalidate.mjs';
 import { parseNotionRoot } from './notion-root.mjs';
 import { loadNotionReferences } from './load-references.mjs';
 import { extractChildBlocks } from './sidebar.mjs';
@@ -45,6 +46,7 @@ export {
   validateSupabaseSnapshot,
   containsForbiddenSecrets,
   SUPABASE_SCHEMA_VERSION,
+  notifyDocsRevalidate,
 };
 
 /**
