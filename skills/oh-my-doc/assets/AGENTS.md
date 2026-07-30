@@ -12,9 +12,10 @@ This repository uses a docs-first workflow. Canonical product intent lives in
 3. If `.omd/project.json` is missing, run `inspect` / ask the user to choose
    SSOT and `adopt` before inventing handbook files.
 4. For `local`, edit the Fumadocs MDX tree. For `notion`, edit the single
-   Home page where catalog DBs are stacked inline (no child pages, no
-   sidebar) via the host Notion MCP. Do not treat an unselected provider as
-   truth.
+   Home page: only `# 도메인` / `# 기획` / `# 개발` section headers, with
+   catalog DBs stacked inline under them (no per-catalog headings, no child
+   pages, no sidebar) via the host Notion MCP. Do not treat an unselected
+   provider as truth.
 
 ## Documentation is always first
 

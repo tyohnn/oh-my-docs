@@ -229,16 +229,36 @@ export function planProvision(options) {
     const homeObject =
       refs.iaGraph.objects.find((o) => o.role === 'home') ??
       refs.iaGraph.objects.find((o) => o.key === homeKey);
-    const databases = refs.iaGraph.objects
-      .filter((o) => o.kind === 'database' && o.parent === homeKey)
-      .map((o) => ({
-        key: o.key,
-        title: o.title,
-        url: placeholderMappings[o.key]?.url ?? `{{${o.key}}}`,
-      }));
+    const homeStack = refs.iaGraph.homeStack;
+    if (!homeStack?.sections?.length) {
+      throw new Error(
+        'stacked-on-home requires notion-ia-graph.json homeStack.sections (도메인/기획/개발)',
+      );
+    }
+    const objectsByKey = Object.fromEntries(
+      refs.iaGraph.objects.map((o) => [o.key, o]),
+    );
+    const sections = homeStack.sections.map((section) => ({
+      id: section.id,
+      title: section.title,
+      databases: (section.databases ?? []).map((key) => {
+        const object = objectsByKey[key];
+        if (!object || object.kind !== 'database') {
+          throw new Error(
+            `homeStack section "${section.title}" references missing database ${key}`,
+          );
+        }
+        return {
+          key,
+          title: object.title,
+          url: placeholderMappings[key]?.url ?? `{{${key}}}`,
+        };
+      }),
+    }));
+    const databaseKeys = sections.flatMap((s) => s.databases.map((d) => d.key));
     const content = renderStackedHomeContent({
       bodyMarkdown: defaultPageBody(homeKey, homeObject?.title ?? 'Home'),
-      databases,
+      sections,
     });
     const payload = {
       key: homeKey,
@@ -252,8 +272,8 @@ export function planProvision(options) {
       op: 'write_page_body',
       dependsOn: [
         `ensure:${homeKey}`,
-        ...databases.map((d) => `ensure:${d.key}`),
-        ...databases.map((d) => `inline:${d.key}`),
+        ...databaseKeys.map((key) => `ensure:${key}`),
+        ...databaseKeys.map((key) => `inline:${key}`),
       ],
       expectedParentKey: 'root',
       desiredDigest: digest(stableStringify({ key: homeKey, content })),
@@ -262,7 +282,7 @@ export function planProvision(options) {
         tool: 'notion-update-page',
         command: 'replace_content',
         notes:
-          'Home is the only managed page. Stack inline catalog databases vertically. No sidebar columns, no child catalog pages. Substitute {{dbs.*}} from mappings before write.',
+          'Home is the only managed page. Section headers only (도메인/기획/개발) + inline DBs. No per-catalog headings, no sidebar, no child pages. Substitute {{dbs.*}} from mappings before write.',
       },
     });
   } else {
@@ -358,6 +378,11 @@ export function planProvision(options) {
     operations: planned,
     nav: refs.iaGraph.nav,
     sourcesStrategy,
+    homeStack: refs.iaGraph.homeStack,
+    catalogTitles: refs.iaGraph.objects
+      .filter((o) => o.kind === 'database')
+      .map((o) => o.title)
+      .filter(Boolean),
   });
 
   const manifest = {
@@ -365,6 +390,7 @@ export function planProvision(options) {
     provider: 'notion',
     root,
     sourcesStrategy,
+    homeStack: refs.iaGraph.homeStack ?? null,
     chrome:
       refs.iaGraph.chrome ??
       (sourcesStrategy === 'stacked-on-home'
@@ -496,10 +522,21 @@ export function validateSnapshot(options) {
   }
 
   // Enforce body chrome for the active Notion strategy (stacked vs legacy sidebar).
+  const catalogTitles = Object.values(snapshot.objects ?? {})
+    .filter((o) => o?.type === 'database' && o?.title)
+    .map((o) => o.title);
   const chromeValidation = validateManifestSidebarChrome({
     operations: manifest.operations,
     nav: manifest.nav,
     sourcesStrategy: manifest.sourcesStrategy,
+    homeStack: manifest.homeStack,
+    catalogTitles:
+      catalogTitles.length > 0
+        ? catalogTitles
+        : (manifest.operations ?? [])
+            .filter((op) => op.op === 'ensure_database')
+            .map((op) => op.payload?.title)
+            .filter(Boolean),
   });
   problems.push(...chromeValidation.problems);
 

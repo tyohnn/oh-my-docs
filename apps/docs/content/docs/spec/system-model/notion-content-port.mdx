@@ -41,35 +41,35 @@ does not own OAuth or call a hidden Notion API.
 
 Notion SSOT is **agent-stacked catalogs** (`ADR-008`, strategy
 `stacked-on-home`). The user-supplied `--notion-root` **is** Home
-(`pages.home`). Home embeds **all** catalog databases **inline**, stacked
-vertically. Each document is a database row.
+(`pages.home`). Home embeds **all** catalog databases **inline** under
+exactly three section headers — **도메인**, **기획**, **개발** — in that
+order (`homeStack`). Each document is a database row. The database title is
+the catalog label; per-catalog `#` headings are forbidden.
 
 Do **not** provision catalog child pages, Vision / Start here / Workflow
-shells, or sidebar chrome. Those human-nav patterns are out of scope for
-Notion SSOT. Local Fumadocs may still use a fuller tree when `ssot: local`.
+shells, sidebar chrome, or headings like `# Glossary` / `# PRDs`. Those
+human-nav patterns are out of scope for Notion SSOT. Local Fumadocs may
+still use a fuller tree when `ssot: local`.
 
 ```text
 Home (user-supplied notion-root = pages.home)
-├── # Glossary → inline DB
-├── # Models → inline DB
-├── # Policies → inline DB
-├── # PRDs → inline DB
-├── # Stories → inline DB
-├── # Data model → inline DB
-├── # System model → inline DB
-├── # Plans → inline DB
-└── # ADRs → inline DB
+├── intro (plain body)
+├── # 도메인 → Glossary / Models / Policies (inline DBs)
+├── # 기획 → PRDs / Stories (inline DBs)
+└── # 개발 → Data model / System model / Plans / ADRs (inline DBs)
 ```
 
-Exact catalog keys live in `notion-ia-graph.json`. Notion adopt does not
-scaffold a local Fumadocs docs app or `packages/docs-ui`.
+Exact catalog keys and section membership live in `notion-ia-graph.json`
+→ `homeStack`. Notion adopt does not scaffold a local Fumadocs docs app or
+`packages/docs-ui`.
 
 ## Page chrome
 
 `stacked-on-home` emits **no** sidebar columns or callout nav. Home body is
-plain intro text plus stacked `# Catalog` headings and `<database inline>`
-blocks. `omd check` (notion) validates that Home embeds the required inline
-databases and does not require child catalog pages.
+plain intro text plus exactly `# 도메인` / `# 기획` / `# 개발` and
+`<database inline>` blocks under each. Runtime
+`validateStackedHomeContent` hard-fails on catalog headings, wrong section
+order, or sidebar chrome.
 
 ## Database properties and relations
 

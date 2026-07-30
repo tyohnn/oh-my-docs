@@ -1,7 +1,28 @@
 {
   "schemaVersion": "2.0",
   "sourcesStrategy": "stacked-on-home",
-  "note": "Agent-only Notion IA: one Home page with inline catalog DBs stacked vertically. No child pages, no sidebar chrome (ADR-008 refined).",
+  "note": "Agent-only Notion IA: one Home page with inline catalog DBs under section headers only (도메인/기획/개발). No per-catalog headings, no child pages, no sidebar.",
+  "homeStack": {
+    "required": true,
+    "forbidCatalogHeadings": true,
+    "sections": [
+      {
+        "id": "domain",
+        "title": "도메인",
+        "databases": ["dbs.glossary", "dbs.models", "dbs.policies"]
+      },
+      {
+        "id": "planning",
+        "title": "기획",
+        "databases": ["dbs.prds", "dbs.stories"]
+      },
+      {
+        "id": "development",
+        "title": "개발",
+        "databases": ["dbs.data-model", "dbs.system-model", "dbs.plans", "dbs.adrs"]
+      }
+    ]
+  },
   "objects": [
     {
       "key": "pages.home",

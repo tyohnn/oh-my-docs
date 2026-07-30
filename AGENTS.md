@@ -6,8 +6,9 @@ only points here.
 ## Project
 
 Oh My Docs is a docs-first product workspace. Dogfood handbook SSOT is
-**Notion**: one Home page with stacked inline catalog DBs (no child pages,
-no sidebar). See `.omd/project.json` `contentSource.notion.rootPageUrl`.
+**Notion**: one Home page with `# 도메인` / `# 기획` / `# 개발` section
+headers and stacked inline catalog DBs (no per-catalog headings, no child
+pages, no sidebar). See `.omd/project.json` `contentSource.notion.rootPageUrl`.
 The `apps/docs` Fumadocs app remains the local product shell / template
 mirror — it is **not** the content SSOT while `ssot: notion`.
 

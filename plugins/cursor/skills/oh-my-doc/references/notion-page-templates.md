@@ -5,35 +5,29 @@ after databases exist.
 
 ## Stacked Home (current)
 
+**Hard rule:** Home may use only these `#` headings, in this order:
+`도메인`, `기획`, `개발`. Do **not** emit per-catalog headings
+(`# Glossary`, `# PRDs`, …) — the database title is enough.
+
 ```markdown
 Oh My Docs handbook (agent SSOT). Catalogs are stacked inline databases on this page — no child pages, no sidebar.
 
-# Glossary
+# 도메인
 <database url="{{dbs.glossary}}" inline="true">Glossary</database>
-
-# Models
 <database url="{{dbs.models}}" inline="true">Models</database>
-
-# Policies
 <database url="{{dbs.policies}}" inline="true">Policies</database>
 
-# PRDs
+# 기획
 <database url="{{dbs.prds}}" inline="true">PRDs</database>
-
-# Stories
 <database url="{{dbs.stories}}" inline="true">Stories</database>
 
-# Data model
+# 개발
 <database url="{{dbs.data-model}}" inline="true">Data model</database>
-
-# System model
 <database url="{{dbs.system-model}}" inline="true">System model</database>
-
-# Plans
 <database url="{{dbs.plans}}" inline="true">Plans</database>
-
-# ADRs
 <database url="{{dbs.adrs}}" inline="true">ADRs</database>
 ```
 
-Runtime builds this with `renderStackedHomeContent`.
+Runtime builds this with `renderStackedHomeContent` from
+`notion-ia-graph.json` → `homeStack`. `validateStackedHomeContent` hard-fails
+on catalog headings, wrong section order, or sidebar chrome.

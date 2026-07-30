@@ -48,7 +48,8 @@ chat must be written into that SSOT.
 4. `adopt --ssot notion --notion-root …` — map root to `pages.home`, emit a
    Notion MCP provisioning manifest from `references/notion-*` (never a `ref/`
    path); execute via host MCP; record mappings. Does **not** install local UI.
-   Notion IA is one Home page with stacked inline catalog DBs only.
+   Notion IA is one Home page: section headers **도메인 / 기획 / 개발** only,
+   with stacked inline catalog DBs under them (no per-catalog `#` headings).
 5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
    or Notion root/mappings/pending ops (notion).
 6. `new` / `sync` as needed for later work.
@@ -73,9 +74,9 @@ chat must be written into that SSOT.
 | `references/implementation-workflow.md` | How to implement alongside ordinary docs |
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
-| `references/notion-information-architecture.md` | Notion page + details-toggle IA |
+| `references/notion-information-architecture.md` | Notion Home stack (도메인/기획/개발) |
 | `references/notion-catalog-writes.md` | Where PRD/story/plan/ADR rows go (Planning ≠ Plans) |
-| `references/notion-sidebar.md` | Notion chrome notes (stacked-on-home = no sidebar) |
+| `references/notion-sidebar.md` | Notion chrome (section headers only; no sidebar) |
 | `references/notion-page-templates.md` | Notion-flavored body templates |
 | `references/notion-manual-checklist.md` | Host-only steps (page Full width) |
 | `references/handbook-ia-graph.json` | Shared structure metadata IA graph (local + Notion) |
@@ -95,6 +96,14 @@ chat must be written into that SSOT.
   inline DB or local catalog folder + `meta.json`), never as ad-hoc section
   children. **Planning ≠ Plans**: implementation plans belong in Plans
   (`dbs.plans`), not under Planning.
+- **Notion Home body (mandatory when `ssot: notion`):**
+  - Exactly three `#` headings, in order: `도메인`, `기획`, `개발`.
+  - Never emit per-catalog headings (`# Glossary`, `# Models`, `# PRDs`, …);
+    the database title is the catalog label.
+  - Never add sidebar chrome, Vision/Workflow child pages, or catalog index pages.
+  - Follow `references/notion-ia-graph.json` → `homeStack`. Runtime
+    `validateStackedHomeContent` / provision chrome validation **hard-fail** on
+    drift — do not “fix” by adding headings.
 - Never hand-edit managed `<!-- oh-my-docs:* -->` marker blocks; run `sync` or `adopt`.
 - Never auto-reorder brownfield IA on first adopt.
 - Prefer `inspect → ask SSOT → adopt → check` over inventing handbook files.
