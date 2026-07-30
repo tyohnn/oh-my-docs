@@ -71,7 +71,7 @@ Out of scope: rebuilding a human task product; Notion↔local sync.
 ## Verification
 
 - No `check:docs-first` script/script entry.
-- `adopt --ssot supabase` errors; `needsSsot` ∈ {local, notion}.
+- `adopt --ssot supabase` errors; `needsSsot` is only `local` or `notion`.
 - No Supabase content-source modules or `/api/revalidate` in tree.
 - Notion dry-run: catalog DBs only.
 - Dogfood `ssot: local`; local docs build without Supabase env.
