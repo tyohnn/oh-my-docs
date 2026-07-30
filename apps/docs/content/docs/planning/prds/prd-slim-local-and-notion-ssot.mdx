@@ -1,8 +1,8 @@
 ---
 title: Slim local and Notion handbook SSOT
-description: Offer only local Fumadocs MDX or a one-page Notion catalog workspace; remove Supabase SSOT and deploy/revalidate product surface.
+description: Offer only local Fumadocs MDX or a one-page Notion catalog workspace; remove Supabase SSOT, deploy/revalidate surface, and mandatory planning/development gates.
 type: conceptual
-summary: Operators pick local (full MDX handbook) or Notion (Home + inline catalog DBs); Supabase and Vercel content-port ops go away.
+summary: Operators pick local or Notion catalogs; Supabase, Vercel revalidate, and docs-first gates go away.
 id: PRD-slim-local-and-notion-ssot
 ticker: PRD-008
 period: content-ports
@@ -30,14 +30,17 @@ chrome or a BYO database SSOT.
   Start here, or Workflow pages in Notion.
 - Supabase handbook SSOT, remote Fumadocs loaders, and Vercel
   deploy/revalidate content-port features are **removed**.
+- **Planning and development gates are removed**: no required PRD → story →
+  SPEC → ready plan chain; no `Plan:` trailer; no `check:docs-first`. Catalogs
+  are optional agent memory.
 
 ## Goals
 
 - One authoritative content source per repo (`local` | `notion`).
 - Notion stays a lightweight index of ADR / Data model / API spec / Plans /
   PRDs / Stories (and sibling catalogs)—not a mirror of local section prose.
-- Agents own Notion MCP and local file writes; users are not asked to run
-  setup terminals for deleted Supabase/revalidate flows.
+- Agents implement without blocking on handbook ceremony; they may still write
+  catalogs when truth should outlive chat.
 - Existing local Fumadocs behavior remains the default migration target for
   dogfood.
 
@@ -47,6 +50,7 @@ chrome or a BYO database SSOT.
 - Rendering Notion through Fumadocs.
 - Keeping BYO Supabase as a content SSOT.
 - Productized Vercel project provisioning or cache-bust webhooks.
+- Replacing human task boards (e.g. light Notion tasks) with handbook gates.
 
 ## Included stories
 
@@ -57,4 +61,5 @@ chrome or a BYO database SSOT.
 - Greenfield adopt rejects `--ssot supabase`.
 - Notion adopt creates Home + inline catalog DBs without Vision/Workflow pages.
 - Docs app no longer branches on Supabase remote SSOT or `/api/revalidate`.
+- Agents/CI do not require `Plan:` or a ready plan on the base branch.
 - `PRD-byo-supabase-*` outcomes are closed as superseded by this PRD.

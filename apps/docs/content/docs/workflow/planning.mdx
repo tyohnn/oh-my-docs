@@ -1,112 +1,53 @@
 ---
 title: Planning workflow
-description: Move from moderated user discovery through approved design before implementation.
+description: Optional catalog hygiene for durable decisions; not a prerequisite for implementation.
 type: guide
-summary: Discover user outcomes, maintain living contracts, and approve a bounded change record separately from code.
+summary: Write handbook catalogs when truth should outlive chat; do not block coding on PRD/SPEC/PLAN ceremony.
 related:
   - /docs/workflow/development
   - /docs/planning/prds
   - /docs/domain
-  - /docs/spec/system-model/cli
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
-## PDCA lifecycle
+## Intent
 
-`Discover → Plan → Design → Approve → Do → Check → Act`
+Planning artifacts (PRD, story, SPEC, ADR, plan) are **optional durable
+indexes** for agents and future readers. They are not a required sequence
+before implementation (`ADR-008`, `SPEC-docs-first-development`).
 
-| Phase | Primary artifacts |
+Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`; missing
+means `local`) when editing handbook content so writes go to the selected
+SSOT.
+
+## When to write
+
+Write or update a catalog row when:
+
+- a decision should survive this chat, or
+- another agent will need the same context cold.
+
+Skip ceremony for small fixes and exploratory work. Prefer updating an
+existing stable ID over minting a duplicate.
+
+## Suggested shapes (optional)
+
+| Need | Catalog |
 |---|---|
-| Discover | Candidate user stories and moderated decisions |
-| Plan | Change-scoped PRD with accepted stories |
-| Design | Living Domain/SPEC updates, ADRs, and a change-scoped PLAN |
-| Approve | Planning-only change merged; PLAN ready on the base branch |
-| Do | Agent-generated `.omd` tasks and implementation |
-| Check | Tests and gap analysis against US, Policy, and SPEC |
-| Act | Corrective tasks, living-doc updates, and completion |
+| Why we chose X | ADR |
+| Observable contract | Data model / system (API) spec |
+| Initiative outcome | PRD + stories (if useful) |
+| Bounded work notes | Plan (informational; not a merge key) |
 
-## 1. Classify the change
+Local SSOT keeps the full Fumadocs section tree. Notion SSOT is Home + inline
+catalog DBs only.
 
-Before classifying, read `.omd/project.json` `contentSource.ssot` (`local` |
-`notion`; missing means `local`) and treat that provider as the only handbook
-SSOT. Documentation is always first: any decision, agreement, requirement, or
-new discussion that should outlive chat must be written into the SSOT — not left
-only in conversation.
-
-| Change | Required artifacts |
-|---|---|
-| Product behavior | Moderated PRD, accepted story, living Domain/SPEC updates, implementation PLAN |
-| Bug fix | Existing PRD and specification, implementation plan |
-| Maintenance | Implementation plan; specification if a contract changes |
-| Documentation only | No prior plan |
-
-Reuse living artifacts when they already describe the intended state. Do not
-create new IDs for the same term, model, policy, story, or contract.
-
-## 2. Discover from user stories
-
-Start with candidate user outcomes rather than implementation ideas. Ask one
-unresolved decision at a time, include a recommended answer, and confirm shared
-understanding. `grill-me` is one optional moderation implementation; the
-workflow does not depend on it.
-
-Record agreed outcomes in draft user stories. Do not persist the interview
-transcript as product truth.
-
-## 3. Plan the initiative
-
-Group and prioritize stories in a PRD. Product PRDs become active only after
-moderation and record:
-
-```yaml
-reviewStatus: moderated
-reviewMethod: pdca-discovery
-```
-
-Accepted stories are living documents. The PRD remains the bounded change
-record for this initiative.
-
-## 4. Design the target state
-
-Update or add documents in this order:
-
-`Domain terms/models/policies → SPECs → ADRs → PLAN`
-
-- Domain and SPEC documents are living: update stable IDs in place.
-- SPECs are organized by durable contract boundary (`behavior`, `data-model`,
-  `system-model`, `api`, `ui`, `security`, or custom), not by initiative.
-- ADRs preserve durable choices and rejected alternatives.
-- PLAN references the affected living contracts and defines bounded
-  implementation/verification without copying an integrated specification.
-
-## 5. Complete the graph
-
-Use templates under the docs app `templates/` directory, or create drafts with
-the skill runtime:
+## Tooling
 
 ```bash
 node <skill>/scripts/omd.mjs new prd|story|spec|plan|adr --title "…" --yes
+pnpm check:planning   # optional graph/nav hygiene when catalogs exist
 ```
 
-Give every artifact a stable, kind-prefixed ID, link it through frontmatter, and
-register its filename in the sibling `meta.json` (`new` does this).
-
-Set an approved PRD to `active`, story to `accepted`, reviewed specification to
-`accepted`, and approved PLAN to `ready`. Plans that authorize code must declare
-non-empty `codeAreas`.
-
-## 6. Approve planning separately
-
-Merge or otherwise approve the planning change before implementation starts.
-Do not add a missing ready plan and its code in one change.
-
-After approval, an implementation agent may derive dependency-aware `.omd`
-tasks from the PLAN. PLAN remains the reviewed change record; task remains the
-internal execution unit even if UI terminology calls the PLAN a sprint.
-
-## 7. Validate
-
-```bash
-pnpm check:planning
-pnpm check:docs-first   # CI on pull requests; skips locally without BASE_SHA
-node <skill>/scripts/omd.mjs check --json
-```
+There is no `check:docs-first` gate and no requirement to merge planning
+before code.
