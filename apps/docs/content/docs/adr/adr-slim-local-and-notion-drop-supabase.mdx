@@ -1,0 +1,61 @@
+---
+title: Slim local/Notion SSOT and drop Supabase
+description: Keep local Fumadocs MDX and a one-page Notion catalog model; remove BYO Supabase and deploy/revalidate product surface.
+type: decision
+summary: Handbook SSOT is only local or Notion; Notion is Home plus inline catalog DBs; Supabase SSOT and Vercel revalidate/deploy ops are out.
+id: ADR-slim-local-and-notion-drop-supabase
+ticker: ADR-008
+stage: accepted
+related:
+  - /docs/adr/adr-select-one-content-source-per-project
+  - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
+  - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+  - /docs/planning/prds/prd-slim-local-and-notion-ssot
+  - /docs/spec/data-model/content-source-contract
+  - /docs/spec/system-model/notion-content-port
+---
+
+## Context
+
+BYO Supabase as a third handbook SSOT (ADR-006 / ADR-007) plus ISR/on-demand
+revalidate and Vercel deploy ops made adoption and day-to-day agent setup
+heavier than the value delivered for agent-first workflows. Operators do not
+read a full handbook chrome in Notion; they want catalog rows. Local MDX +
+Fumadocs remains useful for Git-reviewed planning.
+
+## Decision
+
+1. **SSOT choices are only `local` and `notion`.** `supabase` is removed from
+   the product contract, runtime, and adopt UX.
+2. **`local`** keeps the existing Fumadocs MDX handbook (full section tree:
+   vision, workflow, domain, planning catalogs, etc.).
+3. **`notion`** provisions **one Home root** with **inline databases only** for
+   catalog kinds (ADR, Data model, API/system specs, Plans, PRDs, Stories, and
+   other index-only catalogs). No Vision / Start here / Workflow (or similar)
+   narrative section pages in the Notion IA.
+4. **Remove** productized Vercel deploy / Supabase Connect / on-demand
+   revalidate surface (`OMD_REVALIDATE_*`, `POST /api/revalidate`,
+   `notifyDocsRevalidate`, vercel ensure/sync ops in specs). Hosting a local
+   Fumadocs app remains an ordinary deploy choice outside the content-port
+   contract.
+5. Prior Supabase ADRs/specs/plans are **superseded** by this decision and
+   `PRD-slim-local-and-notion-ssot`.
+
+ADR-005’s “exactly one SSOT” rule remains; its allowed set shrinks to
+`local` | `notion`.
+
+## Consequences
+
+- Dogfood and adopters on `ssot: supabase` must migrate to `local` or `notion`.
+- Skill IA graph splits: full graph for local; slim catalog-only graph for Notion.
+- Large deletions under `skills/oh-my-doc` Supabase adapters, `apps/docs`
+  remote Supabase loaders, and revalidate routes.
+
+## Rejected alternatives
+
+- **Keep Supabase, drop only revalidate** — still carries schema, adopt, and
+  dual-read complexity without solving “I do not read the handbook.”
+- **Notion keeps full Vision/Workflow chrome** — rejected; Notion is for
+  catalog indexing, not a second full handbook.
+- **Docs only in chat / tasks with no SSOT** — rejected for cold agents; local
+  or Notion catalogs remain the durable store agents read.

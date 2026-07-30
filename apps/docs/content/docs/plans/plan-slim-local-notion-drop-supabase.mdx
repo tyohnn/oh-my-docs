@@ -1,0 +1,90 @@
+---
+title: Slim local/Notion SSOT and remove Supabase path
+description: Implement dual SSOT local|notion with slim Notion catalogs; delete Supabase adapters, remote loaders, and revalidate/deploy surface.
+type: guide
+summary: Cut supabase SSOT and Vercel revalidate product code; keep full local Fumadocs; shrink Notion adopt to Home + inline catalog DBs.
+id: PLAN-slim-local-notion-drop-supabase
+ticker: PLAN-018
+stage: ready
+changeType: product
+prd: PRD-slim-local-and-notion-ssot
+specs:
+  - SPEC-content-source-contract
+  - SPEC-notion-content-port
+  - SPEC-handbook-information-architecture
+stories:
+  - US-slim-local-or-notion-handbook-ssot
+codeAreas:
+  - skills/oh-my-doc/
+  - plugins
+  - apps/docs/lib/
+  - apps/docs/app/
+  - apps/docs/scripts/
+  - apps/docs/package.json
+  - apps/docs/.env.example
+  - apps/docs/source.config.ts
+  - package.json
+  - AGENTS.md
+  - .omd/
+related:
+  - /docs/planning/prds/prd-slim-local-and-notion-ssot
+  - /docs/adr/adr-slim-local-and-notion-drop-supabase
+  - /docs/planning/stories/us-slim-local-or-notion-handbook-ssot
+---
+
+## Scope
+
+1. Runtime/contract: `contentSource.ssot` ∈ {`local`,`notion`} only; reject
+   `supabase` on adopt/check/new.
+2. Notion: slim IA graph (Home + inline catalog DBs). Remove Vision / Start
+   here / Workflow (and equivalent narrative pages) from Notion provision.
+3. Local: keep full Fumadocs MDX handbook IA.
+4. Delete Supabase content-port adapters, SQL templates, dogfood remote
+   loaders (`supabase-handbook`, `supabase-remote-source`, pull/push scripts
+   as authority path), ISR/revalidate API, `notifyDocsRevalidate`,
+   revalidate-env guidance, and Vercel content-port ops from specs/skills.
+5. Dogfood: move `.omd/project.json` to `ssot: local` (authoritative
+   `apps/docs/content/docs`).
+6. Update `SKILL.md`, markers, `AGENTS.md`, schemas, and plugin mirrors
+   (`pnpm sync:skills`).
+
+Out of scope: automatic export of existing Supabase handbook rows into Notion;
+redesigning local Vision/Workflow pages.
+
+## Implementation sequence
+
+1. Land this ready plan (docs-only) on `main`.
+2. Add slim Notion IA graph + wire adopt/check to it; keep full graph for local.
+3. Remove supabase branches from `omd.mjs`, content-sources, schemas, templates.
+4. Strip `apps/docs` remote Supabase serve + `/api/revalidate` + related env
+   docs/scripts that exist only for that path.
+5. Migrate dogfood `.omd` to local; refresh managed markers.
+6. `pnpm sync:skills`, tests, `check:planning`, `check:docs-first`.
+
+## Verification
+
+- `adopt --ssot supabase` fails; `needsSsot` options are `local` and `notion`.
+- Notion dry-run provision lists catalog pages/DBs only (no Vision/Workflow).
+- Local docs app builds from filesystem MDX without Supabase env.
+- No `/api/revalidate` route; no `OMD_REVALIDATE_*` skill guidance.
+- `pnpm check:skills`, `pnpm check:planning`, docs/skill unit tests pass.
+- Dogfood `.omd` reports `ssot: local`.
+
+## Migration and compatibility
+
+- Superseded: ADR-006/007, SPEC-010/011/012, PLAN-014–017, PRD-006/007 (done).
+- Adopters on supabase must re-adopt or hand-edit `.omd` to `local`|`notion`.
+- `sync:env` may remain as a harmless local helper or be removed if unused.
+
+## Risks and rollback
+
+- Dogfood content currently in Supabase may need a one-time pull to local MDX
+  before cutting remote serve — pull while credentials still work, then switch
+  SSOT.
+- Rollback: revert the implementation PR; prior supabase docs remain
+  superseded in git history.
+
+## Completion criteria
+
+- US-013 acceptance criteria hold.
+- Plan stage moves to `done` after verification.

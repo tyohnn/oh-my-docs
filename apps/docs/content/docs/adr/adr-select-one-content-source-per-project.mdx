@@ -25,20 +25,19 @@ planning and validation belong to the Oh My Docs runtime.
 ## Decision
 
 - Each `.omd` project selects exactly one authoritative content source:
-  `local`, `notion`, or `supabase` (Supabase added by ADR-006).
+  `local` or `notion` (`ADR-008` removes `supabase`).
 - Provider-neutral operations are defined as a content port.
-- The local adapter retains MDX/Fumadocs behavior.
-- The Notion adapter emits deterministic manifests; the skill executes them
-  with a configured Notion MCP and returns snapshots for validation.
-- The Supabase adapter stores structured MDX in a user-owned project; Fumadocs
-  remains the renderer (see ADR-006).
+- The local adapter retains full MDX/Fumadocs handbook IA.
+- The Notion adapter emits deterministic manifests for a **slim** Home +
+  inline catalog DB workspace; the skill executes them with a configured
+  Notion MCP and returns snapshots for validation.
 - Non-secret source identity is stored in project metadata. Rebuildable object
   mappings are stored in state. Credentials are never stored.
-- Notion itself is the presentation layer for `ssot: notion` in v1.
+- Notion itself is the presentation layer for `ssot: notion`.
 
-ADR-001 remains applicable to `local` and `supabase` projects (Fumadocs
-renderer) and to the rule that a project must not have two authoritative
-stores.
+ADR-001 remains applicable to `local` projects (Fumadocs renderer) and to the
+rule that a project must not have two authoritative stores. ADR-006 / ADR-007
+are superseded.
 
 ## Consequences
 
