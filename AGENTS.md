@@ -5,19 +5,19 @@ only points here.
 
 ## Project
 
-Oh My Docs is a docs-first product workspace. `apps/docs/content/docs` is the
-local handbook SSOT for product intent, observable contracts, decisions, and
-implementation notes.
+Oh My Docs is a docs-first product workspace. Dogfood handbook SSOT is
+**Notion** (Home + inline catalog DBs). See `.omd/project.json`
+`contentSource.notion.rootPageUrl`. The `apps/docs` Fumadocs app remains the
+local product shell / template mirror — it is **not** the content SSOT while
+`ssot: notion`.
 
 - Node.js >= 24
 - pnpm 11.5.2 and Turborepo
 - TypeScript strict mode and ESM
-- SSOT is `local` (see `.omd/project.json`); Notion is the other supported
-  option for adopters, not this dogfood repo
+- SSOT is `notion` (see `.omd/project.json`)
 
-Prefer updating a stable ID over duplicating an idea. Register every catalog
-document in its sibling `meta.json`. Create artifacts with
-`node skills/oh-my-doc/scripts/omd.mjs new prd|story|spec|plan|adr --title "…"`.
+Create catalog rows via Notion MCP (or `omd.mjs new` which emits a Notion
+create-row manifest). Prefer updating a stable OMD ID over duplicating.
 
 ## Commands
 
@@ -52,14 +52,14 @@ npmjs.com before the first tag publish. Do not publish from a developer machine.
 - No lint tooling exists (no ESLint/Biome). The "lint" gate is the check scripts:
   `pnpm check:ui-snapshot`, `pnpm check:skills`, and `pnpm check:planning`.
   Release publishing uses `.github/workflows/release.yml`.
-- The only long-running service is the docs handbook (`apps/docs`, Next.js). Run it
-  with `pnpm --filter @oh-my-docs/docs dev` (or `pnpm dev`); it serves on
-  `http://localhost:3000` with `/docs/*` pages and their `/md/*` Markdown twins.
-- SSOT is `local` (`.omd/project.json`). Edit `apps/docs/content/docs` directly;
-  no Supabase sync or revalidate setup is required.
+- The docs app (`apps/docs`, Next.js) is still useful for local shell/UI dogfood:
+  `pnpm --filter @oh-my-docs/docs dev` on `http://localhost:3000`. Handbook
+  content authority is the Notion root in `.omd/project.json`, not local MDX.
+- After Notion writes, no revalidate/deploy secret flow is required.
 - Agent-runtime smoke test (no server needed):
   `node skills/oh-my-doc/scripts/omd.mjs inspect --json` and `... check --json`.
   Test `adopt` against a throwaway temp dir, never the repo root — it scaffolds files.
+- Manual Notion step: open the handbook root → `⋯` → enable **Full width**.
 
 <!-- oh-my-docs:start -->
 # Oh My Docs
