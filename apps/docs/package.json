@@ -9,6 +9,7 @@
     "start": "next start",
     "postinstall": "fumadocs-mdx",
     "prepare:content": "node scripts/prepare-content.mjs",
+    "sync:env": "node scripts/sync-env-local.mjs",
     "pull:supabase": "node scripts/pull-supabase-content.mjs",
     "push:supabase": "node scripts/push-supabase-content.mjs",
     "test": "node --test scripts/*.test.mjs && node --test --experimental-strip-types lib/*.test.ts",
