@@ -17,6 +17,7 @@ related:
   - /docs/spec/system-model/notion-content-port
   - /docs/adr/adr-byo-supabase-as-mdx-cloud-ssot
   - /docs/adr/adr-schema-per-handbook-in-one-byo-supabase
+  - /docs/plans/plan-supabase-fumadocs-isr-on-demand-revalidate
 ---
 
 ## Scope
@@ -101,13 +102,38 @@ MDX template and updates `catalog_meta.pages[]`.
 ### Fumadocs remote loader
 
 When the project contract has `ssot: supabase` (set because the user chose
-Supabase at adopt), the docs app materializes or reads documents and catalog
-nav from the linked `oh-my-docs` project using Connect publishable URL/key
+Supabase at adopt), the docs app **reads** documents and catalog nav from the
+linked `oh-my-docs` project at render time using Connect publishable URL/key
 env vars only—never from git-tracked secrets in `.omd`, and never by
 requiring a Vercel `OMD_CONTENT_SSOT` override. Generated local caches (for
-example `.supabase-content`, `.source`) remain non-authoritative. Routes
-`/docs/*` and `/md/*` stay available. If the contract is `local` or
-`notion`, this loader path is not used.
+example `.supabase-content`, `.source`) remain non-authoritative and must not
+be the only serve path for supabase SSOT. Routes `/docs/*` and `/md/*` stay
+available. If the contract is `local` or `notion`, this loader path is not
+used.
+
+#### Read model (ISR + on-demand revalidate)
+
+Serving uses a **cached remote read**, not a one-shot build materialize:
+
+1. **Fetch** handbook rows (`omd_documents`, `omd_catalog_meta`) over PostgREST
+   with the handbook schema profile (`Accept-Profile`) when
+   `handbookId` maps to a non-`public` schema.
+2. **Compile** MDX on demand (Fumadocs MDX Remote / equivalent) with the same
+   component set as the local loader path. Trusted agent/CLI content only.
+3. **Cache** fetches and compiled page/tree payloads with Next.js cache tags
+   (at least a handbook-wide tag and optional per-path tags) plus a TTL floor
+   (`revalidate` / ISR) so cold traffic does not hit PostgREST on every
+   request.
+4. **Invalidate on write:** after a successful content-port mutation
+   (`omd new`, upsert, catalog `pages[]` change), the host or docs app calls a
+   secret-gated revalidate endpoint that runs `revalidateTag` /
+   `revalidatePath` for `/docs` and `/md`. A Git merge or full Redeploy is
+   **not** required for handbook body or nav freshness.
+5. New document paths must be reachable without a prior
+   `generateStaticParams` entry (`dynamicParams` allowed for supabase SSOT).
+
+Build-time pull-to-disk may remain as an optional CI/offline aid; it is not
+the production read contract for `ssot: supabase`.
 
 ## Data and invariants
 
@@ -153,5 +179,7 @@ example `.supabase-content`, `.source`) remain non-authoritative. Routes
 - `omd new` and `check` succeed against the selected handbook only.
 - Fumadocs renders a provisioned document over `/docs` and `/md` without
   treating a local MDX tree as authoritative.
+- After a content-port write, `/docs` and `/md` reflect the new body or nav
+  once revalidation runs—without requiring a Git merge or full Redeploy.
 - Two handbooks on one `projectRef` stay isolated across schema upgrades.
 - No web editor surface is required or shipped for this port.

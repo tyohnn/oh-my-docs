@@ -40,6 +40,9 @@ through the content port—not a cloud UI.
   `ssot: supabase`.
 - The docs app loads documents and catalog nav from Supabase and exposes
   `/docs` and `/md`; a local MDX tree is not authoritative.
+- After a content-port write (for example `omd new`), the handbook site shows
+  the updated body and catalog nav via cached remote read + on-demand
+  revalidation—without a Git merge or full Redeploy as the publish step.
 - There is no product web editor for handbook bodies in this release.
 - Local and Notion projects are unchanged.
 
