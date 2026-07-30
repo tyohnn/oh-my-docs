@@ -1,24 +1,26 @@
 ---
 title: Handbook
-description: The single source of truth for Oh My Docs.
+description: Optional durable product memory for people and agents.
 type: overview
-summary: Start here to understand the product and its docs-first delivery model.
+summary: Local Fumadocs or Notion catalog indexes — not a merge gate.
 ---
 
-Oh My Docs keeps product intent, user outcomes, observable contracts, decisions,
-and implementation plans in one navigable system.
+Oh My Docs keeps handbook catalogs so agents (and curious humans) can find
+durable decisions without reconstructing them from chat.
 
-## Start here
+## Paths
 
-- Use the [starting guide](/docs/starting) to choose the right path.
-- Read the [product vision](/docs/vision).
-- Share product language through [Domain terms, models, and policies](/docs/domain).
-- Follow the [planning workflow](/docs/workflow/planning).
-- Use the [development contract](/docs/workflow/development) before changing code.
-- Give coding agents the [CLI / skill runtime](/docs/spec/system-model/cli).
-- Browse the foundation [PRD](/docs/planning/prds/prd-docs-foundation) and the
-  skill/UI refresh [PRD](/docs/planning/prds/prd-skill-and-ui-refresh-loop).
-- Review the [PDCA and task orchestration PRD](/docs/planning/prds/prd-pdca-domain-and-task-orchestration).
+- [Start here](/docs/starting) — shortest orientation
+- [Product vision](/docs/vision)
+- [Domain](/docs/domain) — terms, models, policies
+- [Workflow](/docs/workflow/planning) — catalog notes when useful
+- [Development](/docs/workflow/development) — no planning gate
+- Catalogs: [PRDs](/docs/planning/prds), [Stories](/docs/planning/stories),
+  [Plans](/docs/plans), [ADRs](/docs/adr), [Specs](/docs/spec)
+- Skill runtime: [CLI](/docs/spec/system-model/cli)
 
-Every page is also available as processed Markdown by appending `.md` to its
-docs URL, for example `/docs/vision.md`.
+SSOT is **`local`** (this Fumadocs tree) or **`notion`** (Home + inline catalog
+DBs). Supabase SSOT and docs-first gates are deleted (`ADR-008`) — no shim.
+
+Every page also has a Markdown twin at the same path with `.md`
+(for example `/docs/vision.md`).

@@ -1,25 +1,30 @@
 ---
 title: Start here
-description: Find the product context and workflow needed before beginning work.
+description: Orient quickly; catalogs are ordinary docs, not a prerequisite for code.
 type: overview
-summary: Choose the shortest path from product context to an implementation-ready plan.
+summary: Pick local or Notion SSOT, then ship — write catalogs when useful.
 ---
 
-## Understand the product
+## Orient
 
-Read the [product vision](/docs/vision), then browse active
-[requirements](/docs/planning/prds) and [user stories](/docs/planning/stories).
-Use the [Domain catalogs](/docs/domain) for shared terms, models, and policies.
+- [Product vision](/docs/vision)
+- Active [PRDs](/docs/planning/prds) / [stories](/docs/planning/stories) if useful
+- [Domain](/docs/domain) for shared language
 
-## Plan a change
+## Content source
 
-Follow the [planning workflow](/docs/workflow/planning): discover candidate user
-stories, moderate the product decisions, then maintain living Domain and typed
-[specification](/docs/spec) contracts (data model, system model, CLI). Durable
-technical choices belong in [architecture decisions](/docs/adr).
+Read `.omd/project.json` `contentSource.ssot`:
 
-## Implement reviewed work
+- **`local`** — this Fumadocs MDX tree
+- **`notion`** — one Home page with inline catalog databases only
 
-Use the [development contract](/docs/workflow/development) and select a ready
-[implementation plan](/docs/plans). Coding agents should also read the
-[CLI / skill runtime](/docs/spec/system-model/cli).
+There is no `supabase` SSOT.
+
+## Work style
+
+1. Implement when the change is clear. There is no planning/development gate.
+2. Add catalog rows only when you want them in the handbook.
+
+See [planning](/docs/workflow/planning),
+[development](/docs/workflow/development), and the
+[skill runtime](/docs/spec/system-model/cli).

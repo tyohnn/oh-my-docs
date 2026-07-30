@@ -71,8 +71,8 @@ session data are forbidden.
 For `ssot: notion`, local docs-app paths and UI vocabulary snapshots are not
 required. For `ssot: local`, `paths.ui` defaults to `packages/docs-ui`.
 
-`ssot: supabase` is **invalid** on new contracts. Existing dogfood must
-migrate to `local` or `notion` (implementation plan).
+`ssot: supabase` and `contentSource.supabase` are **invalid**. There is no
+compatibility mode.
 
 ## State contract
 
@@ -88,10 +88,8 @@ State is rebuildable and never authoritative content.
 ## Compatibility
 
 - A version `1.0` project without `contentSource` is interpreted as `local`.
-- Migration writes the explicit local selection without altering docs.
-- Greenfield adopt without an explicit `ssot` flag is rejected (`needsSsot`)
-  with options `local` and `notion` only.
-- Projects that still record `supabase` fail `check` with a migration hint.
+- Greenfield adopt without `--ssot` is rejected (`needsSsot`: `local` |
+  `notion` only).
 
 ## Validation
 
@@ -101,7 +99,7 @@ State is rebuildable and never authoritative content.
 - Notion must not require a local UI package.
 - State mappings must reference known IA/catalog/document keys.
 - Project and state digests must agree.
-- No `contentSource.supabase` object is accepted.
+- `supabase` SSOT fields fail validation.
 
 ## Acceptance criteria
 

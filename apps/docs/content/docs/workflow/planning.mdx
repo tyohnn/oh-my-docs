@@ -1,53 +1,30 @@
 ---
-title: Planning workflow
-description: Optional catalog hygiene for durable decisions; not a prerequisite for implementation.
+title: Planning
+description: How to use handbook catalogs when you want them — not a pre-code ritual.
 type: guide
-summary: Write handbook catalogs when truth should outlive chat; do not block coding on PRD/SPEC/PLAN ceremony.
+summary: Catalogs are normal docs under local or Notion SSOT; nothing blocks implementation.
 related:
   - /docs/workflow/development
-  - /docs/planning/prds
-  - /docs/domain
   - /docs/adr/adr-slim-local-and-notion-drop-supabase
 ---
 
 ## Intent
 
-Planning artifacts (PRD, story, SPEC, ADR, plan) are **optional durable
-indexes** for agents and future readers. They are not a required sequence
-before implementation (`ADR-008`, `SPEC-docs-first-development`).
+PRD / story / SPEC / ADR / plan pages are ordinary handbook catalogs. Use them
+when useful. They are not a required sequence before code.
 
-Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`; missing
-means `local`) when editing handbook content so writes go to the selected
-SSOT.
+Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before
+editing handbook content.
 
-## When to write
+## Local vs Notion
 
-Write or update a catalog row when:
+- **Local:** full Fumadocs tree in this repo
+- **Notion:** Home + inline catalog DBs only
 
-- a decision should survive this chat, or
-- another agent will need the same context cold.
-
-Skip ceremony for small fixes and exploratory work. Prefer updating an
-existing stable ID over minting a duplicate.
-
-## Suggested shapes (optional)
-
-| Need | Catalog |
-|---|---|
-| Why we chose X | ADR |
-| Observable contract | Data model / system (API) spec |
-| Initiative outcome | PRD + stories (if useful) |
-| Bounded work notes | Plan (informational; not a merge key) |
-
-Local SSOT keeps the full Fumadocs section tree. Notion SSOT is Home + inline
-catalog DBs only.
-
-## Tooling
+## Creating entries
 
 ```bash
 node <skill>/scripts/omd.mjs new prd|story|spec|plan|adr --title "…" --yes
-pnpm check:planning   # optional graph/nav hygiene when catalogs exist
 ```
 
-There is no `check:docs-first` gate and no requirement to merge planning
-before code.
+Prefer updating a stable ID over duplicating. There is no docs-first CI gate.

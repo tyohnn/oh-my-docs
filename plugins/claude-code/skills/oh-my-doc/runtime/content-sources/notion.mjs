@@ -132,48 +132,59 @@ export function planProvision(options) {
     }
   }
 
-  // 2) Details toggle on Home listing managed top-level children (not a sources page).
-  const sourcesKey = refs.iaGraph.sourcesToggle.key;
+  // 2) Optional details toggle on Home (legacy). Slim Notion IA uses catalogs-on-home
+  // with flat top-level catalog pages and no sourcesToggle.
   const homeKey =
     refs.iaGraph.objects.find((o) => o.role === 'home')?.key ?? 'pages.home';
   const sourcesChildren = refs.iaGraph.objects.filter(
     (o) => o.parent === homeKey && o.kind === 'page',
   );
-  const sourcesStrategy = refs.iaGraph.sourcesStrategy ?? 'details-toggle-on-home';
-  const sourcesTitle = refs.iaGraph.sourcesToggle.title ?? '데이터 원본';
-  const sourcesToggleMarkdown = [
-    `<details>`,
-    `<summary>${sourcesTitle}</summary>`,
-    ...sourcesChildren.map((o) => `\t<page url="{{${o.key}}}">${o.title}</page>`),
-    `</details>`,
-  ].join('\n');
-  operations.push({
-    id: 'sources:root-index',
-    key: sourcesKey,
-    op: 'write_root_sources_index',
-    dependsOn: [
-      `ensure:${homeKey}`,
-      ...sourcesChildren.map((o) => `ensure:${o.key}`),
-    ],
-    expectedParentKey: homeKey,
-    title: sourcesTitle,
-    desiredDigest: digest(
-      stableStringify({ sourcesKey, strategy: sourcesStrategy, homeKey, children: sourcesChildren.map((o) => o.key) }),
-    ),
-    payload: {
-      strategy: sourcesStrategy,
-      sourcesKey,
-      homeKey,
+  const sourcesStrategy = refs.iaGraph.sourcesStrategy ?? 'catalogs-on-home';
+  const sourcesToggle = refs.iaGraph.sourcesToggle;
+  /** @type {string | null} */
+  let sourcesToggleMarkdown = null;
+  if (sourcesToggle?.key) {
+    const sourcesKey = sourcesToggle.key;
+    const sourcesTitle = sourcesToggle.title ?? '데이터 원본';
+    sourcesToggleMarkdown = [
+      `<details>`,
+      `<summary>${sourcesTitle}</summary>`,
+      ...sourcesChildren.map((o) => `\t<page url="{{${o.key}}}">${o.title}</page>`),
+      `</details>`,
+    ].join('\n');
+    operations.push({
+      id: 'sources:root-index',
+      key: sourcesKey,
+      op: 'write_root_sources_index',
+      dependsOn: [
+        `ensure:${homeKey}`,
+        ...sourcesChildren.map((o) => `ensure:${o.key}`),
+      ],
+      expectedParentKey: homeKey,
       title: sourcesTitle,
-      children: sourcesChildren.map((o) => o.key),
-      content: sourcesToggleMarkdown,
-    },
-    mcp: {
-      tool: 'notion-update-page',
-      notes:
-        'On pages.home, write a <details> 데이터 원본 toggle listing managed top-level pages. Never ensure_page a sources container.',
-    },
-  });
+      desiredDigest: digest(
+        stableStringify({
+          sourcesKey,
+          strategy: sourcesStrategy,
+          homeKey,
+          children: sourcesChildren.map((o) => o.key),
+        }),
+      ),
+      payload: {
+        strategy: sourcesStrategy,
+        sourcesKey,
+        homeKey,
+        title: sourcesTitle,
+        children: sourcesChildren.map((o) => o.key),
+        content: sourcesToggleMarkdown,
+      },
+      mcp: {
+        tool: 'notion-update-page',
+        notes:
+          'On pages.home, write a <details> 데이터 원본 toggle listing managed top-level pages. Never ensure_page a sources container.',
+      },
+    });
+  }
 
   // 3) Relations after both endpoints exist — walk each DB object, not schema name alone.
   for (const fromDb of refs.iaGraph.objects.filter((o) => o.kind === 'database')) {
@@ -215,7 +226,7 @@ export function planProvision(options) {
 
   for (const object of refs.iaGraph.objects.filter((o) => o.kind === 'page')) {
     const childBlocks = [];
-    if (object.role === 'home') {
+    if (object.role === 'home' && sourcesToggleMarkdown) {
       childBlocks.push(sourcesToggleMarkdown);
     } else {
       for (const child of refs.iaGraph.objects.filter((o) => o.parent === object.key)) {
@@ -251,7 +262,7 @@ export function planProvision(options) {
       dependsOn: [
         `ensure:${object.key}`,
         ...refs.iaGraph.nav.topLevel.map((k) => `ensure:${k}`),
-        ...(object.role === 'home' ? ['sources:root-index'] : []),
+        ...(object.role === 'home' && sourcesToggleMarkdown ? ['sources:root-index'] : []),
       ],
       expectedParentKey: object.parent,
       desiredDigest: digest(stableStringify({ key: object.key, content })),
@@ -261,7 +272,9 @@ export function planProvision(options) {
         command: 'replace_content',
         notes:
           object.role === 'home'
-            ? 'Home is the supplied root. Include <details> 데이터 원본 with top-level children. Preserve child page/database blocks.'
+            ? sourcesToggleMarkdown
+              ? 'Home is the supplied root. Include <details> 데이터 원본 with top-level children. Preserve child page/database blocks.'
+              : 'Home is the supplied root. Flat catalog nav only (ADR-008). Preserve child page/database blocks.'
             : 'Required for every pages.* key. Preserve child <page>/<database> blocks. Substitute {{pages.*}}/{{dbs.*}} from state mappings before write.',
       },
     });
@@ -307,10 +320,10 @@ export function planProvision(options) {
     schemaVersion: '1.3',
     provider: 'notion',
     root,
-    sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'details-toggle-on-home',
+    sourcesStrategy: refs.iaGraph.sourcesStrategy ?? 'catalogs-on-home',
     chrome: refs.iaGraph.chrome ?? { requiredOn: 'all-pages' },
     references: {
-      iaGraph: 'references/handbook-ia-graph.json',
+      iaGraph: 'references/notion-ia-graph.json',
       catalogSchemas: 'references/notion-catalog-schemas.json',
       sidebar: 'references/notion-sidebar.md',
       pageTemplates: 'references/notion-page-templates.md',

@@ -31,49 +31,26 @@ node <skill>/scripts/omd.mjs check --json
 node <skill>/scripts/omd.mjs sync --yes --json
 ```
 
-Read `.omd/project.json` `contentSource.ssot` (`local` | `notion` | `supabase`)
-before choosing a workflow. Missing `contentSource` means `local`. Documentation
-is always first: any decision, agreement, or new discussion that should outlive
+Read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) before
+choosing a workflow. Missing `contentSource` means `local`. Documentation is
+always first: any decision, agreement, or new discussion that should outlive
 chat must be written into that SSOT.
 
 ### State machine
 
-1. `inspect` — classify greenfield vs brownfield; never mutate. For
-   `ssot: supabase`, also report `revalidate` readiness
-   (`OMD_DOCS_URL` + `OMD_REVALIDATE_SECRET`).
+1. `inspect` — classify greenfield vs brownfield; never mutate.
 2. **Ask SSOT** — before the first adopt, ask the user to choose `local`
-   (Fumadocs docs app), `notion`, or `supabase`. Greenfield `adopt` without
-   `--ssot` fails with `needsSsot`.
+   (Fumadocs MDX tree) or `notion` (Home + inline catalog DBs). Greenfield
+   `adopt` without `--ssot` fails with `needsSsot`.
 3. `adopt --ssot local --dry-run` / `--yes` — scaffold docs + `packages/docs-ui`,
    write `.omd/`.
 4. `adopt --ssot notion --notion-root …` — map root to `pages.home`, emit a
    Notion MCP provisioning manifest from `references/notion-*` (never a `ref/`
    path); execute via host MCP; record mappings. Does **not** install local UI.
-5. `adopt --ssot supabase …` — scaffold local Fumadocs shell + emit Supabase
-   provision manifest; handbook content SSOT is Supabase.
-6. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
-   Notion root/mappings/pending ops (notion), or Supabase contract (supabase).
-   Supabase `check` may emit soft `hints` when revalidate env is unset.
-7. `new` / `sync` as needed for later work.
-
-### Supabase freshness (agent duty)
-
-When SSOT is `supabase`, **you** keep `/docs` and `/md` fresh. Do not ask the
-user to run `curl`, `openssl`, or revalidate commands themselves.
-
-1. Read `references/supabase-handbook-freshness.md`.
-2. Run `inspect --json` and read `revalidate`. If not `ready`, generate
-   `OMD_REVALIDATE_SECRET` (`openssl rand -hex 32`), set the **same** value on
-   the docs deploy (Vercel) and in agent runtime secrets, and set `OMD_DOCS_URL`
-   to the public docs origin. Prefer host MCP/CLI for env writes; only ask the
-   user to paste when the host UI requires it.
-3. After a successful content-port upsert, call `notifyDocsRevalidate` (or
-   `POST $OMD_DOCS_URL/api/revalidate` with `Authorization: Bearer …`).
-4. Tell the user in chat what you configured and whether refresh succeeded —
-   never print the secret unless they must paste it into a UI you cannot write.
-
-Publishable Supabase keys are for **reads** only. The revalidate secret is a
-separate shared password for the cache-bust API.
+   Notion IA is Home + inline catalog DBs only.
+5. `check` — validate planning graph + `.omd` contract + UI vocabulary (local),
+   or Notion root/mappings/pending ops (notion).
+6. `new` / `sync` as needed for later work.
 
 ## UI distribution
 
@@ -91,11 +68,10 @@ separate shared password for the cache-bust API.
 |---|---|
 | `references/methodology.md` | Product intent and docs-first principles |
 | `references/information-architecture.md` | Handbook section layout |
-| `references/planning-workflow.md` | How to plan before code |
-| `references/implementation-workflow.md` | How to implement under a ready plan |
+| `references/planning-workflow.md` | How to use handbook catalogs when useful |
+| `references/implementation-workflow.md` | How to implement alongside ordinary docs |
 | `references/document-contracts.md` | Frontmatter, IDs, and catalog rules |
 | `references/agent-compatibility.md` | Host discovery paths |
-| `references/supabase-handbook-freshness.md` | ISR + revalidate setup (agent-owned) |
 | `references/notion-information-architecture.md` | Notion page + details-toggle IA |
 | `references/notion-catalog-writes.md` | Where PRD/story/plan/ADR rows go (Planning ≠ Plans) |
 | `references/notion-sidebar.md` | Shared sidebar callout / double-layer chrome |
@@ -108,10 +84,10 @@ separate shared password for the cache-bust API.
 ## Hard rules
 
 - Never invent product requirements from code alone.
-- Never skip the docs-first gate for product, bugfix, or maintenance work.
-- Always read `.omd/project.json` `contentSource.ssot` and treat that provider as
-  the only handbook **content** SSOT; structure metadata comes from the shared
-  IA graph stamped into `.omd/project.json`. Ask + `adopt` when `.omd` is missing.
+- Always read `.omd/project.json` `contentSource.ssot` (`local` | `notion`) and
+  treat that provider as the only handbook **content** SSOT; structure metadata
+  comes from the shared IA graph stamped into `.omd/project.json`. Ask + `adopt`
+  when `.omd` is missing.
 - Documentation is always first: write decisions, agreements, and new discussions
   into the SSOT instead of leaving truth only in chat.
 - Catalog entries (PRD, story, plan, ADR, …) go in the catalog store (Notion

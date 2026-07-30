@@ -3,8 +3,6 @@
   "pages": [
     "handbook-artifacts",
     "tasks",
-    "content-source-contract",
-    "content-source-supabase",
-    "multi-handbook-supabase-tenancy"
+    "content-source-contract"
   ]
 }

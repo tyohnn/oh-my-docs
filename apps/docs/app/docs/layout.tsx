@@ -3,17 +3,12 @@ import { DocsLayout } from '@oh-my-docs/ui/fumadocs';
 import type { ReactNode } from 'react';
 
 import { baseOptions } from '@/lib/layout.shared';
-import { shouldUseSupabaseRemote, source as localSource } from '@/lib/source';
-import { getSupabaseSource } from '@/lib/supabase-remote-source';
+import { source } from '@/lib/source';
 
-export default async function Layout({ children }: { children: ReactNode }) {
-  const tree = shouldUseSupabaseRemote()
-    ? (await getSupabaseSource()).source.getPageTree()
-    : localSource.getPageTree();
-
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
-      tree={tree}
+      tree={source.getPageTree()}
       sidebar={{ components: { Folder: DocsSidebarFolder } }}
       {...baseOptions()}
     >

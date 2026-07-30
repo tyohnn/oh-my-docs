@@ -1,41 +1,24 @@
 ---
-title: Development contract
-description: Optional guidance for implementing against handbook catalogs; no mandatory planning gate.
+title: Development
+description: Ship code; handbook catalogs are ordinary docs, not a gate.
 type: reference
-summary: Agents may implement freely; handbook catalogs are optional durable memory, not a merge gate.
+summary: No docs-first gate, no Plan trailer, no ready-plan requirement.
 id: SPEC-docs-first-development
 stage: accepted
 related:
   - /docs/workflow/planning
-  - /docs/plans
   - /docs/adr/adr-slim-local-and-notion-drop-supabase
   - /docs/planning/prds/prd-slim-local-and-notion-ssot
 ---
 
-## Scope
+## Contract
 
-Defines how implementation relates to handbook artifacts after `ADR-008` /
-`PRD-008`. There is **no** machine-enforced docs-first gate.
+There is no planning/development gate.
 
-## No mandatory gate
+- No `Plan:` trailer
+- No ready plan on the PR base
+- No `check:docs-first` (script removed)
+- Agents do not refuse code for missing PRD / story / SPEC / PLAN
 
-- Pull requests do **not** require a `Plan: …` trailer.
-- Product, bugfix, and maintenance code may land without a prior ready plan
-  on the base branch.
-- `pnpm check:docs-first` is removed (or becomes a no-op that always passes).
-- Agents must not block on missing PRD / story / SPEC / PLAN before coding.
-
-## Optional durable memory
-
-When a decision should outlive chat, agents **may** write or update catalog
-rows (local MDX or Notion inline DB)—ADR, Data model, API/system spec, plan
-notes, etc. That is recommended for cold-start agents, not a merge
-requirement.
-
-`pnpm check:planning` may remain as an **optional** integrity check for
-handbook IDs/navigation when catalogs exist; it is not a development gate.
-
-## Completion
-
-Mark catalog plans `done` only if the team still uses them; otherwise leave
-or delete. Reviewers remain responsible for product correctness.
+Write catalog pages only when you want durable notes in the handbook. That is
+normal documentation, not a merge prerequisite.
