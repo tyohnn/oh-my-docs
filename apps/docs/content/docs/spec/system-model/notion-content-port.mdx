@@ -39,55 +39,52 @@ does not own OAuth or call a hidden Notion API.
 
 ## Default Notion IA
 
-Notion SSOT is **catalog-only** (`ADR-008`). The user-supplied `--notion-root`
-**is** Home (`pages.home`). Under Home, provision **inline catalog databases**
-only—each catalog is an index page that embeds its database; each document is
-a database row.
+Notion SSOT is **agent-stacked catalogs** (`ADR-008`, strategy
+`stacked-on-home`). The user-supplied `--notion-root` **is** Home
+(`pages.home`). Home embeds **all** catalog databases **inline** under
+exactly three section headers — **도메인**, **기획**, **개발** — in that
+order (`homeStack`). Each document is a database row. The database title is
+the catalog label; per-catalog `#` headings are forbidden.
 
-Do **not** provision Vision, Start here, Workflow, Domain section shells, or
-other narrative handbook pages on Notion. Those remain a **local** Fumadocs
-concern.
+Do **not** provision catalog child pages, Vision / Start here / Workflow
+shells, sidebar chrome, or headings like `# Glossary` / `# PRDs`. Those
+human-nav patterns are out of scope for Notion SSOT. Local Fumadocs may
+still use a fuller tree when `ssot: local`.
 
 ```text
 Home (user-supplied notion-root = pages.home)
-├── ADRs (page → inline DB)
-├── Plans (page → inline DB)
-├── PRDs (page → inline DB)
-├── Stories (page → inline DB)
-├── Data model (page → inline DB)
-├── System model / API specs (page → inline DB)
-├── Glossary (page → inline DB)   [optional catalog]
-├── Models (page → inline DB)     [optional catalog]
-└── Policies (page → inline DB)   [optional catalog]
+├── intro (plain body)
+├── # 도메인 → Glossary / Models / Policies (inline DBs)
+├── # 기획 → PRDs / Stories (inline DBs)
+└── # 개발 → Data model / System model / Plans / ADRs (inline DBs)
 ```
 
-Exact catalog keys live in the slim Notion IA graph. Catalog destinations are
-**pages** that embed their database **inline**. The navigable object is the
-page; the database is not a top-level sidebar target.
+Exact catalog keys and section membership live in `notion-ia-graph.json`
+→ `homeStack`. Notion adopt does not scaffold a local Fumadocs docs app or
+`packages/docs-ui`.
 
-Notion adopt does not scaffold a local Fumadocs docs app or `packages/docs-ui`.
+## Page chrome
 
-## Sidebar chrome
-
-Home and each catalog index page may use a light shared nav of
-`<mention-page>` links to the other catalog indexes (and Home). Nested
-Vision/Workflow details toggles are **not** required.
-
-Optional two-column chrome (callout nav + body) is allowed when it only lists
-catalog indexes. `omd check` (notion) validates that catalog pages embed their
-databases and that no superseded narrative section pages are required by the
-slim graph.
+`stacked-on-home` emits **no** sidebar columns or callout nav. Home body is
+plain intro text plus exactly `# 도메인` / `# 기획` / `# 개발` and
+`<database inline>` blocks under each. Runtime
+`validateStackedHomeContent` hard-fails on catalog headings, wrong section
+order, or sidebar chrome.
 
 ## Database properties and relations
 
-Every catalog database has `Title`, stable `OMD ID`, description/summary, and
-its lifecycle property when applicable.
+Every catalog database has `Title`, auto-generated `OMD ID`
+(Notion `UNIQUE_ID` / `auto_increment_id` with a kind prefix),
+description/summary, and its lifecycle property when applicable.
 
+Prefixes (workspace-unique): `TERM`, `MODEL`, `POLICY`, `PRD`, `US`,
+`DM` (data model), `SYSM` (system model), `PLAN`, `ADR`.
+
+- **Do not** write `OMD ID` on create/update — Notion assigns it.
 - PRDs relate to Stories.
 - Plans relate to one PRD and many Specs/Stories and include `changeType` and
   `codeAreas`.
 - Data/System specs and ADRs use accepted lifecycle values.
-- Domain databases preserve TERM/MODEL/POLICY IDs and references.
 
 Relations are applied after their databases and referenced rows exist.
 
@@ -183,8 +180,8 @@ as their display layer in v1; no editable MDX mirror is generated.
 ## Acceptance criteria
 
 - Provisioning the same root twice creates no duplicate managed objects.
-- The complete default IA, inline catalog pages, sidebar chrome, and database
-  relations validate.
+- The complete default IA (stacked Home + inline DBs) and database relations
+  validate.
 - Skill `references` templates alone are sufficient for a second project to
   reach the same managed structure under a new root (aside from manual UI
   checklist items).

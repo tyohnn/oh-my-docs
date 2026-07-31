@@ -6,88 +6,153 @@ import { fileURLToPath } from 'node:url';
 import { loadNotionReferences } from '../runtime/content-sources/load-references.mjs';
 import { planProvision } from '../runtime/content-sources/notion.mjs';
 import {
+  renderStackedHomeContent,
   renderSidebarPageContent,
-  resolveActiveSection,
   validateManifestSidebarChrome,
   validateSidebarChrome,
+  validateStackedHomeContent,
 } from '../runtime/content-sources/sidebar.mjs';
 
 const skillRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dogfoodRoot = '3a7346da-c456-800a-85f4-cae724925f98';
 
-function placeholderMappings(nav) {
-  const keys = new Set(nav.topLevel);
-  for (const children of Object.values(nav.nested)) {
-    for (const key of children) keys.add(key);
-  }
-  return Object.fromEntries([...keys].map((key) => [key, { url: `{{${key}}}` }]));
-}
-
-test('slim Notion IA is Home + catalog pages with flat nav', () => {
+test('Notion IA is Home + stacked DBs (no child pages, no sidebar nav)', () => {
   const refs = loadNotionReferences(skillRoot);
-  assert.equal(refs.iaGraph.sourcesStrategy, 'catalogs-on-home');
+  assert.equal(refs.iaGraph.sourcesStrategy, 'stacked-on-home');
+  assert.deepEqual(refs.iaGraph.nav.topLevel, ['pages.home']);
   assert.deepEqual(refs.iaGraph.nav.nested, {});
-  assert.deepEqual(refs.iaGraph.nav.topLevel, [
-    'pages.home',
-    'pages.glossary',
-    'pages.models',
-    'pages.policies',
-    'pages.prds',
-    'pages.stories',
-    'pages.data-model',
-    'pages.system-model',
-    'pages.plans',
-    'pages.adrs',
-  ]);
+  assert.equal(refs.iaGraph.objects.filter((o) => o.kind === 'page').length, 1);
+  assert.ok(refs.iaGraph.objects.every((o) => o.kind !== 'page' || o.key === 'pages.home'));
+  assert.ok(
+    refs.iaGraph.objects
+      .filter((o) => o.kind === 'database')
+      .every((o) => o.parent === 'pages.home' && o.inline === true),
+  );
+  assert.equal(refs.iaGraph.objects.some((o) => o.key === 'pages.glossary'), false);
   assert.equal(refs.iaGraph.objects.some((o) => o.key === 'pages.vision'), false);
-  assert.equal(refs.iaGraph.objects.some((o) => o.key === 'pages.workflow'), false);
-  assert.equal(refs.iaGraph.objects.some((o) => o.key === 'pages.cli'), false);
-  assert.equal(refs.iaGraph.nav.topLevel.includes('pages.prds'), true);
-  assert.equal(refs.iaGraph.nav.topLevel.includes('pages.planning'), false);
+  assert.equal(refs.iaGraph.homeStack?.forbidCatalogHeadings, true);
+  assert.deepEqual(
+    refs.iaGraph.homeStack.sections.map((s) => s.title),
+    ['도메인', '기획', '개발'],
+  );
 });
 
-test('sidebar highlights active top-level catalog without details toggles', () => {
-  const refs = loadNotionReferences(skillRoot);
-  const mappings = placeholderMappings(refs.iaGraph.nav);
-
-  for (const activeKey of refs.iaGraph.nav.topLevel) {
-    const md = renderSidebarPageContent({
-      activeKey,
-      mappings,
-      nav: refs.iaGraph.nav,
-      bodyMarkdown: `# ${activeKey}`,
-    });
-    assert.match(md, /<columns>/);
-    assert.match(md, /ratio="20"/);
-    assert.doesNotMatch(md, /<details>/);
-    assert.equal(resolveActiveSection(activeKey, refs.iaGraph.nav), activeKey);
-
-    const result = validateSidebarChrome(md, {
-      activeKey,
-      nav: refs.iaGraph.nav,
-    });
-    assert.equal(
-      result.ok,
-      true,
-      `${activeKey}: ${result.problems.map((p) => p.message).join('; ')}`,
-    );
-
-    assert.match(
-      md,
-      new RegExp(
-        `- <mention-page url="\\{\\{${activeKey}\\}\\}"/> \\{color="yellow_bg"\\}`,
-      ),
-    );
-  }
+test('renderStackedHomeContent uses section headers only (no per-catalog headings)', () => {
+  const md = renderStackedHomeContent({
+    bodyMarkdown: 'Agent handbook.',
+    sections: [
+      {
+        id: 'domain',
+        title: '도메인',
+        databases: [
+          { key: 'dbs.glossary', title: 'Glossary', url: '{{dbs.glossary}}' },
+          { key: 'dbs.models', title: 'Models', url: '{{dbs.models}}' },
+        ],
+      },
+      {
+        id: 'planning',
+        title: '기획',
+        databases: [{ key: 'dbs.prds', title: 'PRDs', url: '{{dbs.prds}}' }],
+      },
+    ],
+  });
+  assert.match(md, /^Agent handbook\./m);
+  assert.match(md, /^# 도메인$/m);
+  assert.match(md, /^# 기획$/m);
+  assert.match(md, /<database url="\{\{dbs\.glossary\}\}" inline="true">Glossary<\/database>/);
+  assert.doesNotMatch(md, /^# Glossary$/m);
+  assert.doesNotMatch(md, /^# Models$/m);
+  assert.doesNotMatch(md, /^# PRDs$/m);
+  assert.doesNotMatch(md, /<columns>/);
+  assert.doesNotMatch(md, /<callout/);
 });
 
-test('validateSidebarChrome rejects missing top-level nav item', () => {
+test('renderStackedHomeContent refuses flat per-catalog databases option', () => {
+  assert.throws(
+    () =>
+      renderStackedHomeContent({
+        bodyMarkdown: 'Agent handbook.',
+        databases: [{ key: 'dbs.prds', title: 'PRDs' }],
+      }),
+    /homeStack\.sections/,
+  );
+});
+
+test('validateStackedHomeContent rejects catalog headings and wrong section order', () => {
+  const homeStack = {
+    forbidCatalogHeadings: true,
+    sections: [
+      { id: 'domain', title: '도메인', databases: ['dbs.glossary', 'dbs.models'] },
+      { id: 'planning', title: '기획', databases: ['dbs.prds'] },
+    ],
+  };
+  const bad = `Intro
+
+# Glossary
+<database url="{{dbs.glossary}}" inline="true">Glossary</database>
+# 기획
+<database url="{{dbs.prds}}" inline="true">PRDs</database>
+`;
+  const result = validateStackedHomeContent(bad, {
+    homeStack,
+    catalogTitles: ['Glossary', 'Models', 'PRDs'],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.problems.some((p) => p.code === 'stack_catalog_heading_forbidden'));
+  assert.ok(
+    result.problems.some(
+      (p) => p.code === 'stack_heading_count' || p.code === 'stack_heading_mismatch',
+    ),
+  );
+});
+
+test('planProvision stacked home uses 도메인/기획/개발 only', () => {
+  const planned = planProvision({ skillRoot, notionRoot: dogfoodRoot });
+  assert.equal(planned.ok, true);
+  assert.equal(planned.manifest.sourcesStrategy, 'stacked-on-home');
+  assert.equal(planned.manifest.chrome.requiredOn, 'none');
+  assert.equal(planned.manifest.chromeValidation.ok, true);
+
+  assert.equal(
+    planned.manifest.operations.filter((op) => op.op === 'ensure_page').length,
+    0,
+  );
+
+  const bodyOps = planned.manifest.operations.filter((op) => op.op === 'write_page_body');
+  assert.equal(bodyOps.length, 1);
+  assert.equal(bodyOps[0].key, 'pages.home');
+  const content = String(bodyOps[0].payload.content);
+  assert.doesNotMatch(content, /<columns>/);
+  assert.match(content, /<database\b[^>]*inline="true"/);
+  assert.match(content, /^# 도메인$/m);
+  assert.match(content, /^# 기획$/m);
+  assert.match(content, /^# 개발$/m);
+  assert.doesNotMatch(content, /^# Glossary$/m);
+  assert.doesNotMatch(content, /^# ADRs$/m);
+  assert.doesNotMatch(content, /^# PRDs$/m);
+
   const refs = loadNotionReferences(skillRoot);
+  const result = validateManifestSidebarChrome({
+    operations: planned.manifest.operations,
+    nav: planned.manifest.nav,
+    sourcesStrategy: 'stacked-on-home',
+    homeStack: refs.iaGraph.homeStack,
+    catalogTitles: refs.iaGraph.objects
+      .filter((o) => o.kind === 'database')
+      .map((o) => o.title),
+  });
+  assert.equal(result.ok, true, result.problems.map((p) => p.message).join('; '));
+});
+
+test('legacy validateSidebarChrome still rejects broken column chrome', () => {
+  const nav = {
+    topLevel: ['pages.home', 'pages.prds'],
+    nested: {},
+  };
   const bad = `<columns>
 	<column ratio="20">
 		<callout icon="📌" color="gray_bg">
 			- <mention-page url="{{pages.home}}"/>
-			- <mention-page url="{{pages.prds}}"/> {color="yellow_bg"}
 		</callout>
 	</column>
 	<column ratio="80">
@@ -95,89 +160,17 @@ test('validateSidebarChrome rejects missing top-level nav item', () => {
 	</column>
 </columns>
 `;
-  const result = validateSidebarChrome(bad, {
-    activeKey: 'pages.prds',
-    nav: refs.iaGraph.nav,
-  });
+  const result = validateSidebarChrome(bad, { activeKey: 'pages.prds', nav });
   assert.equal(result.ok, false);
   assert.ok(result.problems.some((p) => p.code === 'chrome_missing_nav_item'));
 });
 
-test('validateSidebarChrome rejects missing yellow active leaf', () => {
-  const refs = loadNotionReferences(skillRoot);
-  const lines = [
-    '<columns>',
-    '\t<column ratio="20">',
-    '\t\t<callout icon="📌" color="gray_bg">',
-    ...refs.iaGraph.nav.topLevel.map(
-      (key) => `\t\t\t- <mention-page url="{{${key}}}"/>`,
-    ),
-    '\t\t</callout>',
-    '\t</column>',
-    '\t<column ratio="80">',
-    '\t\t# PRDs',
-    '\t</column>',
-    '</columns>',
-    '',
-  ].join('\n');
-  const result = validateSidebarChrome(lines, {
-    activeKey: 'pages.prds',
-    nav: refs.iaGraph.nav,
+test('legacy renderSidebarPageContent still emits columns when called directly', () => {
+  const md = renderSidebarPageContent({
+    activeKey: 'pages.home',
+    mappings: { 'pages.home': { url: '{{pages.home}}' } },
+    nav: { topLevel: ['pages.home'], nested: {} },
+    bodyMarkdown: '# Home',
   });
-  assert.equal(result.ok, false);
-  assert.ok(
-    result.problems.some(
-      (p) => p.code === 'chrome_missing_yellow_group' || p.code === 'chrome_missing_yellow_leaf',
-    ),
-  );
-});
-
-test('planProvision bodies all pass validateManifestSidebarChrome', () => {
-  const planned = planProvision({ skillRoot, notionRoot: dogfoodRoot });
-  assert.equal(planned.ok, true);
-  assert.equal(planned.manifest.chromeValidation.ok, true);
-  const result = validateManifestSidebarChrome({
-    operations: planned.manifest.operations,
-    nav: planned.manifest.nav,
-  });
-  assert.equal(result.ok, true, result.problems.map((p) => p.message).join('; '));
-
-  const bodyOps = planned.manifest.operations.filter(
-    (op) => op.op === 'write_page_body' && op.key.startsWith('pages.'),
-  );
-  assert.ok(bodyOps.length >= 10);
-  for (const op of bodyOps) {
-    const content = String(op.payload.content);
-    assert.match(content, /<columns>/);
-    assert.doesNotMatch(content, /<\/columns>\s*<(?:page|database|details)\b/);
-    assert.doesNotMatch(content, /pages\.vision|pages\.workflow/);
-  }
-});
-
-test('validateSidebarChrome rejects content left after columns', () => {
-  const refs = loadNotionReferences(skillRoot);
-  const lines = [
-    '<columns>',
-    '\t<column ratio="20">',
-    '\t\t<callout icon="📌" color="gray_bg">',
-    ...refs.iaGraph.nav.topLevel.map((key) =>
-      key === 'pages.prds'
-        ? `\t\t\t- <mention-page url="{{${key}}}"/> {color="yellow_bg"}`
-        : `\t\t\t- <mention-page url="{{${key}}}"/>`,
-    ),
-    '\t\t</callout>',
-    '\t</column>',
-    '\t<column ratio="80">',
-    '\t\t# PRDs',
-    '\t</column>',
-    '</columns>',
-    '<page url="{{pages.extra}}">Extra</page>',
-    '',
-  ].join('\n');
-  const result = validateSidebarChrome(lines, {
-    activeKey: 'pages.prds',
-    nav: refs.iaGraph.nav,
-  });
-  assert.equal(result.ok, false);
-  assert.ok(result.problems.some((p) => p.code === 'chrome_content_outside_right_column'));
+  assert.match(md, /<columns>/);
 });
