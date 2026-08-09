@@ -8,13 +8,13 @@ import {
 
 export { parseFrontmatter };
 
-const PRD_STATUSES = ['draft', 'active', 'done'];
+const PRD_STATUSES = ['draft', 'active', 'done', '초안', '검토 중', '승인', '진행 중', '완료'];
 const SPEC_STAGES = ['draft', 'accepted', 'superseded'];
-const ADR_STAGES = ['accepted', 'locked', 'superseded'];
+const ADR_STAGES = ['accepted', 'locked', 'superseded', '제안', '채택', '폐기'];
 const PLAN_STAGES = ['draft', 'ready', 'active', 'done', 'superseded'];
 const PLAN_CHANGE_TYPES = ['product', 'bugfix', 'maintenance'];
-const RELEASE_STATUSES = ['draft', 'active', 'done'];
-const FEATURE_STATUSES = ['draft', 'active', 'done'];
+const RELEASE_STATUSES = ['draft', 'active', 'done', '계획', '구체화', '개발 중', 'QA', '출시'];
+const FEATURE_STATUSES = ['draft', 'active', 'done', '초안', '검토 중', '개발 준비', '개발 중', '운영 중'];
 
 const PREFIX = {
   prd: 'PRD-',
@@ -264,8 +264,11 @@ function applyGraphRules(documents, byId, problems) {
       continue;
     }
     if (document.kind === 'adr') {
-      if (!ADR_STAGES.includes(document.stage ?? '')) {
-        problems.push(`${document.file}: adr stage must be accepted, locked, or superseded`);
+      const adrState = document.stage ?? document.status ?? '';
+      if (!ADR_STAGES.includes(adrState)) {
+        problems.push(
+          `${document.file}: adr stage/status must be accepted, locked, superseded, 제안, 채택, or 폐기`,
+        );
       }
       continue;
     }

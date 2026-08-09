@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { planCatalogIndexRebuild } from './catalog-index.mjs';
 import { loadLocalHtmlIaGraph } from './html-document.mjs';
 import { LOCAL_HTML_ASSETS_PATH, LOCAL_HTML_CONTENT_PATH } from './omd-contract.mjs';
 import { readTextIfExists } from './fs-ops.mjs';
@@ -50,6 +51,9 @@ export function planLocalHtmlScaffold(root, skillRoot, templateRoot, force = fal
       decide(root, keep, '', `ensure catalog folder ${catalog.folder}`, force),
     );
   }
+
+  // Generated catalog listings (empty or filled from existing rows).
+  operations.push(...planCatalogIndexRebuild(root, skillRoot, { force }));
 
   return operations;
 }

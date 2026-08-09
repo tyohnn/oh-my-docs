@@ -9,6 +9,7 @@ export { collectPlanningDocuments, parseFrontmatter, validatePlanning, validateH
 export { planCreateDocument, slugifyTitle, } from './create-document.mjs';
 export { parseHtmlDocument, collectHtmlDocuments, loadLocalHtmlIaGraph, } from './html-document.mjs';
 export { planLocalHtmlScaffold } from './local-html-scaffold.mjs';
+export { planCatalogIndexRebuild, renderCatalogIndexHtml } from './catalog-index.mjs';
 export {
   LOCAL_HTML_CONTENT_PATH,
   LOCAL_HTML_ASSETS_PATH,

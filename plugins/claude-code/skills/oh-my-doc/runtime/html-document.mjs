@@ -118,9 +118,9 @@ export function walkHtmlDocuments(dbsRoot) {
     if (!entry.isDirectory()) continue;
     const dir = join(dbsRoot, entry.name);
     for (const child of readdirSync(dir, { withFileTypes: true })) {
-      if (child.isFile() && child.name.endsWith('.html')) {
-        files.push(join(dir, child.name));
-      }
+      if (!child.isFile() || !child.name.endsWith('.html')) continue;
+      if (child.name === 'index.html') continue; // catalog listing, not a row
+      files.push(join(dir, child.name));
     }
   }
   return files;

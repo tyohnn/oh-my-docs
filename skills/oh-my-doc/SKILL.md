@@ -36,6 +36,14 @@ workflow. Missing `contentSource` means `local`.
 
 Local write/check target is `.omd/dbs/<catalog>/<ID>.html` (not MDX).
 See `references/html-document-contract.md`. Shared CSS: `.omd/assets/omd-doc.css`.
+Each catalog folder also has a generated `index.html` listing (ID · title · status)
+refreshed by `new` / `adopt` / `sync`.
+
+**Tailwind in static HTML:** yes — catalog/home pages load the Tailwind Play CDN
+(`cdn.tailwindcss.com`) plus shadcn-compatible CSS variables in `omd-doc.css`.
+There is no PostCSS/Vite step for `.omd` files. Prefer CDN utilities on indexes;
+keep document templates readable with semantic classes + shared CSS. Offline, tables
+still render via the CSS fallback.
 
 ### State machine
 

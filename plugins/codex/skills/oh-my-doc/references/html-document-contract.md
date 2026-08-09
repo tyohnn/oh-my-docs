@@ -12,7 +12,9 @@ Local handbook SSOT is **one self-contained `.html` file per catalog row** under
   assets/omd-doc.css
   dbs/
     index.html              # catalog home
+    release/index.html      # generated catalog listing
     release/REL-001.html
+    prds/index.html
     prds/PRD-001.html
     stories/US-001.html
     features/FEAT-001.html
@@ -30,7 +32,17 @@ Local handbook SSOT is **one self-contained `.html` file per catalog row** under
 ```
 
 Filename = document ID + `.html` (e.g. `PRD-001.html`). Archive keeps the
-original ID as the filename.
+original ID as the filename. Each catalog folder’s `index.html` is **generated**
+(ID · title · status table) by `omd new` / `adopt` / `sync` — do not hand-edit.
+
+## Styling (Tailwind + shadcn Table)
+
+Catalog home/index pages may use **Tailwind via CDN** (`https://cdn.tailwindcss.com`)
+because `.omd` has no bundler. Theme tokens mirror shadcn (`--background`,
+`--muted-foreground`, `--border`, …) in `omd-doc.css`. Table markup follows the
+shadcn Table pattern (`rounded-md border` → `w-full caption-bottom text-sm` →
+`hover:bg-muted/50` rows). If the CDN is offline, the same CSS file provides a
+fallback look.
 
 ## Machine-readable surface
 
@@ -104,11 +116,11 @@ variants in a single HTML document.
 | `release` | `release` | `REL-` |
 | `prds` | `prd` | `PRD-` |
 | `stories` | `story` | `US-` |
-| `features` | `feature` | `FEAT-` |
+| `features` | `feature` | `F-` or `FEAT-` |
 | `policies` | `policy` | `POL-` or `POLICY-` |
 | `adr` | `adr` | `ADR-` |
 | `ia` | `ia` | `IA-` |
-| `pages` | `page` | `PAGE-` |
+| `pages` | `page` | `SCR-` or `PAGE-` |
 | `layouts` | `layout` | `LAY-` |
 | `screen-states` | `screen-state` | `STA-` |
 | `archive` | `archive` | original ID retained |

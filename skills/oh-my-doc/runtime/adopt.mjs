@@ -23,6 +23,7 @@ import { loadHandbookIaGraph, planMetaSkeletonOperations } from './ia-graph.mjs'
 import { planInit } from './plan-init.mjs';
 import { planSetup } from './plan-setup.mjs';
 import { readTextIfExists } from './fs-ops.mjs';
+import { planCatalogIndexRebuild } from './catalog-index.mjs';
 import { planLocalHtmlScaffold } from './local-html-scaffold.mjs';
 import { normalizeContentSource } from './omd-contract.mjs';
 
@@ -233,7 +234,12 @@ export function syncProject(options) {
       ? planLocalHtmlScaffold(project.root, options.skillRoot, templateRoot, options.force === true)
       : [];
 
-  const operations = [...htmlOps];
+  const indexOps =
+    ssot === 'local' && options.skillRoot
+      ? planCatalogIndexRebuild(project.root, options.skillRoot, { force: true })
+      : [];
+
+  const operations = [...htmlOps, ...indexOps];
 
   // Optional Fumadocs shell meta (viewer) — never treat as SSOT write target.
   if (ssot === 'local' && contractData.paths?.docs) {

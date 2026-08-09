@@ -8,6 +8,7 @@ import {
   idMatchesPrefix,
   loadLocalHtmlIaGraph,
 } from './html-document.mjs';
+import { renderCatalogIndexHtml } from './catalog-index.mjs';
 import { validateHtmlPlanning } from './planning.mjs';
 import { readProject } from './omd-contract.mjs';
 
@@ -242,6 +243,43 @@ export function planCreateDocument(options) {
   const operations = [
     op(relativePath, 'create', `create ${options.kind} ${id}`, content),
   ];
+
+  // Refresh catalog indexes; include the staged row in its own catalog listing.
+  const existingDocs = collectHtmlDocuments(dbsAbsolute, graph).documents;
+  for (const cat of graph.catalogs) {
+    const rows = existingDocs
+      .filter((d) => d.catalogId === cat.id)
+      .map((doc) => ({
+        id: doc.id,
+        title: doc.title,
+        status: doc.status || doc.stage || doc.fields?.status || doc.fields?.stage,
+        summary: doc.fields?.summary,
+        href: `./${doc.id}.html`,
+      }));
+    if (cat.id === catalog.id) {
+      rows.push({
+        id,
+        title,
+        status: undefined,
+        summary: undefined,
+        href: `./${id}.html`,
+      });
+    }
+    const indexContent = renderCatalogIndexHtml({
+      label: cat.label,
+      folder: cat.folder,
+      kind: cat.kind,
+      rows,
+    });
+    operations.push(
+      op(
+        `${dbsRel}/${cat.folder}/index.html`,
+        'update',
+        `refresh ${cat.folder} catalog index`,
+        indexContent,
+      ),
+    );
+  }
 
   const validationProblems = validateAfterCreate(dbsAbsolute, graph, {
     folder: catalog.folder,
