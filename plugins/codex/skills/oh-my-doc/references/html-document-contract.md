@@ -115,7 +115,8 @@ Relations replace Notion relation properties. Example:
 
 ## Wireframes (layouts · screen-states)
 
-Required on `layout` and `screen-state` documents:
+Put wireframe sections **immediately after** the doc header (before
+`<main class="omd-doc-body">`).
 
 ```html
 <section class="omd-wireframe" data-omd-wireframe="shell">
@@ -125,6 +126,11 @@ Required on `layout` and `screen-state` documents:
   <!-- body skeleton alone -->
 </section>
 ```
+
+- **Shell / chrome layouts** (`tier` = 껍데기): `shell` wireframe only — no
+  standalone `body` section (the body slot is empty chrome).
+- **Body layouts** and **screen-states**: both `shell` (body seated in the app
+  shell) and `body` (skeleton alone).
 
 Screen-states: **one state per file**. Do not bundle loading / empty / error
 variants in a single HTML document.
