@@ -30,11 +30,16 @@ export function doctorProject(options) {
     notes.push(project.agentsHasMarker ? 'AGENTS.md has oh-my-docs marker' : 'AGENTS.md marker missing');
     notes.push(project.hasClaudeMd ? 'CLAUDE.md present' : 'CLAUDE.md missing');
     notes.push(project.claudeHasMarker ? 'CLAUDE.md has oh-my-docs marker' : 'CLAUDE.md marker missing');
-    const contentDocs = project.docsPath
-        ? join(project.root, project.docsPath, 'content', 'docs')
-        : null;
-    if (contentDocs && existsSync(contentDocs)) {
-        notes.push(`Content SSOT: ${project.docsPath}/content/docs`);
+    const htmlDbs = join(project.root, '.omd', 'dbs');
+    if (existsSync(htmlDbs)) {
+        notes.push('Content SSOT: .omd/dbs (local HTML catalogs)');
+    } else {
+        const contentDocs = project.docsPath
+            ? join(project.root, project.docsPath, 'content', 'docs')
+            : null;
+        if (contentDocs && existsSync(contentDocs)) {
+            notes.push(`Docs shell content present: ${project.docsPath}/content/docs (not local HTML SSOT)`);
+        }
     }
     const ok = project.missing.length === 0;
     if (!ok)

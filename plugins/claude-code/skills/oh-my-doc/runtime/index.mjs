@@ -5,5 +5,12 @@ export { planInit, resolveInitTarget } from './plan-init.mjs';
 export { planSetup } from './plan-setup.mjs';
 export { PROJECT_SKILL_ROOTS, agentsFor, skillInstallRoot, userSkillRoot, } from './skill-paths.mjs';
 export { doctorProject } from './doctor.mjs';
-export { collectPlanningDocuments, parseFrontmatter, validatePlanning, } from './planning.mjs';
+export { collectPlanningDocuments, parseFrontmatter, validatePlanning, validateHtmlPlanning, } from './planning.mjs';
 export { planCreateDocument, slugifyTitle, } from './create-document.mjs';
+export { parseHtmlDocument, collectHtmlDocuments, loadLocalHtmlIaGraph, } from './html-document.mjs';
+export { planLocalHtmlScaffold } from './local-html-scaffold.mjs';
+export { planCatalogIndexRebuild, renderCatalogIndexHtml } from './catalog-index.mjs';
+export {
+  LOCAL_HTML_CONTENT_PATH,
+  LOCAL_HTML_ASSETS_PATH,
+} from './omd-contract.mjs';

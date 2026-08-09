@@ -85,7 +85,9 @@ test('local adopt writes explicit contentSource.local and packages/docs-ui', () 
     });
     assert.equal(result.contract.contentSource.ssot, 'local');
     assert.equal(result.contract.paths.ui, 'packages/docs-ui');
+    assert.equal(result.contract.paths.content, '.omd/dbs');
     assert.ok(existsSync(join(root, 'packages/docs-ui/package.json')));
+    assert.ok(existsSync(join(root, '.omd/dbs/index.html')));
     assert.equal(existsSync(join(root, 'packages/ui')), false);
     assert.equal(existsSync(join(root, '.cursor/skills/oh-my-doc/SKILL.md')), false);
     assert.equal(existsSync(join(root, '.agents/skills/oh-my-doc/SKILL.md')), false);

@@ -7,7 +7,7 @@ import { applyFileOperations } from '../runtime/fs-ops.mjs';
 import { inspectProject } from '../runtime/inspect.mjs';
 import { planCreateDocument } from '../runtime/create-document.mjs';
 import { doctorProject } from '../runtime/doctor.mjs';
-import { validatePlanning } from '../runtime/planning.mjs';
+import { validateHtmlPlanning } from '../runtime/planning.mjs';
 import {
   readProject,
   readState,
@@ -15,7 +15,9 @@ import {
   stableStringify,
   normalizeContentSource,
   DEFAULT_UI_VOCABULARY,
+  LOCAL_HTML_CONTENT_PATH,
 } from '../runtime/omd-contract.mjs';
+import { loadLocalHtmlIaGraph } from '../runtime/html-document.mjs';
 import {
   getContentAdapter,
   resolveContentSource,
@@ -222,6 +224,7 @@ export async function main(argv = process.argv.slice(2)) {
           schemasDir: SCHEMAS_DIR,
           dryRun,
           force,
+          contentSource: { ssot: 'local' },
           ...(typeof flags['ui-path'] === 'string' ? { uiPath: flags['ui-path'] } : {}),
           ...(typeof flags['package-manager'] === 'string'
             ? { packageManager: flags['package-manager'] }
@@ -241,8 +244,15 @@ export async function main(argv = process.argv.slice(2)) {
       case 'new': {
         const kind = positionals[0];
         const title = flags.title;
+        const htmlGraph = loadLocalHtmlIaGraph(SKILL_ROOT);
+        const kindList = Object.keys(htmlGraph.kindToCatalog).join('|');
         if (!kind || typeof title !== 'string') {
-          console.error('Usage: omd.mjs new <prd|story|spec|plan|adr> --title "..." [--id ID] --yes');
+          console.error(`Usage: omd.mjs new <${kindList}> --title "..." [--id ID] --yes`);
+          process.exitCode = 1;
+          return;
+        }
+        if (!htmlGraph.kindToCatalog[kind]) {
+          console.error(`Unknown kind: ${kind}. Expected one of: ${kindList}`);
           process.exitCode = 1;
           return;
         }
@@ -282,8 +292,8 @@ export async function main(argv = process.argv.slice(2)) {
           cwd,
           kind,
           title,
+          skillRoot: SKILL_ROOT,
           ...(typeof flags.id === 'string' ? { id: flags.id } : {}),
-          ...(typeof flags['docs-path'] === 'string' ? { docsPath: flags['docs-path'] } : {}),
         });
         if (planned.validationProblems.length > 0) {
           if (json) printJson({ ok: false, planned, problems: planned.validationProblems });
@@ -362,16 +372,17 @@ export async function main(argv = process.argv.slice(2)) {
         }
 
         const report = doctorProject({ cwd });
-        const docsPath =
-          typeof flags['docs-path'] === 'string' ? flags['docs-path'] : report.project.docsPath;
         const problems = [];
-        if (!docsPath) problems.push('No docs app found (expected docs/ or apps/docs/).');
-        else {
-          const contentDirectory = resolve(cwd, docsPath, 'content/docs');
-          problems.push(...validatePlanning(contentDirectory));
-        }
         const contract = readProject(cwd);
         const state = readState(cwd);
+        const dbsRel =
+          (typeof flags['docs-path'] === 'string' ? flags['docs-path'] : null) ||
+          contract?.paths?.content ||
+          LOCAL_HTML_CONTENT_PATH;
+        const dbsRoot = resolve(cwd, dbsRel);
+        const htmlGraph = loadLocalHtmlIaGraph(SKILL_ROOT);
+        problems.push(...validateHtmlPlanning(dbsRoot, htmlGraph));
+
         if (contract) {
           if (contract.ui?.base !== 'fumadocs') {
             problems.push('.omd/project.json ui.base must be fumadocs');
@@ -398,12 +409,12 @@ export async function main(argv = process.argv.slice(2)) {
           problems.push('.omd/project.json is missing — run adopt first');
         }
         const ok = problems.length === 0;
-        if (json) printJson({ ok, problems, doctor: report, contentSource: source });
+        if (json) printJson({ ok, problems, doctor: report, contentSource: source, dbs: dbsRel });
         else if (!ok) {
           console.error(`check found ${problems.length} problem(s):`);
           for (const problem of problems) console.error(`- ${problem}`);
         } else {
-          console.log('Planning graph, .omd contract, and UI vocabulary look valid.');
+          console.log('Local HTML catalogs, .omd contract, and UI vocabulary look valid.');
         }
         if (!ok) process.exitCode = 1;
         return;
@@ -441,6 +452,7 @@ export async function main(argv = process.argv.slice(2)) {
           force,
           schemasDir: SCHEMAS_DIR,
           skillRoot: SKILL_ROOT,
+          templateRoot: TEMPLATE_ROOT,
         });
         if (json) printJson(result);
         else {
@@ -486,18 +498,19 @@ Usage:
 Actions:
   inspect   Report project mode, docs/UI/.omd state, SSOT
   adopt     Greenfield scaffold or brownfield import (requires --ssot on first adopt)
-  new       Create prd|story|spec|plan|adr
-  check     Validate planning graph + .omd contract (and provider ports)
-  sync      Refresh managed IA/markers from .omd
+  new       Create HTML catalog row (prd|story|feature|release|…|layout|screen-state|…)
+  check     Validate .omd/dbs HTML graph + .omd contract (and provider ports)
+  sync      Refresh managed IA/markers / local HTML scaffold from .omd
 
 Common flags:
   --json --dry-run --yes --force
   --ssot local|notion --notion-root <url-or-id>
-  --ui-path <path> --docs-path <path> --title <title> --id <id>
+  --ui-path <path> --title <title> --id <id>
 
 Defaults:
   --ssot          required for greenfield adopt (no silent local default)
   --ui-path       packages/docs-ui (local SSOT)
+  local content   .omd/dbs/*.html
 `);
 }
 

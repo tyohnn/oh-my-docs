@@ -44,10 +44,24 @@ export const DEFAULT_UI_VOCABULARY = [
 export const DEFAULT_LIFECYCLES = {
   prd: { field: 'status', values: ['draft', 'active', 'done'] },
   story: { field: null, values: [] },
+  feature: { field: 'status', values: ['draft', 'active', 'done'] },
+  release: { field: 'status', values: ['draft', 'active', 'done'] },
   spec: { field: 'stage', values: ['draft', 'accepted', 'superseded'] },
   adr: { field: 'stage', values: ['accepted', 'locked', 'superseded'] },
   plan: { field: 'stage', values: ['draft', 'ready', 'active', 'done', 'superseded'] },
+  policy: { field: null, values: [] },
+  term: { field: null, values: [] },
+  model: { field: null, values: [] },
+  ia: { field: null, values: [] },
+  page: { field: null, values: [] },
+  layout: { field: null, values: [] },
+  'screen-state': { field: null, values: [] },
+  archive: { field: null, values: [] },
 };
+
+/** Local HTML catalog root (replaces MDX content/docs as SSOT write/check target). */
+export const LOCAL_HTML_CONTENT_PATH = '.omd/dbs';
+export const LOCAL_HTML_ASSETS_PATH = '.omd/assets';
 
 /**
  * @param {string} content
@@ -153,8 +167,9 @@ export function createDefaultProject(root, options = {}) {
     paths: {
       docs: options.docsPath ?? 'docs',
       ui: options.uiPath ?? 'packages/docs-ui',
-      content: `${options.docsPath ?? 'docs'}/content/docs`,
-      templates: `${options.docsPath ?? 'docs'}/templates`,
+      content: options.contentPath ?? LOCAL_HTML_CONTENT_PATH,
+      templates: options.templatesPath ?? 'skills/oh-my-doc/templates/default/omd/templates',
+      assets: options.assetsPath ?? LOCAL_HTML_ASSETS_PATH,
     },
     informationArchitecture: {
       schemaVersion: handbookGraph.schemaVersion,
@@ -179,7 +194,13 @@ export function createDefaultProject(root, options = {}) {
       vocabulary: DEFAULT_UI_VOCABULARY,
     },
     ownership: {
-      omdGenerated: ['.omd/project.json', '.omd/schemas/', `${options.docsPath ?? 'docs'}/content/docs/meta.json`],
+      omdGenerated: [
+        '.omd/project.json',
+        '.omd/schemas/',
+        '.omd/dbs/',
+        '.omd/assets/omd-doc.css',
+        `${options.docsPath ?? 'docs'}/content/docs/meta.json`,
+      ],
       omdManaged: ['AGENTS.md', 'CLAUDE.md'],
       importedOwned: [],
       projectOwned: [],
