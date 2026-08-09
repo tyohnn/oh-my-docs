@@ -18,7 +18,7 @@
     { "id": "release", "kind": "release", "label": "Release", "prefix": "REL-", "folder": "release", "wireframe": false, "section": "development", "optional": true },
     { "id": "features", "kind": "feature", "label": "Features", "prefix": ["F-", "FEAT-"], "folder": "features", "wireframe": false, "section": "planning", "optional": true },
     { "id": "ia", "kind": "ia", "label": "Information architecture", "prefix": "IA-", "folder": "ia", "wireframe": false, "section": "planning", "optional": true },
-    { "id": "pages", "kind": "page", "label": "Pages", "prefix": ["SCR-", "PAGE-"], "folder": "pages", "wireframe": false, "section": "planning", "optional": true },
+    { "id": "pages", "kind": "page", "label": "Pages", "prefix": ["PAGE-", "SCR-"], "folder": "pages", "wireframe": false, "section": "planning", "optional": true },
     { "id": "layouts", "kind": "layout", "label": "Layouts", "prefix": "LAY-", "folder": "layouts", "wireframe": true, "section": "planning", "optional": true },
     { "id": "screen-states", "kind": "screen-state", "label": "Page States", "prefix": "STA-", "folder": "screen-states", "wireframe": true, "section": "planning", "optional": true },
     { "id": "archive", "kind": "archive", "label": "아카이브", "prefix": null, "folder": "archive", "wireframe": false, "section": "development", "optional": true }

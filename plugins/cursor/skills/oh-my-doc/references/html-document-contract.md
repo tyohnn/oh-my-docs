@@ -146,7 +146,7 @@ variants in a single HTML document.
 | `policies` | `policy` | `POL-` or `POLICY-` |
 | `adr` | `adr` | `ADR-` |
 | `ia` | `ia` | `IA-` |
-| `pages` | `page` | `SCR-` or `PAGE-` |
+| `pages` | `page` | `PAGE-` (legacy alias `SCR-` still accepted) |
 | `layouts` | `layout` | `LAY-` |
 | `screen-states` | `screen-state` | `STA-` |
 | `archive` | `archive` | original ID retained |
