@@ -1,215 +1,291 @@
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { detectProject } from './detect.mjs';
-import { collectPlanningDocuments, validatePlanning } from './planning.mjs';
-const KIND_DIR = {
-    prd: 'planning/prds',
-    story: 'planning/stories',
-    spec: 'spec',
-    plan: 'plans',
-    adr: 'adr',
-};
-const KIND_FILE_PREFIX = {
-    prd: 'prd',
-    story: 'us',
-    spec: 'spec',
-    plan: 'plan',
-    adr: 'adr',
-};
-const KIND_ID_PREFIX = {
-    prd: 'PRD-',
-    story: 'US-',
-    spec: 'SPEC-',
-    plan: 'PLAN-',
-    adr: 'ADR-',
-};
-const TEMPLATE_FILE = {
-    prd: 'prd.mdx',
-    story: 'user-story.mdx',
-    spec: 'spec.mdx',
-    plan: 'implementation-plan.mdx',
-    adr: 'adr.mdx',
-};
+import {
+  catalogForKind,
+  collectHtmlDocuments,
+  idMatchesPrefix,
+  loadLocalHtmlIaGraph,
+} from './html-document.mjs';
+import { validateHtmlPlanning } from './planning.mjs';
+import { readProject } from './omd-contract.mjs';
+
 function op(path, kind, reason, content, conflict) {
-    return {
-        path,
-        kind,
-        reason,
-        ...(content !== undefined ? { content } : {}),
-        ...(conflict ? { conflict: true } : {}),
-    };
+  return {
+    path,
+    kind,
+    reason,
+    ...(content !== undefined ? { content } : {}),
+    ...(conflict ? { conflict: true } : {}),
+  };
 }
+
 /** Lowercase kebab slug from a human title. */
 export function slugifyTitle(title) {
-    const slug = title
-        .trim()
-        .toLowerCase()
-        .replace(/['"]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .replace(/-{2,}/g, '-');
-    if (!slug)
-        throw new Error('title produces an empty slug');
-    return slug;
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+  if (!slug) throw new Error('title produces an empty slug');
+  return slug;
 }
-function stripKindPrefix(slug, kind) {
-    const filePrefix = `${KIND_FILE_PREFIX[kind]}-`;
-    const idPrefix = KIND_ID_PREFIX[kind].toLowerCase();
-    let next = slug;
-    if (next.startsWith(filePrefix))
-        next = next.slice(filePrefix.length);
-    if (next.toLowerCase().startsWith(idPrefix)) {
-        next = next.slice(idPrefix.length);
-    }
-    return next || slug;
-}
-function resolveDocsPath(cwd, explicit) {
-    if (explicit)
-        return explicit;
-    const detected = detectProject(cwd).docsPath;
-    if (!detected) {
-        throw new Error('No docs app found (expected docs/ or apps/docs/).');
-    }
-    return detected;
-}
-function readTemplate(docsPathAbsolute, kind) {
-    const candidates = [
-        join(docsPathAbsolute, 'templates', TEMPLATE_FILE[kind]),
-        join(docsPathAbsolute, '..', '..', 'templates', 'default', 'docs', 'templates', TEMPLATE_FILE[kind]),
-        // skill-bundled templates (skills/oh-my-doc/templates/default/docs/templates)
-        join(docsPathAbsolute, '..', '..', 'skills', 'oh-my-doc', 'templates', 'default', 'docs', 'templates', TEMPLATE_FILE[kind]),
-        join(fileURLToPath(new URL('../templates/default/docs/templates', import.meta.url)), TEMPLATE_FILE[kind]),
-    ];
-    for (const candidate of candidates) {
-        if (existsSync(candidate))
-            return readFileSync(candidate, 'utf8');
-    }
-    throw new Error(`Template for ${kind} not found. Looked under ${docsPathAbsolute}/templates.`);
-}
-function replaceFrontmatterField(source, field, value) {
-    const pattern = new RegExp(`^(${field}:\\s*).*$`, 'm');
-    if (pattern.test(source))
-        return source.replace(pattern, `$1${value}`);
-    return source.replace(/^---\n/, `---\n${field}: ${value}\n`);
-}
-function renderDocument(template, kind, id, title) {
-    let body = template;
-    body = replaceFrontmatterField(body, 'title', title);
-    body = replaceFrontmatterField(body, 'id', id);
-    body = body.replace(/<initiative>|<user outcome>|<contract>|<decision>|<implementation>/g, title);
-    body = body.replace(/PRD-<initiative>/g, kind === 'prd' ? id : 'PRD-<initiative>');
-    body = body.replace(/US-<story>/g, kind === 'story' ? id : 'US-<story>');
-    body = body.replace(/SPEC-<contract>/g, kind === 'spec' ? id : 'SPEC-<contract>');
-    body = body.replace(/PLAN-<initiative>/g, kind === 'plan' ? id : 'PLAN-<initiative>');
-    body = body.replace(/ADR-NNN/g, kind === 'adr' ? id : 'ADR-NNN');
-    if (kind === 'plan') {
-        // Draft maintenance plans stay valid until authors promote them.
-        body = replaceFrontmatterField(body, 'stage', 'draft');
-        body = replaceFrontmatterField(body, 'changeType', 'maintenance');
-        body = body.replace(/codeAreas:\n(?:  - .*\n)+/, 'codeAreas:\n  - packages/\n');
-        body = body.replace(/^prd:.*\n/m, '');
-        body = body.replace(/^specs:\n(?:  - .*\n)*/m, 'specs: []\n');
-        body = body.replace(/^stories:\n(?:  - .*\n)*/m, 'stories: []\n');
-    }
-    if (kind === 'prd') {
-        body = replaceFrontmatterField(body, 'status', 'draft');
-        body = body.replace(/^stories:\n(?:  - .*\n)*/m, 'stories: []\n');
-    }
-    if (kind === 'spec') {
-        body = replaceFrontmatterField(body, 'stage', 'draft');
-    }
-    if (kind === 'adr') {
-        body = replaceFrontmatterField(body, 'stage', 'accepted');
-    }
-    return body;
-}
-function registerMeta(metaSource, slug) {
-    const meta = JSON.parse(metaSource);
-    if (typeof meta !== 'object' || meta === null || Array.isArray(meta)) {
-        throw new Error('meta.json must be a JSON object');
-    }
-    const record = meta;
-    const pages = Array.isArray(record.pages)
-        ? record.pages.filter((item) => typeof item === 'string')
-        : [];
-    if (pages.includes(slug)) {
-        return `${JSON.stringify(meta, null, 2)}\n`;
-    }
-    const next = { ...record, pages: [...pages, slug] };
-    return `${JSON.stringify(next, null, 2)}\n`;
-}
-function validateAfterCreate(contentDirectory, staged) {
-    const root = mkdtempSync(join(tmpdir(), 'oh-my-docs-new-'));
-    try {
-        cpSync(contentDirectory, root, { recursive: true });
-        const filePath = join(root, staged.relativeFile);
-        mkdirSync(dirname(filePath), { recursive: true });
-        writeFileSync(filePath, staged.content);
-        writeFileSync(join(root, staged.metaRelative), staged.metaContent);
-        return validatePlanning(root);
-    }
-    finally {
-        rmSync(root, { recursive: true, force: true });
-    }
-}
+
 /**
- * Plan creation of a planning document with deterministic id/slug and meta.json
- * registration. Does not write files — use applyFileOperations.
+ * @param {string | string[] | null} prefix
+ */
+function primaryPrefix(prefix) {
+  if (prefix == null) return '';
+  return Array.isArray(prefix) ? prefix[0] : prefix;
+}
+
+/**
+ * @param {string} skillRoot
+ * @param {string} kind
+ * @param {string} templateFile
+ */
+function readHtmlTemplate(skillRoot, kind, templateFile) {
+  const candidates = [
+    join(skillRoot, 'templates/default/omd/templates', templateFile),
+    join(fileURLToPath(new URL('../templates/default/omd/templates', import.meta.url)), templateFile),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return readFileSync(candidate, 'utf8');
+  }
+  throw new Error(`HTML template for ${kind} not found (${templateFile})`);
+}
+
+/**
+ * @param {string} template
+ * @param {{ kind: string, id: string, title: string, catalog: { prefix: string | string[] | null } }} ctx
+ */
+function renderHtmlDocument(template, ctx) {
+  const { kind, id, title } = ctx;
+  let body = template;
+  body = body.replaceAll(`data-omd-id="${placeholderId(kind)}"`, `data-omd-id="${id}"`);
+  body = body.replaceAll(`content="${placeholderId(kind)}"`, `content="${id}"`);
+  body = body.replaceAll(`>${placeholderId(kind)}<`, `>${id}<`);
+  body = body.replaceAll(`${placeholderId(kind)} · `, `${id} · `);
+  body = body.replaceAll(`<title>${placeholderId(kind)} · `, `<title>${id} · `);
+
+  // Title placeholders in templates
+  const titlePlaceholders = [
+    '<initiative>',
+    '<user outcome>',
+    '<feature>',
+    '<release>',
+    '<policy>',
+    '<decision>',
+    '<implementation>',
+    '<area>',
+    '<page>',
+    '<layout>',
+    '<screen · state>',
+    '<archived title>',
+    '<term>',
+    '<model>',
+    '<contract>',
+  ];
+  for (const ph of titlePlaceholders) {
+    body = body.replaceAll(ph, title);
+  }
+  body = body.replace(
+    /(<h1[^>]*data-omd-field="title"[^>]*>)[\s\S]*?(<\/h1>)/i,
+    `$1${escapeHtml(title)}$2`,
+  );
+  body = body.replace(/<title>([^<]*)<\/title>/i, `<title>${escapeHtml(id)} · ${escapeHtml(title)}</title>`);
+
+  if (kind === 'plan') {
+    body = setMeta(body, 'stage', 'draft');
+    body = setMeta(body, 'changeType', 'maintenance');
+    body = setField(body, 'stage', 'draft');
+    body = setField(body, 'changeType', 'maintenance');
+    body = setField(body, 'codeAreas', 'packages/');
+  }
+  if (kind === 'prd' || kind === 'feature' || kind === 'release') {
+    body = setMeta(body, 'status', 'draft');
+    body = setField(body, 'status', 'draft');
+  }
+  if (kind === 'spec') {
+    body = setMeta(body, 'stage', 'draft');
+    body = setField(body, 'stage', 'draft');
+  }
+  if (kind === 'adr') {
+    body = setMeta(body, 'stage', 'accepted');
+    body = setField(body, 'stage', 'accepted');
+  }
+  return body;
+}
+
+function placeholderId(kind) {
+  const map = {
+    prd: 'PRD-<initiative>',
+    story: 'US-<story>',
+    feature: 'FEAT-<feature>',
+    release: 'REL-<release>',
+    policy: 'POL-<policy>',
+    adr: 'ADR-NNN',
+    plan: 'PLAN-<initiative>',
+    ia: 'IA-<area>',
+    page: 'PAGE-<page>',
+    layout: 'LAY-<layout>',
+    'screen-state': 'STA-<state>',
+    archive: '<original-id>',
+    term: 'TERM-<term>',
+    model: 'MODEL-<model>',
+    spec: 'SPEC-<contract>',
+  };
+  return map[kind] ?? `<${kind}-id>`;
+}
+
+function setMeta(html, name, value) {
+  const re = new RegExp(`(<meta\\s+[^>]*name=["']omd:${name}["'][^>]*content=["'])([^"']*)(["'])`, 'i');
+  if (re.test(html)) return html.replace(re, `$1${value}$3`);
+  return html.replace(
+    /<\/head>/i,
+    `  <meta name="omd:${name}" content="${value}" />\n</head>`,
+  );
+}
+
+function setField(html, name, value) {
+  const re = new RegExp(
+    `(<(?:dd|span|p|div)([^>]*\\sdata-omd-field=["']${name}["'][^>]*)>)([\\s\\S]*?)(<\\/(?:dd|span|p|div)>)`,
+    'i',
+  );
+  if (re.test(html)) return html.replace(re, `$1${escapeHtml(value)}$4`);
+  return html;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+/**
+ * Resolve `.omd/dbs` root for the project.
+ * @param {string} cwd
+ */
+export function resolveDbsRoot(cwd) {
+  const project = readProject(cwd);
+  const rel = project?.paths?.content ?? '.omd/dbs';
+  return { relative: rel.replaceAll('\\', '/'), absolute: join(cwd, rel) };
+}
+
+/**
+ * Plan creation of a local HTML catalog document.
+ * @param {{
+ *   cwd: string,
+ *   kind: string,
+ *   title: string,
+ *   id?: string,
+ *   skillRoot?: string,
+ * }} options
  */
 export function planCreateDocument(options) {
-    const title = options.title.trim();
-    if (!title)
-        throw new Error('--title is required');
-    const docsPath = resolveDocsPath(options.cwd, options.docsPath);
-    const docsAbsolute = join(options.cwd, docsPath);
-    const contentDirectory = join(docsAbsolute, 'content/docs');
-    if (!existsSync(contentDirectory)) {
-        throw new Error(`content/docs not found under ${docsPath}`);
-    }
-    const baseSlug = stripKindPrefix(slugifyTitle(title), options.kind);
-    const slug = `${KIND_FILE_PREFIX[options.kind]}-${baseSlug}`;
-    const id = options.id?.trim() || `${KIND_ID_PREFIX[options.kind]}${baseSlug}`;
-    if (!id.toUpperCase().startsWith(KIND_ID_PREFIX[options.kind])) {
-        throw new Error(`${options.kind} id must start with ${KIND_ID_PREFIX[options.kind]}`);
-    }
-    const existing = collectPlanningDocuments(contentDirectory);
-    if (existing.documents.some((doc) => doc.id === id)) {
-        throw new Error(`id ${id} already exists`);
-    }
-    if (existing.documents.some((doc) => doc.slug === slug)) {
-        throw new Error(`slug ${slug} already exists`);
-    }
-    const relativePath = join(docsPath, 'content/docs', KIND_DIR[options.kind], `${slug}.mdx`).replace(/\\/g, '/');
-    const metaRelative = join(docsPath, 'content/docs', KIND_DIR[options.kind], 'meta.json').replace(/\\/g, '/');
-    const template = readTemplate(docsAbsolute, options.kind);
-    const content = renderDocument(template, options.kind, id, title);
-    const operations = [
-        op(relativePath, 'create', `create ${options.kind} ${id}`, content),
-    ];
-    const metaAbsolute = join(options.cwd, metaRelative);
-    let metaContent;
-    if (!existsSync(metaAbsolute)) {
-        metaContent = `${JSON.stringify({ pages: ['index', slug] }, null, 2)}\n`;
-        operations.push(op(metaRelative, 'create', 'create sibling meta.json', metaContent));
-    }
-    else {
-        metaContent = registerMeta(readFileSync(metaAbsolute, 'utf8'), slug);
-        operations.push(op(metaRelative, 'update', `register ${slug} in meta.json`, metaContent));
-    }
-    const validationProblems = validateAfterCreate(contentDirectory, {
-        relativeFile: join(KIND_DIR[options.kind], `${slug}.mdx`).replace(/\\/g, '/'),
-        content,
-        metaRelative: join(KIND_DIR[options.kind], 'meta.json').replace(/\\/g, '/'),
-        metaContent,
-    });
-    return {
-        kind: options.kind,
-        id,
-        slug,
-        relativePath,
-        operations,
-        validationProblems,
-    };
+  const title = options.title.trim();
+  if (!title) throw new Error('--title is required');
+
+  const skillRoot =
+    options.skillRoot ?? join(dirname(fileURLToPath(import.meta.url)), '..');
+  const graph = loadLocalHtmlIaGraph(skillRoot);
+  const catalog = catalogForKind(graph, options.kind);
+  if (!catalog) {
+    throw new Error(
+      `unsupported kind: ${options.kind}. Expected one of: ${Object.keys(graph.kindToCatalog).join(', ')}`,
+    );
+  }
+
+  const templateFile = graph.templateFile?.[options.kind];
+  if (!templateFile) throw new Error(`no template mapping for kind ${options.kind}`);
+
+  const baseSlug = slugifyTitle(title);
+  const prefix = primaryPrefix(catalog.prefix);
+  const id = options.id?.trim() || `${prefix}${baseSlug}`;
+  if (!idMatchesPrefix(catalog.prefix, id)) {
+    throw new Error(
+      `${options.kind} id must start with ${Array.isArray(catalog.prefix) ? catalog.prefix.join('|') : catalog.prefix}`,
+    );
+  }
+
+  const { relative: dbsRel, absolute: dbsAbsolute } = resolveDbsRoot(options.cwd);
+  if (!existsSync(dbsAbsolute)) {
+    throw new Error(
+      `${dbsRel} not found — run adopt --ssot local first (or create .omd/dbs catalogs).`,
+    );
+  }
+
+  const existing = collectHtmlDocuments(dbsAbsolute, graph);
+  if (existing.documents.some((doc) => doc.id === id)) {
+    throw new Error(`id ${id} already exists`);
+  }
+
+  const relativePath = `${dbsRel}/${catalog.folder}/${id}.html`.replaceAll('\\', '/');
+  const absolutePath = join(options.cwd, relativePath);
+  if (existsSync(absolutePath)) {
+    throw new Error(`file already exists: ${relativePath}`);
+  }
+
+  const template = readHtmlTemplate(skillRoot, options.kind, templateFile);
+  const content = renderHtmlDocument(template, {
+    kind: options.kind,
+    id,
+    title,
+    catalog,
+  });
+
+  const operations = [
+    op(relativePath, 'create', `create ${options.kind} ${id}`, content),
+  ];
+
+  const validationProblems = validateAfterCreate(dbsAbsolute, graph, {
+    folder: catalog.folder,
+    filename: `${id}.html`,
+    content,
+  });
+
+  return {
+    kind: options.kind,
+    id,
+    slug: id,
+    relativePath,
+    operations,
+    validationProblems,
+  };
 }
+
+/**
+ * @param {string} dbsAbsolute
+ * @param {ReturnType<typeof loadLocalHtmlIaGraph>} graph
+ * @param {{ folder: string, filename: string, content: string }} staged
+ */
+function validateAfterCreate(dbsAbsolute, graph, staged) {
+  const root = mkdtempSync(join(tmpdir(), 'oh-my-docs-html-new-'));
+  try {
+    // Mirror existing catalogs lightly: copy only html files via re-read collect path
+    // Simpler: write staged into temp tree + copy siblings by reading from real dbs.
+    const { documents } = collectHtmlDocuments(dbsAbsolute, graph);
+    for (const doc of documents) {
+      const dest = join(root, doc.file);
+      mkdirSync(dirname(dest), { recursive: true });
+      writeFileSync(dest, readFileSync(join(dbsAbsolute, doc.file), 'utf8'));
+    }
+    const stagedPath = join(root, staged.folder, staged.filename);
+    mkdirSync(dirname(stagedPath), { recursive: true });
+    writeFileSync(stagedPath, staged.content);
+    // ensure empty catalog dirs exist for folder classification
+    for (const catalog of graph.catalogs) {
+      mkdirSync(join(root, catalog.folder), { recursive: true });
+    }
+    return validateHtmlPlanning(root, graph);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+export { loadLocalHtmlIaGraph, catalogForKind };

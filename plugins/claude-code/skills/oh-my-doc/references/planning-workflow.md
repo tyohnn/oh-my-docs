@@ -13,8 +13,8 @@
 5. Reuse stable living IDs. SPECs are organized by durable contract boundary,
    not recreated as one integrated spec per initiative.
 6. Create drafts with
-   `node <skill>/scripts/omd.mjs new prd|story|spec|plan|adr --title "…" --yes`
-   (or copy docs templates). Register each catalog document in sibling
-   `meta.json`.
+   `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes`
+   (kinds include prd, story, feature, release, spec, plan, adr, layout,
+   screen-state, …). Local SSOT writes `.omd/dbs/<catalog>/<ID>.html`.
 7. Prefer updating a stable ID over duplicating. Validate with `omd.mjs check`
    / `pnpm check:planning` when you touch planning catalogs.

@@ -1,6 +1,51 @@
 # Information architecture
 
-Generated and maintained handbooks use a stable top-level IA:
+## Local HTML SSOT
+
+When `contentSource.ssot: local`, the handbook catalog store is:
+
+```text
+.omd/dbs/<catalog-id>/*.html
+```
+
+See [`local-html-ia-graph.json`](./local-html-ia-graph.json) and
+[`html-document-contract.md`](./html-document-contract.md).
+
+Default catalogs (flat under `.omd/dbs/`):
+
+| Folder | Kind | Prefix |
+|---|---|---|
+| `release` | release | `REL-` |
+| `prds` | prd | `PRD-` |
+| `stories` | story | `US-` |
+| `features` | feature | `FEAT-` |
+| `policies` | policy | `POL-` / `POLICY-` |
+| `adr` | adr | `ADR-` |
+| `ia` | ia | `IA-` |
+| `pages` | page | `PAGE-` |
+| `layouts` | layout | `LAY-` |
+| `screen-states` | screen-state | `STA-` |
+| `archive` | archive | original ID |
+| `plans` | plan | `PLAN-` |
+| `glossary` | term | `TERM-` |
+| `models` | model | `MODEL-` |
+| `specs` | spec | `SPEC-` |
+
+`dbs/index.html` is the local home (catalog stack guide). Shared styles live in
+`.omd/assets/omd-doc.css`.
+
+`omd new` and `omd check` target `.omd/dbs` only. The Fumadocs MDX tree under
+`docs/content/docs` is not the local SSOT write path.
+
+## Notion SSOT
+
+When `contentSource.ssot: notion`, catalogs are inline databases stacked on a
+single Home page (no child pages, no sidebar). See
+`notion-information-architecture.md` and `notion-ia-graph.json`.
+
+## Fumadocs shell IA (optional viewer)
+
+Generated docs apps may still use a stable top-level MDX IA for local browsing:
 
 | Section | Role |
 |---|---|
@@ -12,31 +57,17 @@ Generated and maintained handbooks use a stable top-level IA:
 | Planning | PRD and story catalogs (index-only) |
 | Plans | Implementation plans (index-only catalog) |
 | ADR | Architecture decisions (index-only catalog) |
-| Spec | Living contract pages (children visible) |
+| Spec | Living contract pages |
 
-Default order:
+That MDX tree is a **shell mirror**, not the planning SSOT, when local HTML is
+selected. Machine graph validation reads `.omd/dbs`.
+
+Default MDX order (shell only):
 
 `Home → Vision → Start here → Domain → Workflow → Planning → Plans → ADR → Spec`
 
-There is no default **Development** or **Agent** section. IA is editable later
-via `.omd/project.json` and `sync`.
-
-Domain contains:
-
-- `glossary/` (`TERM-*`)
-- `models/` (`MODEL-*`)
-- `policies/` (`POLICY-*`)
+Domain shell folders: `glossary/` (`TERM-*`), `models/` (`MODEL-*`),
+`policies/` (`POLICY-*` / `POL-*`).
 
 Domain and Spec are living surfaces. PRDs and PLANs remain change-scoped
 catalogs, ADRs remain decision records, and `.omd/tasks` is execution state.
-
-Catalog folders (`domain/glossary`, `domain/models`, `domain/policies`,
-`planning/prds`, `planning/stories`, `plans`, `adr`, `spec/data-model`,
-`spec/system-model`) stay index-only in the sidebar. Each document is registered
-in its sibling `meta.json`. Domain’s sidebar shows Glossary, Models, and
-Policies; Spec’s sidebar shows the boundary entries (`data-model`,
-`system-model`). Those catalogs hide detail pages the same way PRDs do.
-CLI is not part of the default Spec IA.
-
-Browser pages expose a processed Markdown twin at the same URL with `.md`
-appended so agents can read the identical SSOT without scraping HTML.

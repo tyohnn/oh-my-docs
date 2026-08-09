@@ -23,6 +23,8 @@ import { loadHandbookIaGraph, planMetaSkeletonOperations } from './ia-graph.mjs'
 import { planInit } from './plan-init.mjs';
 import { planSetup } from './plan-setup.mjs';
 import { readTextIfExists } from './fs-ops.mjs';
+import { planLocalHtmlScaffold } from './local-html-scaffold.mjs';
+import { normalizeContentSource } from './omd-contract.mjs';
 
 /**
  * Adopt Oh My Docs into a project (greenfield scaffold or brownfield import).
@@ -35,6 +37,7 @@ import { readTextIfExists } from './fs-ops.mjs';
  *   packageManager?: string,
  *   dryRun?: boolean,
  *   force?: boolean,
+ *   contentSource?: { ssot: 'local' | 'notion', notion?: { rootPageId: string, rootPageUrl: string, schemaVersion?: string } },
  * }} options
  */
 export function adoptProject(options) {
@@ -66,23 +69,32 @@ export function adoptProject(options) {
     skillRoot: options.skillRoot,
   });
 
-  const operations = [...initPlan.operations, ...uiOps, ...setupPlan.operations];
+  const htmlOps = planLocalHtmlScaffold(
+    project.root,
+    options.skillRoot,
+    options.templateRoot,
+    options.force === true,
+  );
+
+  const operations = [...initPlan.operations, ...uiOps, ...setupPlan.operations, ...htmlOps];
   const conflicts = operations.filter((op) => op.conflict);
 
   const contract = createDefaultProject(project.root, {
     mode,
     docsPath: project.docsPath ?? 'docs',
     uiPath: options.uiPath ?? project.uiPath ?? 'packages/docs-ui',
+    ...(options.contentSource ? { contentSource: options.contentSource } : {}),
   });
 
   if (mode === 'brownfield' && inspection.documents.length > 0) {
     contract.ownership.importedOwned = inspection.documents.map((doc) => doc.path);
   }
 
-  // Sync structure meta.json skeletons from the handbook IA graph.
+  // Fumadocs shell meta skeletons (optional viewer) — not the local HTML SSOT.
   if (mode === 'greenfield' || options.force) {
     const graph = loadHandbookIaGraph(options.skillRoot);
-    const metaOps = planMetaSkeletonOperations(contract.paths.content, graph, {
+    const docsContent = `${contract.paths.docs}/content/docs`;
+    const metaOps = planMetaSkeletonOperations(docsContent, graph, {
       readExisting: (rel) => readTextIfExists(join(project.root, rel)),
     });
     operations.push(...metaOps);
@@ -174,8 +186,8 @@ function planUiSnapshot(root, templateRoot, uiPath, force) {
 }
 
 /**
- * Sync managed IA meta.json from .omd/project.json without rewriting owned docs.
- * @param {{ cwd: string, force?: boolean, dryRun?: boolean, schemasDir: string, skillRoot?: string }} options
+ * Sync managed local HTML scaffold + markers from .omd/project.json.
+ * @param {{ cwd: string, force?: boolean, dryRun?: boolean, schemasDir: string, skillRoot?: string, templateRoot?: string }} options
  */
 export function syncProject(options) {
   const project = detectProject(options.cwd);
@@ -191,7 +203,6 @@ export function syncProject(options) {
     ? JSON.parse(readFileSync(existingPath, 'utf8'))
     : contract;
 
-  const graph = loadHandbookIaGraph(options.skillRoot);
   // Refresh structure metadata stamp when missing.
   if (!contractData.informationArchitecture?.graphDigest) {
     const fresh = createDefaultProject(project.root, {
@@ -203,11 +214,36 @@ export function syncProject(options) {
     contractData.informationArchitecture = fresh.informationArchitecture;
   }
 
-  const metaOps = planMetaSkeletonOperations(contractData.paths.content, graph, {
-    readExisting: (rel) => readTextIfExists(join(project.root, rel)),
-  });
+  // Ensure paths.content points at local HTML root for local SSOT.
+  const ssot = normalizeContentSource(contractData).ssot;
+  if (ssot === 'local') {
+    contractData.paths = {
+      ...contractData.paths,
+      content: contractData.paths?.content?.includes('.omd/dbs')
+        ? contractData.paths.content
+        : '.omd/dbs',
+      assets: contractData.paths?.assets ?? '.omd/assets',
+    };
+  }
 
-  const operations = [...metaOps];
+  const templateRoot =
+    options.templateRoot ?? join(options.skillRoot ?? '', 'templates/default');
+  const htmlOps =
+    ssot === 'local' && options.skillRoot
+      ? planLocalHtmlScaffold(project.root, options.skillRoot, templateRoot, options.force === true)
+      : [];
+
+  const operations = [...htmlOps];
+
+  // Optional Fumadocs shell meta (viewer) — never treat as SSOT write target.
+  if (ssot === 'local' && contractData.paths?.docs) {
+    const graph = loadHandbookIaGraph(options.skillRoot);
+    const docsContent = `${contractData.paths.docs}/content/docs`;
+    const metaOps = planMetaSkeletonOperations(docsContent, graph, {
+      readExisting: (rel) => readTextIfExists(join(project.root, rel)),
+    });
+    operations.push(...metaOps);
+  }
 
   // Refresh markers (managed).
   for (const [file, body] of [

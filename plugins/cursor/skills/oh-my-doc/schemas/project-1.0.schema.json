@@ -10,11 +10,19 @@
     "paths": {
       "type": "object",
       "required": ["docs", "ui", "content", "templates"],
+      "description": "For contentSource.ssot=local, content is .omd/dbs (HTML catalogs). Notion SSOT ignores content for writes.",
       "properties": {
-        "docs": { "type": "string" },
+        "docs": { "type": "string", "description": "Optional Fumadocs shell app path (docs/ or apps/docs/)" },
         "ui": { "type": "string" },
-        "content": { "type": "string" },
-        "templates": { "type": "string" }
+        "content": {
+          "type": "string",
+          "description": "Local catalog root. Default .omd/dbs for HTML SSOT."
+        },
+        "templates": { "type": "string" },
+        "assets": {
+          "type": "string",
+          "description": "Shared local HTML assets (default .omd/assets)"
+        }
       }
     },
     "informationArchitecture": {
