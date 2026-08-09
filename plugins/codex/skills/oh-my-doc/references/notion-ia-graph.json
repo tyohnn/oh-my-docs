@@ -65,7 +65,7 @@
     {
       "key": "dbs.policies",
       "kind": "database",
-      "title": "Policies",
+      "title": "policy",
       "parent": "pages.home",
       "inline": true,
       "schema": "policies",

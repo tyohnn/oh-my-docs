@@ -49,7 +49,7 @@ Domain documents use stable prefixes:
 |---|---|---|
 | Term | `TERM-` | Shared meaning |
 | Model | `MODEL-` | Concepts, relationships, lifecycle |
-| Policy | `POL-` / `POLICY-` | Conditional product rule or invariant |
+| policy | `POL-` / `POLICY-` | Conditional product rule or invariant |
 
 Specifications reference Domain IDs rather than redefining them. PRDs and PLANs
 are bounded change records; Vision-level intent, stories, Domain, and SPECs are
@@ -66,8 +66,8 @@ Additional local catalogs for product handbook dogfood (e.g. Thread Booster):
 | IA | `IA-` | |
 | Page | `PAGE-` | |
 | Layout | `LAY-` | Requires `.omd-wireframe` sections |
-| Screen state | `STA-` | One state per file; requires wireframe |
-| Archive | original ID | Retired rows; keep provenance |
+| Page States | `STA-` | One state per file; requires wireframe |
+| 아카이브 (`archive`) | original ID | Retired rows; keep provenance |
 
 ## Task contracts
 

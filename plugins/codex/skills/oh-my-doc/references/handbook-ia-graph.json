@@ -118,7 +118,7 @@
     {
       "key": "pages.policies",
       "kind": "page",
-      "title": "Policies",
+      "title": "policy",
       "parent": "pages.domain",
       "inlineDatabase": "dbs.policies",
       "localPath": "domain/policies",
@@ -134,7 +134,7 @@
     {
       "key": "dbs.policies",
       "kind": "database",
-      "title": "Policies",
+      "title": "policy",
       "parent": "pages.policies",
       "inline": true,
       "schema": "policies"

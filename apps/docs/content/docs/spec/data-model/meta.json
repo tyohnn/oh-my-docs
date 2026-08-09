@@ -1,6 +1,7 @@
 {
   "title": "Data model",
   "pages": [
+    "index",
     "handbook-artifacts",
     "tasks",
     "content-source-contract"

@@ -1,6 +1,7 @@
 {
   "title": "Stories",
   "pages": [
+    "index",
     "us-navigate-product-context",
     "us-detect-and-refresh-stale-skill-ui",
     "us-plan-from-moderated-user-intent",
