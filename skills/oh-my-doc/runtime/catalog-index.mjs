@@ -36,7 +36,6 @@ function naturalIdCompare(a, b) {
  */
 export function renderCatalogIndexHtml(opts) {
   const { label, folder, kind, rows } = opts;
-  const count = rows.length;
   const sorted = [...rows].sort((x, y) => naturalIdCompare(x.id, y.id));
 
   const rowHtml =
@@ -95,7 +94,6 @@ ${omdDocumentHeadExtras('../../assets/omd-doc.css')}
     <header class="mb-6 rounded-xl border bg-card text-card-foreground shadow-sm px-5 py-4">
       <p class="omd-id mb-2">${escapeHtml(folder)}</p>
       <h1 class="font-display text-2xl font-bold tracking-tight">${escapeHtml(label)}</h1>
-      <p class="mt-1 text-sm text-muted-foreground"><span class="font-semibold text-foreground tabular-nums">${count}</span> document${count === 1 ? '' : 's'}</p>
     </header>
     <main>
       ${rowHtml}

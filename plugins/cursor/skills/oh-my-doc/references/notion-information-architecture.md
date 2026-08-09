@@ -25,7 +25,7 @@ Home (user-supplied notion-root = pages.home)
 ├── # 도메인
 │   ├── Glossary (inline DB)
 │   ├── Models (inline DB)
-│   └── Policies (inline DB)
+│   └── policy (inline DB)
 ├── # 기획
 │   ├── PRDs (inline DB)
 │   └── Stories (inline DB)

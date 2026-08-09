@@ -7,7 +7,7 @@
   "catalogs": [
     { "id": "glossary", "kind": "term", "label": "Glossary", "prefix": "TERM-", "folder": "glossary", "wireframe": false, "section": "domain" },
     { "id": "models", "kind": "model", "label": "Models", "prefix": "MODEL-", "folder": "models", "wireframe": false, "section": "domain" },
-    { "id": "policies", "kind": "policy", "label": "Policies", "prefix": ["POLICY-", "POL-"], "folder": "policies", "wireframe": false, "section": "domain" },
+    { "id": "policies", "kind": "policy", "label": "policy", "prefix": ["POLICY-", "POL-"], "folder": "policies", "wireframe": false, "section": "domain" },
     { "id": "prds", "kind": "prd", "label": "PRDs", "prefix": "PRD-", "folder": "prds", "wireframe": false, "section": "planning" },
     { "id": "stories", "kind": "story", "label": "User stories", "prefix": "US-", "folder": "stories", "wireframe": false, "section": "planning" },
     { "id": "data-model", "kind": "spec", "label": "Data model", "prefix": "DM-", "folder": "data-model", "wireframe": false, "section": "planning" },
@@ -20,8 +20,8 @@
     { "id": "ia", "kind": "ia", "label": "Information architecture", "prefix": "IA-", "folder": "ia", "wireframe": false, "section": "planning", "optional": true },
     { "id": "pages", "kind": "page", "label": "Pages", "prefix": ["SCR-", "PAGE-"], "folder": "pages", "wireframe": false, "section": "planning", "optional": true },
     { "id": "layouts", "kind": "layout", "label": "Layouts", "prefix": "LAY-", "folder": "layouts", "wireframe": true, "section": "planning", "optional": true },
-    { "id": "screen-states", "kind": "screen-state", "label": "Screen states", "prefix": "STA-", "folder": "screen-states", "wireframe": true, "section": "planning", "optional": true },
-    { "id": "archive", "kind": "archive", "label": "Archive", "prefix": null, "folder": "archive", "wireframe": false, "section": "development", "optional": true }
+    { "id": "screen-states", "kind": "screen-state", "label": "Page States", "prefix": "STA-", "folder": "screen-states", "wireframe": true, "section": "planning", "optional": true },
+    { "id": "archive", "kind": "archive", "label": "아카이브", "prefix": null, "folder": "archive", "wireframe": false, "section": "development", "optional": true }
   ],
   "kindToCatalog": {
     "term": "glossary",

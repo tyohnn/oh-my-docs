@@ -1,6 +1,7 @@
 {
   "title": "System model",
   "pages": [
+    "index",
     "handbook-ia",
     "pdca-lifecycle",
     "task-orchestration",

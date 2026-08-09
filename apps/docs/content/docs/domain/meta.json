@@ -1,4 +1,11 @@
 {
   "title": "Domain",
-  "pages": ["index", "glossary", "models", "policies"]
+  "pages": [
+    "index",
+    "glossary",
+    "models",
+    "policies"
+  ],
+  "collapsible": true,
+  "defaultOpen": true
 }

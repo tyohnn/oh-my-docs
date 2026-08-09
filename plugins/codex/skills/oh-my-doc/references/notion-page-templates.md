@@ -15,7 +15,7 @@ Oh My Docs handbook (agent SSOT). Catalogs are stacked inline databases on this 
 # 도메인
 <database url="{{dbs.glossary}}" inline="true">Glossary</database>
 <database url="{{dbs.models}}" inline="true">Models</database>
-<database url="{{dbs.policies}}" inline="true">Policies</database>
+<database url="{{dbs.policies}}" inline="true">policy</database>
 
 # 기획
 <database url="{{dbs.prds}}" inline="true">PRDs</database>

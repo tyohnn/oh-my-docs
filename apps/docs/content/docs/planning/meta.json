@@ -1,4 +1,10 @@
 {
   "title": "Planning",
-  "pages": ["index", "prds", "stories"]
+  "pages": [
+    "index",
+    "prds",
+    "stories"
+  ],
+  "collapsible": true,
+  "defaultOpen": true
 }

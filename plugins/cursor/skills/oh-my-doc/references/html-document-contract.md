@@ -69,10 +69,28 @@ Rules:
 | `html[data-omd-kind]` / `html[data-omd-id]` | Primary parse keys |
 | `<meta name="omd:*">` | Scalar fields (`id`, `kind`, `status`, `stage`, `changeType`, …) |
 | `[data-omd-field="<name>"]` | Human-visible scalar field mirror (text content) |
+| `[data-omd-chip]` | Optional; forces badge styling on a scalar `dd` |
 | `[data-omd-rel="<name>"]` | Relation list; each target is an `<a href="../<catalog>/<ID>.html">` |
 
 `data-omd-kind` / `omd:kind` use the **kind** token (`prd`, `story`, `layout`, …),
 not the folder name. Folder names match the catalog table below.
+
+Enum-like scalars (`status`, `stage`, `priority` / `우선순위`, `changeType`,
+`버전 유형`, `제품` / `제품 영역` / `area` / `product`, `persona`, `stateType`)
+render as pill badges via `omd-doc.css`. Free-text fields such as `summary`
+stay plain. Add `data-omd-chip` on other short categorical values when needed.
+
+Chip colors come from CSS variables in `omd-doc.css`:
+
+| Layer | How |
+|---|---|
+| Tone tokens | `--omd-chip-{neutral,muted,info,success,warning,danger,accent,violet}-{bg,fg,bd}` |
+| Field default | e.g. `status` → neutral, `priority` → warning, `product` → info |
+| Value default | `data-omd-value` (synced from text): `P0` danger, `계획`/`초안` neutral, `In progress` info, `오류` danger, … |
+| Override | `data-omd-tone="success\|warning\|danger\|info\|accent\|violet\|neutral\|muted"` |
+
+Keep `data-omd-value` equal to the visible text so value colors apply. `omd new` /
+`setField` write this attribute automatically.
 
 ## Human-readable surface
 

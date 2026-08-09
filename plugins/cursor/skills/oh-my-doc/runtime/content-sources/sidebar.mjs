@@ -551,7 +551,7 @@ export function defaultPageBody(key, title) {
       '# Glossary\nStable TERM definitions. Catalog rows live in the inline database below.',
     'pages.models': '# Models\nDomain models. Catalog rows live in the inline database below.',
     'pages.policies':
-      '# Policies\nDomain policies. Catalog rows live in the inline database below.',
+      '# policy\nDomain policies. Catalog rows live in the inline database below.',
     'pages.planning': '# Planning\nPRDs and user stories for bounded product changes.',
     'pages.prds':
       '# PRDs\nProduct requirements. Catalog rows live in the inline database below.',

@@ -154,11 +154,25 @@ function setMeta(html, name, value) {
 
 function setField(html, name, value) {
   const re = new RegExp(
-    `(<(?:dd|span|p|div)([^>]*\\sdata-omd-field=["']${name}["'][^>]*)>)([\\s\\S]*?)(<\\/(?:dd|span|p|div)>)`,
+    `<(dd|span|p|div)([^>]*\\sdata-omd-field=["']${name}["'][^>]*)>([\\s\\S]*?)<\\/\\1>`,
     'i',
   );
-  if (re.test(html)) return html.replace(re, `$1${escapeHtml(value)}$4`);
-  return html;
+  const escaped = escapeHtml(value);
+  let found = false;
+  const next = html.replace(re, (_match, tag, attrs) => {
+    found = true;
+    let nextAttrs = attrs;
+    if (/\sdata-omd-value=["'][^"']*["']/i.test(nextAttrs)) {
+      nextAttrs = nextAttrs.replace(
+        /\sdata-omd-value=["'][^"']*["']/i,
+        ` data-omd-value="${escaped}"`,
+      );
+    } else {
+      nextAttrs = `${nextAttrs} data-omd-value="${escaped}"`;
+    }
+    return `<${tag}${nextAttrs}>${escaped}</${tag}>`;
+  });
+  return found ? next : html;
 }
 
 function escapeHtml(value) {
