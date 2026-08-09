@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="adr" data-omd-id="ADR-1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="ADR-1" />
+  <meta name="omd:kind" content="adr" />
+  <meta name="omd:stage" content="accepted" />
+  <title>ADR-1 · Slim local/Notion SSOT; delete Supabase and docs gates</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">ADR-1</p>
+    <h1 data-omd-field="title">Slim local/Notion SSOT; delete Supabase and docs gates</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage">accepted</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">SSOT is local or Notion only; Supabase, revalidate, and docs-first gates are deleted.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Decision</h2>
+    <p>1. SSOT is only <code>local</code> \| <code>notion</code>. 2. Notion is Home + inline catalog DBs only. 3. Delete Supabase content port and revalidate surface. 4. Delete docs-first gates (<code>check:docs-first</code>, Plan trailer). 5. No soft migration.</p>
+  </main>
+</body>
+</html>

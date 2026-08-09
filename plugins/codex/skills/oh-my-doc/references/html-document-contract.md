@@ -28,7 +28,9 @@ Local handbook SSOT is **one self-contained `.html` file per catalog row** under
     plans/PLAN-001.html
     glossary/TERM-001.html
     models/MODEL-001.html
-    specs/SPEC-001.html
+    data-model/DM-1.html
+    system-model/SYSM-1.html
+    specs/SPEC-001.html          # optional legacy SPEC-*
 ```
 
 Filename = document ID + `.html` (e.g. `PRD-001.html`). Archive keeps the
@@ -127,7 +129,9 @@ variants in a single HTML document.
 | `plans` | `plan` | `PLAN-` |
 | `glossary` | `term` | `TERM-` |
 | `models` | `model` | `MODEL-` |
-| `specs` | `spec` | `SPEC-` |
+| `data-model` | `spec` | `DM-` |
+| `system-model` | `system-model` | `SYSM-` |
+| `specs` | `spec` | `SPEC-` (optional) |
 
 ## Shared stylesheet
 

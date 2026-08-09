@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="adr" data-omd-id="ADR-2">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="ADR-2" />
+  <meta name="omd:kind" content="adr" />
+  <meta name="omd:stage" content="accepted" />
+  <title>ADR-2 · Select one content source per project</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">ADR-2</p>
+    <h1 data-omd-field="title">Select one content source per project</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage">accepted</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Exactly one SSOT per project; ports + MCP isolate providers.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Context</h2>
+    <p>Projects need one authoritative handbook store; provider details should stay behind ports.</p>
+    <h2>Decision</h2>
+    <p>Exactly one SSOT per project: <code>local</code> \| <code>notion</code> (set reduced by ADR-008). Runtime manifests + host MCP isolate provider details.</p>
+    <h2>Consequences</h2>
+    <p>Unselected providers are not truth. Ask SSOT before first adopt.</p>
+  </main>
+</body>
+</html>

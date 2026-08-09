@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="prd" data-omd-id="PRD-6">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="PRD-6" />
+  <meta name="omd:kind" content="prd" />
+  <meta name="omd:status" content="active" />
+  <title>PRD-6 · Skill and UI refresh loop</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">PRD-6</p>
+    <h1 data-omd-field="title">Skill and UI refresh loop</h1>
+    <dl class="omd-props">
+      <dt>status</dt>
+      <dd data-omd-field="status">active</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Detect stale/missing skill or packages/docs-ui snapshot and refresh safely.</dd>
+      <dt>Stories</dt>
+      <dd data-omd-rel="stories">
+        <a href="../stories/US-9.html">US-9</a>
+      </dd>
+      <dt>Features</dt>
+      <dd data-omd-rel="features"></dd>
+      <dt>Release</dt>
+      <dd data-omd-rel="release"></dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Problem</h2>
+    <p>Stale skill or docs-ui vocabulary drifts from the canonical template.</p>
+    <h2>Outcome</h2>
+    <ul>
+    <li><code>inspect</code>/<code>check</code> detect missing or stale UI snapshot.</li>
+    <li>Local adopt/<code>sync</code> restores vocabulary from skill template.</li>
+    <li>Notion SSOT does not require docs-ui.</li>
+    </ul>
+  </main>
+</body>
+</html>

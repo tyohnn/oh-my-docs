@@ -3,10 +3,10 @@
   "skillVersion": "0.2.0",
   "templateVersion": "0.2.0",
   "uiSnapshot": {
-    "distribution": "none",
-    "vocabularyDigest": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    "distribution": "skill-template",
+    "vocabularyDigest": "b1e9cd04c195828d578d42587e854c5b4da695dff98bd2d111bd68e321879556"
   },
-  "projectDigest": "6e93a5bb30728972a898f689df42598a391952beac6c5a3a866ca35e2730dd7d",
+  "projectDigest": "82820ea970382f253ad9bb6dccb88a03c46f4a532c01782bf4d0677c9f762a17",
   "inventory": {
     "sections": [
       "home",
@@ -25,13 +25,30 @@
       "policies",
       "prds",
       "stories",
-      "spec-data-model",
-      "spec-system-model",
+      "data-model",
+      "system-model",
       "plans",
       "adr"
     ],
-    "vocabulary": [],
-    "contentSource": "notion"
+    "vocabulary": [
+      "Card",
+      "Cards",
+      "File",
+      "Files",
+      "Folder",
+      "DocKind",
+      "DocStatus",
+      "AdrStatus",
+      "Decision",
+      "SpecVersion",
+      "Canvas",
+      "CanvasLegend",
+      "DocsInlineToc",
+      "DocsSidebarFolder",
+      "indexOnlyPageTree",
+      "createCatalogNavigation"
+    ],
+    "contentSource": "local"
   },
   "files": {},
   "provider": {

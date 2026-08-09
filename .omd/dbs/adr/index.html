@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko" data-omd-catalog="adr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ADR · catalog</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: ["class"],
+    theme: {
+      extend: {
+        colors: {
+          border: "hsl(var(--border))",
+          input: "hsl(var(--input))",
+          ring: "hsl(var(--ring))",
+          background: "hsl(var(--background))",
+          foreground: "hsl(var(--foreground))",
+          primary: {
+            DEFAULT: "hsl(var(--primary))",
+            foreground: "hsl(var(--primary-foreground))",
+          },
+          secondary: {
+            DEFAULT: "hsl(var(--secondary))",
+            foreground: "hsl(var(--secondary-foreground))",
+          },
+          muted: {
+            DEFAULT: "hsl(var(--muted))",
+            foreground: "hsl(var(--muted-foreground))",
+          },
+          accent: {
+            DEFAULT: "hsl(var(--accent))",
+            foreground: "hsl(var(--accent-foreground))",
+          },
+          card: {
+            DEFAULT: "hsl(var(--card))",
+            foreground: "hsl(var(--card-foreground))",
+          },
+        },
+        borderRadius: {
+          lg: "var(--radius)",
+          md: "calc(var(--radius) - 2px)",
+          sm: "calc(var(--radius) - 4px)",
+        },
+        fontFamily: {
+          sans: ["var(--omd-font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+          mono: ["var(--omd-font-mono)", "ui-monospace", "monospace"],
+          display: ["var(--omd-font-display)", "ui-serif", "Georgia", "serif"],
+        },
+      },
+    },
+  };
+</script>
+</head>
+<body class="omd-catalog-page min-h-screen bg-background text-foreground antialiased">
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
+      <a class="font-medium text-primary hover:underline underline-offset-4" href="../index.html">Catalogs</a>
+      <span aria-hidden="true">/</span>
+      <span class="text-foreground">ADR</span>
+    </nav>
+    <header class="mb-6 rounded-xl border bg-card text-card-foreground shadow-sm px-5 py-4">
+      <p class="omd-id mb-2">adr</p>
+      <h1 class="font-display text-2xl font-bold tracking-tight">ADR</h1>
+      <p class="mt-1 text-sm text-muted-foreground"><span class="font-semibold text-foreground tabular-nums">6</span> documents</p>
+    </header>
+    <main>
+      <div class="rounded-md border bg-card text-card-foreground shadow-sm">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm">
+          <thead class="[&_tr]:border-b">
+            <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground w-[7.5rem]">ID</th>
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Title</th>
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Summary</th>
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground w-[7rem]">Status</th>
+            </tr>
+          </thead>
+          <tbody class="[&_tr:last-child]:border-0">
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./ADR-1.html"><span class="omd-id">ADR-1</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./ADR-1.html">Slim local/Notion SSOT; delete Supabase and docs gates</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">SSOT is local or Notion only; Supabase, revalidate, and docs-first gates are deleted.</td>
+              <td class="p-4 align-middle"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground" data-status="accepted">accepted</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./ADR-2.html"><span class="omd-id">ADR-2</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./ADR-2.html">Select one content source per project</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">Exactly one SSOT per project; ports + MCP isolate providers.</td>
+              <td class="p-4 align-middle"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground" data-status="accepted">accepted</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./ADR-3.html"><span class="omd-id">ADR-3</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./ADR-3.html">Fumadocs as the SSOT renderer</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">One MDX collection → browser pages and agent Markdown (local SSOT).</td>
+              <td class="p-4 align-middle"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground" data-status="accepted">accepted</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./ADR-4.html"><span class="omd-id">ADR-4</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./ADR-4.html">UI vocabulary ships as skill-template snapshot</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">Copy skill template into packages/docs-ui on local adopt.</td>
+              <td class="p-4 align-middle"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground" data-status="accepted">accepted</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./ADR-5.html"><span class="omd-id">ADR-5</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./ADR-5.html">Git snapshots approve task execution state</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">Git review approves .omd tasks; no live DB required.</td>
+              <td class="p-4 align-middle"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground" data-status="accepted">accepted</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./ADR-6.html"><span class="omd-id">ADR-6</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./ADR-6.html">Promote ADR and plans to top-level catalogs</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">Plans and ADRs are top-level catalogs (local); under 개발 on Notion.</td>
+              <td class="p-4 align-middle"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors text-foreground" data-status="accepted">accepted</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </main>
+  </div>
+</body>
+</html>

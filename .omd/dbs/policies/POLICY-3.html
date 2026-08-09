@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="policy" data-omd-id="POLICY-3">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="POLICY-3" />
+  <meta name="omd:kind" content="policy" />
+  <title>POLICY-3 · Ownership boundary exclusion</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">POLICY-3</p>
+    <h1 data-omd-field="title">Ownership boundary exclusion</h1>
+    <dl class="omd-props">
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Work with overlapping ownership boundaries must not run in parallel.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Policy</h2>
+    <p>If two tasks claim overlapping ownership boundaries, at most one may be active at a time. Prefer sequencing or splitting ownership over parallel work that fights over the same surface.</p>
+  </main>
+</body>
+</html>
