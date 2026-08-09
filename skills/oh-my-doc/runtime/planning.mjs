@@ -207,6 +207,7 @@ function relNameToKind(relName) {
     stories: 'story',
     story: 'story',
     specs: 'spec',
+    systemSpecs: 'system-model',
     features: 'feature',
     release: 'release',
     pages: 'page',
@@ -257,9 +258,11 @@ function applyGraphRules(documents, byId, problems) {
       continue;
     }
     if (document.kind === 'story') continue;
-    if (document.kind === 'spec') {
+    if (document.kind === 'spec' || document.kind === 'system-model') {
       if (!SPEC_STAGES.includes(document.stage ?? '')) {
-        problems.push(`${document.file}: spec stage must be draft, accepted, or superseded`);
+        problems.push(
+          `${document.file}: ${document.kind} stage must be draft, accepted, or superseded`,
+        );
       }
       continue;
     }

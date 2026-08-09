@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko" data-omd-catalog="glossary">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glossary · catalog</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: ["class"],
+    theme: {
+      extend: {
+        colors: {
+          border: "hsl(var(--border))",
+          input: "hsl(var(--input))",
+          ring: "hsl(var(--ring))",
+          background: "hsl(var(--background))",
+          foreground: "hsl(var(--foreground))",
+          primary: {
+            DEFAULT: "hsl(var(--primary))",
+            foreground: "hsl(var(--primary-foreground))",
+          },
+          secondary: {
+            DEFAULT: "hsl(var(--secondary))",
+            foreground: "hsl(var(--secondary-foreground))",
+          },
+          muted: {
+            DEFAULT: "hsl(var(--muted))",
+            foreground: "hsl(var(--muted-foreground))",
+          },
+          accent: {
+            DEFAULT: "hsl(var(--accent))",
+            foreground: "hsl(var(--accent-foreground))",
+          },
+          card: {
+            DEFAULT: "hsl(var(--card))",
+            foreground: "hsl(var(--card-foreground))",
+          },
+        },
+        borderRadius: {
+          lg: "var(--radius)",
+          md: "calc(var(--radius) - 2px)",
+          sm: "calc(var(--radius) - 4px)",
+        },
+        fontFamily: {
+          sans: ["var(--omd-font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+          mono: ["var(--omd-font-mono)", "ui-monospace", "monospace"],
+          display: ["var(--omd-font-display)", "ui-serif", "Georgia", "serif"],
+        },
+      },
+    },
+  };
+</script>
+</head>
+<body class="omd-catalog-page min-h-screen bg-background text-foreground antialiased">
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <nav class="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
+      <a class="font-medium text-primary hover:underline underline-offset-4" href="../index.html">Catalogs</a>
+      <span aria-hidden="true">/</span>
+      <span class="text-foreground">Glossary</span>
+    </nav>
+    <header class="mb-6 rounded-xl border bg-card text-card-foreground shadow-sm px-5 py-4">
+      <p class="omd-id mb-2">glossary</p>
+      <h1 class="font-display text-2xl font-bold tracking-tight">Glossary</h1>
+      <p class="mt-1 text-sm text-muted-foreground"><span class="font-semibold text-foreground tabular-nums">8</span> documents</p>
+    </header>
+    <main>
+      <div class="rounded-md border bg-card text-card-foreground shadow-sm">
+      <div class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm">
+          <thead class="[&_tr]:border-b">
+            <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground w-[7.5rem]">ID</th>
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Title</th>
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Summary</th>
+              <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground w-[7rem]">Status</th>
+            </tr>
+          </thead>
+          <tbody class="[&_tr:last-child]:border-0">
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-1.html"><span class="omd-id">TERM-1</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-1.html">Content source</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">The single authoritative handbook store for one project: local handbook or Notion catalogs.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-2.html"><span class="omd-id">TERM-2</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-2.html">Content port</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">How handbook operations reach the chosen content source without changing product meaning.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-3.html"><span class="omd-id">TERM-3</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-3.html">Provider mapping</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">Recorded links between stable handbook keys and objects in the chosen content source.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-4.html"><span class="omd-id">TERM-4</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-4.html">Provisioning manifest</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">A planned, ordered set of content-source setup steps the host carries out.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-5.html"><span class="omd-id">TERM-5</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-5.html">Plan</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">A bounded change record that says what to implement and why it is in scope.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-6.html"><span class="omd-id">TERM-6</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-6.html">Task</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">One unit of executable work under a plan, with dependencies and ownership boundaries.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-7.html"><span class="omd-id">TERM-7</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-7.html">Living document</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">A durable product definition that stays current under a stable identity.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+            <tr class="border-b transition-colors hover:bg-muted/50">
+              <td class="p-4 align-middle whitespace-nowrap"><a class="inline-flex" href="./TERM-8.html"><span class="omd-id">TERM-8</span></a></td>
+              <td class="p-4 align-middle font-medium"><a class="hover:underline underline-offset-4" href="./TERM-8.html">Approved snapshot</a></td>
+              <td class="p-4 align-middle text-muted-foreground max-w-md">The reviewed product/execution state agents should trust as current truth.</td>
+              <td class="p-4 align-middle"><span class="text-muted-foreground">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </main>
+  </div>
+</body>
+</html>

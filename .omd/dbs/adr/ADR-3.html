@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="adr" data-omd-id="ADR-3">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="ADR-3" />
+  <meta name="omd:kind" content="adr" />
+  <meta name="omd:stage" content="accepted" />
+  <title>ADR-3 · Fumadocs as the SSOT renderer</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">ADR-3</p>
+    <h1 data-omd-field="title">Fumadocs as the SSOT renderer</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage">accepted</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">One MDX collection → browser pages and agent Markdown (local SSOT).</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Context</h2>
+    <p>Handbook must serve people (navigable site) and agents (Markdown).</p>
+    <h2>Decision</h2>
+    <p>Use one Fumadocs MDX collection as the local renderer for <code>/docs</code> and <code>/md</code> twins.</p>
+    <h2>Note</h2>
+    <p>Applies when <code>ssot: local</code>. Notion SSOT does not use Fumadocs as content authority.</p>
+  </main>
+</body>
+</html>

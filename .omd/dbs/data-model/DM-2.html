@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="spec" data-omd-id="DM-2">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="DM-2" />
+  <meta name="omd:kind" content="spec" />
+  <meta name="omd:stage" content="accepted" />
+  <meta name="omd:specType" content="data-model" />
+  <title>DM-2 · Handbook artifacts</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">DM-2</p>
+    <h1 data-omd-field="title">Handbook artifacts</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage">accepted</dd>
+      <dt>specType</dt>
+      <dd data-omd-field="specType">data-model</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Durable catalog identities; local slug IDs vs Notion UNIQUE_ID OMD ID.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Contract</h2>
+    <p>Handbook catalogs use durable identities and registration.</p>
+    <ul>
+    <li>Local: kind-prefixed frontmatter <code>id</code> + sibling <code>meta.json</code></li>
+    <li>Notion: auto <code>OMD ID</code> (<code>UNIQUE_ID</code>) + Title/Summary; do not write OMD ID on create</li>
+    <li>Prefer update over duplicate</li>
+    </ul>
+    <h2>Catalog kinds</h2>
+    <p>PRD, story, plan, ADR, spec, term, model, policy.</p>
+  </main>
+</body>
+</html>

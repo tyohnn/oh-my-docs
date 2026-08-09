@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="system-model" data-omd-id="SYSM-3">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="SYSM-3" />
+  <meta name="omd:kind" content="system-model" />
+  <meta name="omd:stage" content="accepted" />
+  <meta name="omd:specType" content="system-model" />
+  <title>SYSM-3 · CLI / skill runtime</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">SYSM-3</p>
+    <h1 data-omd-field="title">CLI / skill runtime</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage">accepted</dd>
+      <dt>specType</dt>
+      <dd data-omd-field="specType">system-model</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">inspect/check/adopt/sync/new; explicit SSOT; local docs-ui restore.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Contract</h2>
+    <p>Skill runtime commands (JSON preferred):</p>
+    <ul>
+    <li><code>inspect</code> — never mutate</li>
+    <li><code>adopt --ssot local|notion</code></li>
+    <li><code>check</code> / <code>sync</code> / <code>new</code></li>
+    </ul>
+    <p>Notion adopt maps root → <code>pages.home</code> and provisions catalogs via MCP manifests. Does not scaffold docs-ui for Notion SSOT.</p>
+  </main>
+</body>
+</html>

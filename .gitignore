@@ -15,4 +15,5 @@ packages/cli/skills/
 
 # Oh My Docs
 .omd/.lock
+.omd/.migrate-cache/
 .vercel

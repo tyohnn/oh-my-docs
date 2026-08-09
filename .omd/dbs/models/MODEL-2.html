@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="model" data-omd-id="MODEL-2">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="MODEL-2" />
+  <meta name="omd:kind" content="model" />
+  <title>MODEL-2 · Task execution</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">MODEL-2</p>
+    <h1 data-omd-field="title">Task execution</h1>
+    <dl class="omd-props">
+      <dt>summary</dt>
+      <dd data-omd-field="summary">How plans turn into ordered, non-conflicting units of work.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Intent</h2>
+    <p>A plan authorizes a graph of tasks. Work starts only when dependencies are ready and ownership boundaries do not collide.</p>
+    <h2>Rules</h2>
+    <p>1. Tasks inherit intent from one plan. 2. Dependencies must be complete before a task becomes active. 3. Overlapping ownership boundaries must not run at the same time. 4. Review of the project’s approved snapshot decides what agents may trust as current execution state.</p>
+  </main>
+</body>
+</html>

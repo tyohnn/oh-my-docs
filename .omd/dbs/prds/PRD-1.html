@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="prd" data-omd-id="PRD-1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="PRD-1" />
+  <meta name="omd:kind" content="prd" />
+  <meta name="omd:status" content="active" />
+  <title>PRD-1 · Slim local and Notion SSOT</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">PRD-1</p>
+    <h1 data-omd-field="title">Slim local and Notion SSOT</h1>
+    <dl class="omd-props">
+      <dt>status</dt>
+      <dd data-omd-field="status">active</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">local|notion only; hard-delete Supabase, revalidate, and docs-first gates.</dd>
+      <dt>Stories</dt>
+      <dd data-omd-rel="stories">
+        <a href="../stories/US-1.html">US-1</a>
+      </dd>
+      <dt>Features</dt>
+      <dd data-omd-rel="features"></dd>
+      <dt>Release</dt>
+      <dd data-omd-rel="release"></dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Problem</h2>
+    <p>Supabase SSOT, revalidate setup, and docs-first gates made the product heavier than its use.</p>
+    <h2>Outcome</h2>
+    <ul>
+    <li>SSOT: <strong><code>local</code></strong> or <strong><code>notion</code></strong> only</li>
+    <li><strong>Local:</strong> full Fumadocs MDX handbook</li>
+    <li><strong>Notion:</strong> Home + <code># 도메인</code> / <code># 기획</code> / <code># 개발</code> + inline catalog DBs</li>
+    <li>Hard-delete Supabase handbook SSOT, revalidate/deploy surface, and planning gates</li>
+    </ul>
+    <h2>Success</h2>
+    <ul>
+    <li>No supabase SSOT path</li>
+    <li>No <code>check:docs-first</code></li>
+    <li>Notion provision is catalog-only</li>
+    <li>This dogfood repo uses <code>ssot: notion</code></li>
+    </ul>
+  </main>
+</body>
+</html>

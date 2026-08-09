@@ -110,7 +110,7 @@ function renderHtmlDocument(template, ctx) {
     body = setMeta(body, 'status', 'draft');
     body = setField(body, 'status', 'draft');
   }
-  if (kind === 'spec') {
+  if (kind === 'spec' || kind === 'system-model') {
     body = setMeta(body, 'stage', 'draft');
     body = setField(body, 'stage', 'draft');
   }
@@ -137,7 +137,8 @@ function placeholderId(kind) {
     archive: '<original-id>',
     term: 'TERM-<term>',
     model: 'MODEL-<model>',
-    spec: 'SPEC-<contract>',
+    spec: 'DM-<contract>',
+    'system-model': 'SYSM-<contract>',
   };
   return map[kind] ?? `<${kind}-id>`;
 }

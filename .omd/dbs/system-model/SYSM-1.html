@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="system-model" data-omd-id="SYSM-1">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="SYSM-1" />
+  <meta name="omd:kind" content="system-model" />
+  <meta name="omd:stage" content="accepted" />
+  <meta name="omd:specType" content="system-model" />
+  <title>SYSM-1 · Notion content port</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">SYSM-1</p>
+    <h1 data-omd-field="title">Notion content port</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage">accepted</dd>
+      <dt>specType</dt>
+      <dd data-omd-field="specType">system-model</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">MCP manifests; stacked Home + inline DBs; UNIQUE_ID OMD ID; section headers only.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Contract</h2>
+    <p>Notion SSOT uses strategy <code>stacked-on-home</code>.</p>
+    <ul>
+    <li>User-supplied <code>--notion-root</code> <strong>is</strong> Home</li>
+    <li>Exactly three <code>#</code> headings: <strong>도메인</strong>, <strong>기획</strong>, <strong>개발</strong></li>
+    <li>Inline catalog DBs under each; DB title is the catalog label</li>
+    <li>Forbidden: per-catalog headings, sidebar columns, Vision/Workflow child pages</li>
+    <li><code>OMD ID</code> is Notion <code>UNIQUE_ID</code> with workspace-unique prefixes (<code>PRD</code>, <code>US</code>, <code>PLAN</code>, <code>ADR</code>, <code>TERM</code>, <code>MODEL</code>, <code>POLICY</code>, <code>DM</code>, <code>SYSM</code>)</li>
+    <li>Never set <code>OMD ID</code> on create</li>
+    </ul>
+    <p>Runtime: <code>renderStackedHomeContent</code> / <code>validateStackedHomeContent</code> hard-fail on drift. Skill path: <code>skills/oh-my-doc/references/</code> (not <code>ref/</code>).</p>
+  </main>
+</body>
+</html>
