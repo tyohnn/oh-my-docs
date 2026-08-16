@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="plan" data-omd-id="PLAN-9">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="PLAN-9" />
+  <meta name="omd:kind" content="plan" />
+  <meta name="omd:stage" content="done" />
+  <meta name="omd:changeType" content="product" />
+  <title>PLAN-9 · Fix IA unit split and viewport wireframes</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">PLAN-9</p>
+    <h1 data-omd-field="title">Fix IA unit split and viewport wireframes</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage" data-omd-value="done">done</dd>
+      <dt>changeType</dt>
+      <dd data-omd-field="changeType" data-omd-value="product">product</dd>
+      <dt>codeAreas</dt>
+      <dd data-omd-field="codeAreas">skills/oh-my-doc/, .omd/assets/, .omd/dbs/</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Tighten IA unit contract and require top-of-doc mobile/desktop wireframes in check.</dd>
+      <dt>PRD</dt>
+      <dd data-omd-rel="prd">
+        <a href="../prds/PRD-7.html">PRD-7</a>
+      </dd>
+      <dt>Stories</dt>
+      <dd data-omd-rel="stories">
+        <a href="../stories/US-10.html">US-10</a>
+        <a href="../stories/US-11.html">US-11</a>
+      </dd>
+      <dt>Specs</dt>
+      <dd data-omd-rel="specs">
+        <a href="../data-model/DM-4.html">DM-4</a>
+      </dd>
+      <dt>Specs (System model)</dt>
+      <dd data-omd-rel="systemSpecs"></dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Goal</h2>
+    <p>Stop host agents from stuffing the whole sitemap into one IA row, and make layout/screen-state wireframes a stable mobile+desktop pair at the top of the document.</p>
+    <h2>Approach</h2>
+    <p>Canonical skill files under <code>skills/oh-my-doc</code>: rewrite IA and layout/screen-state templates, document the contract, enforce it in <code>html-document</code> / <code>validateHtmlPlanning</code>, add tests, then <code>pnpm sync:skills</code>.</p>
+    <h2>Steps</h2>
+    <ol>
+      <li>Update IA template (unitType, parent/children, one-unit copy) and layout/screen-state templates (mobile then desktop above body).</li>
+      <li>Update SKILL.md, html-document-contract, document-contracts, planning-workflow, local-html-ia-graph relations, CSS device frames.</li>
+      <li>Parse wireframe tokens and placement; reject whole-tree IA titles and missing unitType.</li>
+      <li>Runtime tests for new + check failures; consumer-agent simulation in a throwaway adopt dir.</li>
+      <li>Copy CSS into dogfood <code>.omd/assets</code> and sync plugin wrappers.</li>
+    </ol>
+    <h2>Risks</h2>
+    <p>Host projects with shell/body-only mocks will fail check until they add viewport sections — that is intended.</p>
+    <h2>Verification</h2>
+    <ul>
+      <li><code>node --test skills/oh-my-doc/tests/*.test.mjs</code></li>
+      <li><code>pnpm check:planning</code> and <code>pnpm check:skills</code></li>
+    </ul>
+  </main>
+</body>
+</html>

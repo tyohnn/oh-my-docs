@@ -63,10 +63,10 @@ Additional local catalogs for product handbook dogfood (e.g. Thread Booster):
 |---|---|---|
 | Release | `REL-` | |
 | Feature | `FEAT-` | |
-| IA | `IA-` | |
+| IA | `IA-` | One information unit per file; requires `unitType` |
 | Page | `PAGE-` | |
-| Layout | `LAY-` | Requires `.omd-wireframe` sections |
-| Page States | `STA-` | One state per file; requires wireframe |
+| Layout | `LAY-` | Mobile + desktop kit wireframes above the body; see `wireframe-authoring.md` |
+| Page States | `STA-` | One state per file; same wireframe kit as Layout |
 | 아카이브 (`archive`) | original ID | Retired rows; keep provenance |
 
 ## Task contracts

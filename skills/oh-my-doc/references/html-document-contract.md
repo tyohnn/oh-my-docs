@@ -76,9 +76,10 @@ Rules:
 not the folder name. Folder names match the catalog table below.
 
 Enum-like scalars (`status`, `stage`, `priority` / `우선순위`, `changeType`,
-`버전 유형`, `제품` / `제품 영역` / `area` / `product`, `persona`, `stateType`)
-render as pill badges via `omd-doc.css`. Free-text fields such as `summary`
-stay plain. Add `data-omd-chip` on other short categorical values when needed.
+`버전 유형`, `제품` / `제품 영역` / `area` / `product`, `persona`, `stateType`,
+`unitType`) render as pill badges via `omd-doc.css`. Free-text fields such as
+`summary` stay plain. Add `data-omd-chip` on other short categorical values when
+needed.
 
 Chip colors come from CSS variables in `omd-doc.css`:
 
@@ -96,7 +97,8 @@ Keep `data-omd-value` equal to the visible text so value colors apply. `omd new`
 
 - `<header class="omd-doc-header">` — ID, title, property chips / `<dl>` of fields and relations
 - `<main class="omd-doc-body">` — narrative sections (headings from the kind template)
-- Layouts and screen-states also include `<section class="omd-wireframe">` mockups
+- Layouts and screen-states also include `<section class="omd-wireframe">` mocks
+  **immediately after the header** (mobile, then desktop)
 
 ## Relations
 
@@ -113,27 +115,46 @@ Relations replace Notion relation properties. Example:
 - Empty relations keep the `data-omd-rel` element with no links.
 - `omd check` resolves relative hrefs and rejects dangling IDs.
 
+## Product IA rows (one information unit each)
+
+Each `ia/IA-*.html` row is **one information unit** (허브, 목록, 상세, 작성,
+설정, or 탐색) — not the whole product sitemap. Create another `IA-*` file for
+every unit. Link `parent` / `children` to other IA rows; attach Pages to the
+unit they belong to.
+
+Do **not** create a single row titled “Information architecture”, “전체 IA”,
+“정보구조”, or “사이트맵”. `omd check` rejects those titles and requires
+`unitType`.
+
 ## Wireframes (layouts · screen-states)
 
 Put wireframe sections **immediately after** the doc header (before
-`<main class="omd-doc-body">`).
+`<main class="omd-doc-body">`). Always emit **both** viewports, mobile first:
 
 ```html
-<section class="omd-wireframe" data-omd-wireframe="shell">
-  <!-- app shell + body cell mock -->
+<section class="omd-wireframe" data-omd-wireframe="mobile">
+  <!-- phone-width mock -->
 </section>
-<section class="omd-wireframe" data-omd-wireframe="body">
-  <!-- body skeleton alone -->
+<section class="omd-wireframe" data-omd-wireframe="desktop">
+  <!-- wide mock -->
 </section>
+<main class="omd-doc-body">
+  <!-- narrative only; no wireframes here -->
+</main>
 ```
 
-- **Shell / chrome layouts** (`tier` = 껍데기): `shell` wireframe only — no
-  standalone `body` section (the body slot is empty chrome).
-- **Body layouts** and **screen-states**: both `shell` (body seated in the app
-  shell) and `body` (skeleton alone).
+- Chrome versus body is drawn **inside** each viewport (sidebar, top bar,
+  content blocks). Do not use `shell` / `body` as the required split.
+- Shell / chrome layouts (`tier` = 껍데기) still include **both** mobile and
+  desktop mocks (chrome at each size).
+- Screen-states: **one state per file**. Do not bundle loading / empty / error
+  variants in a single HTML document.
+- **How to fill the mocks** (block kit, density, same regions on both
+  viewports): [`wireframe-authoring.md`](./wireframe-authoring.md).
 
-Screen-states: **one state per file**. Do not bundle loading / empty / error
-variants in a single HTML document.
+Each viewport must wrap `omd-wire-device-mobile` or `omd-wire-device-desktop`
+and include at least one kit class (`omd-wire-block`, `omd-wire-row`,
+`omd-wire-field`, `omd-wire-status`, or `omd-wire-actions`).
 
 ## Catalogs and ID prefixes
 
@@ -171,5 +192,8 @@ For `contentSource.ssot: local`, check validates `.omd/dbs` only:
 2. Kind/ID/prefix match the catalog folder
 3. Required lifecycle fields are present and enumerated
 4. Relations resolve to existing IDs
-5. `layout` / `screen-state` include at least one `.omd-wireframe` section
+5. `layout` / `screen-state` include `data-omd-wireframe="mobile"` and
+   `"desktop"` sections after the header and before `main.omd-doc-body`,
+   each with the matching device wrapper and at least one kit block
 6. Duplicate IDs across catalogs are rejected
+7. `ia` rows have a valid `unitType` and a unit title (not a whole-tree name)

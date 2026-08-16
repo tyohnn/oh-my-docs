@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="spec" data-omd-id="DM-4">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="DM-4" />
+  <meta name="omd:kind" content="spec" />
+  <meta name="omd:stage" content="accepted" />
+  <meta name="omd:specType" content="data-model" />
+  <title>DM-4 · IA unit rows and viewport wireframe contract</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">DM-4</p>
+    <h1 data-omd-field="title">IA unit rows and viewport wireframe contract</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage" data-omd-value="accepted">accepted</dd>
+      <dt>specType</dt>
+      <dd data-omd-field="specType">data-model</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">IA row = one unit with unitType; layout/screen-state require mobile+desktop wireframes before the body.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Contract</h2>
+    <p>Local HTML catalogs encode product IA as many <code>ia</code> documents and encode layout/screen-state mocks as two required viewport wireframes. Canonical skill text lives in <code>skills/oh-my-doc/references/html-document-contract.md</code>.</p>
+    <h2>Entities</h2>
+    <ul>
+      <li><code>ia</code> — one <a href="../glossary/TERM-9.html">information unit</a> per file under <code>.omd/dbs/ia/IA-*.html</code></li>
+      <li><code>layout</code> / <code>screen-state</code> — one layout or one state per file; each must expose viewport wireframes</li>
+    </ul>
+    <h2>Fields</h2>
+    <ul>
+      <li>IA <code>unitType</code>: <code>허브</code> | <code>목록</code> | <code>상세</code> | <code>작성</code> | <code>설정</code> | <code>탐색</code> (aliases: hub, collection, object, flow, settings, cluster)</li>
+      <li>IA relations: <code>parent</code> → ia, <code>children</code> → ia[], <code>pages</code> → page[]</li>
+      <li>Wireframe: <code>&lt;section class="omd-wireframe" data-omd-wireframe="mobile|desktop"&gt;</code></li>
+    </ul>
+    <h2>Invariants</h2>
+    <ul>
+      <li>IA title must name the unit. Forbidden whole-tree titles: Information architecture, 전체 IA, IA 구조, 정보구조, 사이트맵, sitemap (and close variants).</li>
+      <li>Layout and screen-state documents include both <code>mobile</code> and <code>desktop</code> wireframe sections.</li>
+      <li>Every <code>.omd-wireframe</code> appears after <code>header.omd-doc-header</code> and before <code>main.omd-doc-body</code>.</li>
+      <li>Each viewport uses the matching device wrapper (<code>omd-wire-device-mobile</code> / <code>omd-wire-device-desktop</code>) and at least one kit block (<code>omd-wire-block</code>, <code>omd-wire-row</code>, <code>omd-wire-field</code>, <code>omd-wire-status</code>, or <code>omd-wire-actions</code>).</li>
+      <li>Authoring rules live in <code>skills/oh-my-doc/references/wireframe-authoring.md</code>.</li>
+    </ul>
+    <h2>Acceptance</h2>
+    <ul>
+      <li><code>omd check</code> / <code>validateHtmlPlanning</code> report the invariants above.</li>
+      <li><code>omd new ia|layout|screen-state</code> templates satisfy the invariants.</li>
+    </ul>
+  </main>
+</body>
+</html>

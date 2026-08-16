@@ -181,7 +181,12 @@ test('omd new creates HTML under .omd/dbs', () => {
     assert.equal(layout.relativePath, '.omd/dbs/layouts/LAY-app-shell.html');
     applyFileOperations(root, layout.operations, { dryRun: false, force: true });
     const layoutHtml = readFileSync(join(root, layout.relativePath), 'utf8');
-    assert.match(layoutHtml, /omd-wireframe/);
+    assert.match(layoutHtml, /data-omd-wireframe="mobile"/);
+    assert.match(layoutHtml, /data-omd-wireframe="desktop"/);
+    const mobileAt = layoutHtml.indexOf('data-omd-wireframe="mobile"');
+    const desktopAt = layoutHtml.indexOf('data-omd-wireframe="desktop"');
+    const bodyAt = layoutHtml.search(/<main[^>]*omd-doc-body/);
+    assert.ok(mobileAt > -1 && desktopAt > mobileAt && bodyAt > desktopAt);
     assert.deepEqual(
       validateHtmlPlanning(join(root, '.omd/dbs'), loadLocalHtmlIaGraph(skillRoot)),
       [],

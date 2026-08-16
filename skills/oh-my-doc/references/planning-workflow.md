@@ -14,7 +14,12 @@
    not recreated as one integrated spec per initiative.
 6. Create drafts with
    `node <skill>/scripts/omd.mjs new <kind> --title "…" --yes`
-   (kinds include prd, story, feature, release, spec, plan, adr, layout,
-   screen-state, …). Local SSOT writes `.omd/dbs/<catalog>/<ID>.html`.
+   (kinds include prd, story, feature, release, spec, plan, adr, ia, page,
+   layout, screen-state, …). Local SSOT writes `.omd/dbs/<catalog>/<ID>.html`.
+   - **IA:** one `new ia` per information unit (Inbox, Thread, Settings, …).
+     Never one row for the whole sitemap. Set `unitType`.
+   - **Layout / screen-state:** keep the template wireframes at the top;
+     always fill both mobile and desktop mocks using
+     `references/wireframe-authoring.md`.
 7. Prefer updating a stable ID over duplicating. Validate with `omd.mjs check`
    / `pnpm check:planning` when you touch planning catalogs.

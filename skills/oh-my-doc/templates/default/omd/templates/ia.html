@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ko" data-omd-kind="ia" data-omd-id="IA-<area>">
+<html lang="ko" data-omd-kind="ia" data-omd-id="IA-<unit>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="omd:id" content="IA-<area>" />
+  <meta name="omd:id" content="IA-<unit>" />
   <meta name="omd:kind" content="ia" />
-  <title>IA-<area> · <area></title>
+  <title>IA-<unit> · <unit></title>
   <link rel="stylesheet" href="../../assets/omd-doc.css" />
 </head>
 <body>
@@ -15,27 +15,36 @@
     <a href="../index.html">Catalogs</a>
   </nav>
   <header class="omd-doc-header">
-    <p class="omd-id" data-omd-field="id">IA-<area></p>
-    <h1 data-omd-field="title"><area></h1>
+    <p class="omd-id" data-omd-field="id">IA-<unit></p>
+    <h1 data-omd-field="title"><unit></h1>
     <dl class="omd-props">
       <dt>summary</dt>
-      <dd data-omd-field="summary"><navigation / structure intent></dd>
+      <dd data-omd-field="summary">One information unit — not the whole product sitemap.</dd>
+      <dt>unitType</dt>
+      <!-- Change after create: 허브 | 목록 | 상세 | 작성 | 설정 | 탐색 -->
+      <dd data-omd-field="unitType" data-omd-value="목록">목록</dd>
+      <dt>Parent</dt>
+      <dd data-omd-rel="parent"></dd>
+      <dt>Children</dt>
+      <dd data-omd-rel="children"></dd>
       <dt>Pages</dt>
       <dd data-omd-rel="pages"></dd>
     </dl>
   </header>
+  <!-- One IA-* file = one information unit (허브/목록/상세/작성/설정/탐색).
+       Never dump the whole sitemap into a single row. Create another IA-* for each unit. -->
   <main class="omd-doc-body">
-    <h2>Purpose</h2>
-    <p class="omd-placeholder">…</p>
+    <h2>This unit</h2>
+    <p class="omd-placeholder">What this one unit is for. Do not paste the full product tree here.</p>
 
-    <h2>Structure</h2>
-    <p class="omd-placeholder">…</p>
+    <h2>Contained information</h2>
+    <p class="omd-placeholder">Fields, lists, or objects that belong to this unit only.</p>
+
+    <h2>Child units</h2>
+    <p class="omd-placeholder">Name child information units and create a separate IA-* row for each. Link them under Children.</p>
 
     <h2>Entry points</h2>
-    <p class="omd-placeholder">…</p>
-
-    <h2>Notes</h2>
-    <p class="omd-placeholder">…</p>
+    <p class="omd-placeholder">How a user arrives at this unit.</p>
   </main>
 </body>
 </html>

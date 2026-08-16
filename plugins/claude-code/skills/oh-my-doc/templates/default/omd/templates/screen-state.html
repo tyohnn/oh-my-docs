@@ -30,27 +30,43 @@
       <dd data-omd-rel="layouts"></dd>
     </dl>
   </header>
-  <!-- Wireframes first: shell+body, then body-only. -->
-  <section class="omd-wireframe" data-omd-wireframe="shell">
-    <h2>Shell + body</h2>
-    <div class="omd-wire-shell">
-      <aside class="omd-wire-sidebar">
-        <div class="active">Active nav</div>
-        <div>Item</div>
-      </aside>
-      <div class="omd-wire-main">
-        <div class="omd-wire-crumb">Home / …</div>
-        <div class="omd-wire-body">
-          <div class="omd-wire-block">Primary content region</div>
-          <div class="omd-wire-block">Secondary block</div>
+  <!-- Wireframes first: mobile then desktop. Same chrome as the layout; body shows this state. -->
+  <section class="omd-wireframe" data-omd-wireframe="mobile">
+    <h2>Mobile</h2>
+    <div class="omd-wire-device omd-wire-device-mobile">
+      <div class="omd-wire-mobile-bar">Product</div>
+      <div class="omd-wire-body">
+        <div class="omd-wire-status">State banner</div>
+        <div class="omd-wire-block is-primary">What this state shows</div>
+        <div class="omd-wire-actions">
+          <span class="is-primary">Recovery / next action</span>
         </div>
+      </div>
+      <div class="omd-wire-mobile-tabbar">
+        <span class="active">Home</span>
+        <span>Other</span>
       </div>
     </div>
   </section>
-  <section class="omd-wireframe" data-omd-wireframe="body">
-    <h2>Body only</h2>
-    <div class="omd-wire-body-only">
-      <div class="omd-wire-block">Body skeleton (no shell)</div>
+  <section class="omd-wireframe" data-omd-wireframe="desktop">
+    <h2>Desktop</h2>
+    <div class="omd-wire-device omd-wire-device-desktop">
+      <div class="omd-wire-shell">
+        <aside class="omd-wire-sidebar">
+          <div class="active">Home</div>
+          <div>Other</div>
+        </aside>
+        <div class="omd-wire-main">
+          <div class="omd-wire-crumb">Home / this screen</div>
+          <div class="omd-wire-body">
+            <div class="omd-wire-status">State banner</div>
+            <div class="omd-wire-block is-primary">What this state shows</div>
+            <div class="omd-wire-actions">
+              <span class="is-primary">Recovery / next action</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
   <main class="omd-doc-body">
