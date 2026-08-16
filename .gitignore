@@ -17,3 +17,4 @@ packages/cli/skills/
 .omd/.lock
 .omd/.migrate-cache/
 .vercel
+**/supabase/.temp/
