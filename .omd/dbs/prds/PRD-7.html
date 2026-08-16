@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="prd" data-omd-id="PRD-7">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="PRD-7" />
+  <meta name="omd:kind" content="prd" />
+  <meta name="omd:status" content="active" />
+  <title>PRD-7 · Product IA units and viewport wireframes</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">PRD-7</p>
+    <h1 data-omd-field="title">Product IA units and viewport wireframes</h1>
+    <dl class="omd-props">
+      <dt>status</dt>
+      <dd data-omd-field="status" data-omd-value="active">active</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">One IA row per information unit; layout/screen-state wireframes always sit on top as mobile + desktop.</dd>
+      <dt>Stories</dt>
+      <dd data-omd-rel="stories">
+        <a href="../stories/US-10.html">US-10</a>
+        <a href="../stories/US-11.html">US-11</a>
+        <a href="../stories/US-12.html">US-12</a>
+      </dd>
+      <dt>Features</dt>
+      <dd data-omd-rel="features"></dd>
+      <dt>Release</dt>
+      <dd data-omd-rel="release"></dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Problem</h2>
+    <p>When agents use Oh My Docs in a host project they often write the entire product sitemap into a single <code>IA-*</code> row, and they place layout/screen-state wireframes anywhere in the document. Viewport coverage is inconsistent — some projects get one mock, some mix shell/body instead of mobile/desktop.</p>
+    <h2>Outcome</h2>
+    <ul>
+      <li>Each product IA catalog row is one <a href="../glossary/TERM-9.html">information unit</a>, not the whole IA tree.</li>
+      <li>Layout and screen-state wireframes always appear immediately after the doc header, before narrative body.</li>
+      <li>Every layout and screen-state has both a mobile and a desktop wireframe.</li>
+      <li><code>omd check</code> rejects whole-tree IA titles and missing/misplaced viewport wireframes.</li>
+    </ul>
+    <h2>Goals</h2>
+    <ul>
+      <li>Make the IA template and skill text impossible to read as “dump the sitemap in one file”.</li>
+      <li>Replace the required wireframe split from shell/body to mobile/desktop (see <a href="../adr/ADR-7.html">ADR-7</a>).</li>
+      <li>Keep check machine-enforceable so project-to-project drift stops.</li>
+    </ul>
+    <h2>Non-goals</h2>
+    <ul>
+      <li>Auto-splitting an existing mega-IA file into units (agents rewrite rows).</li>
+      <li>Generating pixel-perfect UI; wireframes stay structural mocks.</li>
+    </ul>
+    <h2>Included stories</h2>
+    <p><a href="../stories/US-10.html">US-10</a>, <a href="../stories/US-11.html">US-11</a>, <a href="../stories/US-12.html">US-12</a>.</p>
+    <h2>Success measures</h2>
+    <ul>
+      <li><code>omd new ia --title "Information architecture"</code> fails check; <code>omd new ia --title "Inbox"</code> passes with <code>unitType</code>.</li>
+      <li><code>omd new layout</code> / <code>omd new screen-state</code> emit mobile then desktop wireframes above <code>main.omd-doc-body</code>.</li>
+      <li>Check fails if a wireframe sits inside or after the narrative body, or if either viewport is missing.</li>
+    </ul>
+  </main>
+</body>
+</html>

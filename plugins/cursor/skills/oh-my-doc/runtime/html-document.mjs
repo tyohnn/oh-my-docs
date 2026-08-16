@@ -86,7 +86,7 @@ export function parseHtmlDocument(html, pathHint = 'document.html') {
     matchTagText(html, 'h1') ||
     (metas.title ?? undefined);
 
-  const hasWireframe = /class=["'][^"']*\bomd-wireframe\b/i.test(html);
+  const wireframes = analyzeWireframes(html);
 
   return {
     kind,
@@ -97,8 +97,103 @@ export function parseHtmlDocument(html, pathHint = 'document.html') {
     changeType: fields.changeType || metas.changeType,
     fields,
     relations,
-    hasWireframe,
+    hasWireframe: wireframes.kinds.length > 0,
+    wireframes,
     raw: html,
+  };
+}
+
+export const IA_UNIT_TYPES = [
+  '허브',
+  '목록',
+  '상세',
+  '작성',
+  '설정',
+  '탐색',
+  'hub',
+  'collection',
+  'object',
+  'flow',
+  'settings',
+  'cluster',
+];
+
+const WHOLE_PRODUCT_IA_TITLE =
+  /^(the\s+)?(complete\s+|full\s+|entire\s+)?(product\s+|app\s+|앱\s*|제품\s*)?(information architecture|sitemap|site map|ia|정보\s*구조|정보구조|사이트\s*맵|사이트맵)(\s*구조)?$/i;
+
+/**
+ * True when the IA title names the whole product tree instead of one unit.
+ * @param {string} title
+ */
+export function isWholeProductIaTitle(title) {
+  const normalized = String(title ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+  if (!normalized) return false;
+  const forbidden = new Set([
+    'information architecture',
+    'product ia',
+    'app ia',
+    '전체 ia',
+    '전체 정보 구조',
+    '전체 정보구조',
+    'ia 구조',
+    '정보 구조',
+    '정보구조',
+    '사이트맵',
+    '사이트 맵',
+    'sitemap',
+    'site map',
+    '전체 사이트맵',
+    '앱 정보구조',
+    '앱 정보 구조',
+  ]);
+  return forbidden.has(normalized) || WHOLE_PRODUCT_IA_TITLE.test(String(title).trim());
+}
+
+/**
+ * @param {string} html
+ */
+export function analyzeWireframes(html) {
+  /** @type {Array<{ index: number, kind: string }>} */
+  const frames = [];
+  const re = /<section\b([^>]*)>/gi;
+  let match;
+  while ((match = re.exec(html))) {
+    if (!/\bomd-wireframe\b/.test(match[1])) continue;
+    const kind = (match[1].match(/data-omd-wireframe=["']([^"']+)["']/i)?.[1] ?? '').toLowerCase();
+    frames.push({ index: match.index, kind });
+  }
+  const header = html.search(/<header\b[^>]*\bomd-doc-header\b/i);
+  const body = html.search(/<main\b[^>]*\bomd-doc-body\b/i);
+  const kinds = frames.map((frame) => frame.kind);
+  const allBeforeBody = body === -1 ? frames.length === 0 : frames.every((frame) => frame.index < body);
+  const allAfterHeader = header === -1 ? true : frames.every((frame) => frame.index > header);
+
+  const KIT = /omd-wire-(?:block|row|field|status|actions)\b/i;
+  const detailed = frames.map((frame, i) => {
+    const end = i + 1 < frames.length ? frames[i + 1].index : body === -1 ? html.length : body;
+    const slice = html.slice(frame.index, end);
+    const hasDevice =
+      frame.kind === 'mobile'
+        ? /\bomd-wire-device-mobile\b/.test(slice)
+        : frame.kind === 'desktop'
+          ? /\bomd-wire-device-desktop\b/.test(slice)
+          : /\bomd-wire-device\b/.test(slice);
+    return {
+      ...frame,
+      hasDevice,
+      hasKit: KIT.test(slice),
+    };
+  });
+
+  return {
+    frames: detailed,
+    kinds,
+    allBeforeBody,
+    allAfterHeader,
+    placedAtTop: allBeforeBody && allAfterHeader,
   };
 }
 
@@ -170,8 +265,45 @@ export function collectHtmlDocuments(dbsRoot, graph) {
     if (filename !== expectedName && catalog.kind !== 'archive') {
       problems.push(`${rel}: filename must be ${expectedName}`);
     }
-    if (catalog.wireframe && !parsed.hasWireframe) {
-      problems.push(`${rel}: ${catalog.kind} requires at least one section.omd-wireframe`);
+    if (catalog.wireframe) {
+      const kinds = parsed.wireframes?.kinds ?? [];
+      if (!kinds.includes('mobile') || !kinds.includes('desktop')) {
+        problems.push(
+          `${rel}: ${catalog.kind} requires data-omd-wireframe="mobile" and data-omd-wireframe="desktop"`,
+        );
+      }
+      if (!parsed.wireframes?.placedAtTop) {
+        problems.push(
+          `${rel}: ${catalog.kind} wireframes must appear after header.omd-doc-header and before main.omd-doc-body`,
+        );
+      }
+      for (const frame of parsed.wireframes?.frames ?? []) {
+        if (frame.kind === 'mobile' || frame.kind === 'desktop') {
+          if (!frame.hasDevice) {
+            problems.push(
+              `${rel}: ${frame.kind} wireframe requires .omd-wire-device-${frame.kind}`,
+            );
+          }
+          if (!frame.hasKit) {
+            problems.push(
+              `${rel}: ${frame.kind} wireframe needs at least one kit block (omd-wire-block|row|field|status|actions)`,
+            );
+          }
+        }
+      }
+    }
+    if (catalog.kind === 'ia') {
+      const unitType = parsed.fields.unitType ?? parsed.fields.unittype;
+      if (!unitType || !IA_UNIT_TYPES.includes(unitType)) {
+        problems.push(
+          `${rel}: ia requires unitType (허브|목록|상세|작성|설정|탐색 or hub|collection|object|flow|settings|cluster)`,
+        );
+      }
+      if (parsed.title && isWholeProductIaTitle(parsed.title)) {
+        problems.push(
+          `${rel}: ia title must name one information unit, not the whole product IA (${parsed.title})`,
+        );
+      }
     }
     documents.push({
       ...parsed,

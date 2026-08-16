@@ -45,6 +45,20 @@ There is no PostCSS/Vite step for `.omd` files. Prefer CDN utilities on indexes;
 keep document templates readable with semantic classes + shared CSS. Offline, tables
 still render via the CSS fallback.
 
+### Product IA, layouts, wireframes
+
+- **IA:** one `.omd/dbs/ia/IA-*.html` per information unit (hub / list / detail /
+  compose / settings / nav cluster). Never a single row titled “Information
+  architecture”, “전체 IA”, or a dumped sitemap. Set `unitType`. Link
+  parent/children; attach Pages to the unit they belong to.
+- **Layouts and screen-states:** wireframes sit **immediately after the header**,
+  before `<main class="omd-doc-body">`. Always emit both
+  `data-omd-wireframe="mobile"` and `data-omd-wireframe="desktop"` (mobile first).
+  Fill them with the shared kit in `references/wireframe-authoring.md` (device
+  chrome, named `omd-wire-*` blocks, same regions on both viewports). Do not
+  move mocks into the narrative body. `omd check` enforces placement, viewports,
+  device wrappers, and at least one kit block.
+
 ### State machine
 
 1. `inspect` — classify greenfield vs brownfield; never mutate.
@@ -69,6 +83,7 @@ still render via the CSS fallback.
 | `references/methodology.md` | Product intent and docs-first principles |
 | `references/information-architecture.md` | Handbook section layout |
 | `references/html-document-contract.md` | Local HTML catalog format |
+| `references/wireframe-authoring.md` | How to fill layout/screen-state mocks |
 | `references/local-html-ia-graph.json` | Local `.omd/dbs` catalog map |
 | `references/planning-workflow.md` | How to plan before code |
 | `references/implementation-workflow.md` | How to implement under a ready plan |
@@ -90,3 +105,5 @@ still render via the CSS fallback.
 - Never auto-reorder brownfield IA on first adopt.
 - Prefer `inspect → adopt → check` over inventing handbook files.
 - For local SSOT, write HTML under `.omd/dbs` — do not treat Fumadocs MDX as the planning store.
+- Never put the whole product sitemap in one `IA-*` row; split by information unit.
+- Never place layout/screen-state wireframes below the narrative body; always include mobile and desktop.

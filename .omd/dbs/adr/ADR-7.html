@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="adr" data-omd-id="ADR-7">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="ADR-7" />
+  <meta name="omd:kind" content="adr" />
+  <meta name="omd:stage" content="accepted" />
+  <title>ADR-7 · Wireframes are mobile and desktop viewports</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">ADR-7</p>
+    <h1 data-omd-field="title">Wireframes are mobile and desktop viewports</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage" data-omd-value="accepted">accepted</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Required wireframe split is mobile + desktop, not shell + body.</dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Context</h2>
+    <p>Layout and screen-state templates previously required <code>data-omd-wireframe="shell"</code> and <code>"body"</code>. Host projects still placed mocks inconsistently, and they did not reliably produce both phone and desktop views.</p>
+    <h2>Decision</h2>
+    <p>The required pair is <code>mobile</code> then <code>desktop</code>. Chrome versus body is drawn <em>inside</em> each viewport mock (sidebar, top bar, content blocks). Shell-only layouts still emit both viewports — they show chrome at each size, not a separate body skeleton.</p>
+    <h2>Consequences</h2>
+    <ul>
+      <li>Check enforces the two viewport tokens and that all wireframes sit above <code>main.omd-doc-body</code>.</li>
+      <li>Existing host docs that only have shell/body mocks fail check until rewritten.</li>
+    </ul>
+    <h2>Alternatives considered</h2>
+    <ul>
+      <li>Keep shell/body and add mobile/desktop (four mocks) — too noisy for a catalog row.</li>
+      <li>Guidance-only, no check — already failed across projects.</li>
+    </ul>
+  </main>
+</body>
+</html>

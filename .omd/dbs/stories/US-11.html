@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="story" data-omd-id="US-11">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="US-11" />
+  <meta name="omd:kind" content="story" />
+  <title>US-11 · Show mobile and desktop wireframes at the top of layouts</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">US-11</p>
+    <h1 data-omd-field="title">Show mobile and desktop wireframes at the top of layouts</h1>
+    <dl class="omd-props">
+      <dt>summary</dt>
+      <dd data-omd-field="summary">As a handbook reader, I see mobile then desktop wireframes at the top of every layout and screen-state, before narrative.</dd>
+      <dt>PRD</dt>
+      <dd data-omd-rel="prd">
+        <a href="../prds/PRD-7.html">PRD-7</a>
+      </dd>
+      <dt>Features</dt>
+      <dd data-omd-rel="features"></dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Persona</h2>
+    <p>Human or agent reading a layout or screen-state HTML catalog row.</p>
+    <h2>Narrative</h2>
+    <p>I open a <code>LAY-*</code> or <code>STA-*</code> document and immediately see a mobile mock, then a desktop mock, then the written role/trigger notes. Position does not vary by project.</p>
+    <h2>Acceptance</h2>
+    <ul>
+      <li>Templates put <code>data-omd-wireframe="mobile"</code> then <code>data-omd-wireframe="desktop"</code> after the header and before <code>main.omd-doc-body</code>.</li>
+      <li>Check fails if either viewport is missing, or if any <code>.omd-wireframe</code> appears at or after the narrative body.</li>
+      <li>CSS frames mobile as a phone-width device and desktop as a wide device.</li>
+    </ul>
+  </main>
+</body>
+</html>

@@ -213,6 +213,8 @@ function relNameToKind(relName) {
     pages: 'page',
     layouts: 'layout',
     ia: 'ia',
+    parent: 'ia',
+    children: 'ia',
   };
   return map[relName] ?? null;
 }

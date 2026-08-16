@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko" data-omd-kind="plan" data-omd-id="PLAN-10">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="omd:id" content="PLAN-10" />
+  <meta name="omd:kind" content="plan" />
+  <meta name="omd:stage" content="done" />
+  <meta name="omd:changeType" content="product" />
+  <title>PLAN-10 · Unify wireframe authoring rules</title>
+  <link rel="stylesheet" href="../../assets/omd-doc.css" />
+</head>
+<body>
+  <nav class="omd-crumb" aria-label="Breadcrumb">
+    <a class="omd-back" href="./index.html"><span class="omd-back-icon" aria-hidden="true">←</span> 목록으로</a>
+    <span aria-hidden="true">·</span>
+    <a href="../index.html">Catalogs</a>
+  </nav>
+  <header class="omd-doc-header">
+    <p class="omd-id" data-omd-field="id">PLAN-10</p>
+    <h1 data-omd-field="title">Unify wireframe authoring rules</h1>
+    <dl class="omd-props">
+      <dt>stage</dt>
+      <dd data-omd-field="stage" data-omd-value="done">done</dd>
+      <dt>changeType</dt>
+      <dd data-omd-field="changeType" data-omd-value="product">product</dd>
+      <dt>codeAreas</dt>
+      <dd data-omd-field="codeAreas">skills/oh-my-doc/, .omd/assets/, .omd/dbs/</dd>
+      <dt>summary</dt>
+      <dd data-omd-field="summary">Add a shared wireframe kit and check device/block usage so mocks look the same across hosts.</dd>
+      <dt>PRD</dt>
+      <dd data-omd-rel="prd">
+        <a href="../prds/PRD-7.html">PRD-7</a>
+      </dd>
+      <dt>Stories</dt>
+      <dd data-omd-rel="stories">
+        <a href="../stories/US-12.html">US-12</a>
+      </dd>
+      <dt>Specs</dt>
+      <dd data-omd-rel="specs">
+        <a href="../data-model/DM-4.html">DM-4</a>
+      </dd>
+      <dt>Specs (System model)</dt>
+      <dd data-omd-rel="systemSpecs"></dd>
+    </dl>
+  </header>
+  <main class="omd-doc-body">
+    <h2>Goal</h2>
+    <p>Placement and viewport pair already exist. Add one authoring guide plus a small HTML/CSS kit so agents fill wireframes the same way.</p>
+    <h2>Approach</h2>
+    <ol>
+      <li>Write <code>references/wireframe-authoring.md</code> and link it from SKILL.md + html-document-contract.</li>
+      <li>Extend CSS/templates with device chrome + block kit; copy CSS to dogfood assets.</li>
+      <li>Check each viewport for matching <code>omd-wire-device-*</code> and at least one kit block.</li>
+      <li>Sync plugins; tests for kit enforcement.</li>
+    </ol>
+    <h2>Verification</h2>
+    <p><code>node --test skills/oh-my-doc/tests/*.test.mjs</code>, <code>pnpm check:planning</code>, <code>pnpm check:skills</code>.</p>
+  </main>
+</body>
+</html>

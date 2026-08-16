@@ -67,7 +67,7 @@
     "layout": ["pages"],
     "screen-state": ["pages", "layouts"],
     "page": ["ia", "layouts"],
-    "ia": ["pages"],
+    "ia": ["pages", "parent", "children"],
     "archive": ["replaces"]
   }
 }
